@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Keepio
 
-## Getting Started
+> 인스타·블로그·유튜브 등에서 모은 링크를 **AI가 자동 분류**하고, 사용자가 **컬렉션으로 묶어 비교·결정까지** 하는 링크 큐레이션 앱.
 
-First, run the development server:
+## 무엇을 해결하나
+
+"나중에 봐야지" 하고 쏟아내듯 저장한 링크는 정리가 안 돼 결국 다시 못 찾고 사라진다.
+Keepio는 **저장하는 순간** AI가 콘텐츠 타입을 자동 분류하고, 사용자가 자기 프로젝트(여행·결혼준비 등) 단위로 자유롭게 묶을 수 있게 해 "쌓아두기만 하는 쓰레기통"이 되지 않게 한다.
+
+## 핵심 구조 — 두 개의 독립적인 분류 축
+
+| 축 | 주체 | 의미 | 예시 |
+|---|---|---|---|
+| **카테고리** | AI 자동 | 콘텐츠 본질 타입 | 카페·호텔·맛집·아티클·영상·장소 |
+| **컬렉션** | 사용자 직접 | 프로젝트·맥락 (중첩 가능) | 교토 여행, 강릉 > 가족여행 > 호텔 |
+
+한 링크는 **카테고리 1개 + 여러 컬렉션**에 동시에 속한다. AI는 추천만, 결정은 사용자.
+
+## 주요 기능
+
+1. **저장** — 공유 시트 / 앱 내 `+` / URL 입력 모두 통합 시트로, 1초 저장.
+2. **분류** — AI 자동 카테고리 + 다중선택 + 자연어 검색으로 일괄 정리.
+3. **컬렉션** — 재귀 중첩. 자식 있으면 카드 그리드, 말단이면 리스트.
+4. **비교** — 후보가 모이면 AI가 비교 템플릿(스펙/무드/일정/허브) 자동 선택.
+5. **결정** — 결정 도우미에 누적, 회상 가능.
+
+## 기술 스택
+
+Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS v4
+
+## 시작하기
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) 에서 확인.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| 명령어 | 설명 |
+|---|---|
+| `npm run dev` | 개발 서버 |
+| `npm run build` | 프로덕션 빌드 |
+| `npm run start` | 프로덕션 실행 |
+| `npm run lint` | 린트 |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 디자인 톤
 
-## Learn More
+토스처럼 미니멀한 그레이스케일. AI 기능만 보라색(`#7F77DD`) 한 톤으로 강조. 그라데이션·과한 그림자·이모지 배제.
 
-To learn more about Next.js, take a look at the following resources:
+## 문서
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 문서 | 내용 |
+|---|---|
+| [docs/PROJECT.md](docs/PROJECT.md) | 제품 기획·구조 상세 |
+| [docs/TECH_STACK.md](docs/TECH_STACK.md) | 스택·설정·명령어 |
+| [docs/STYLING.md](docs/STYLING.md) | 디자인 토큰·스타일 규칙 |
+| [CLAUDE.md](CLAUDE.md) | Claude 작업 규칙 |
