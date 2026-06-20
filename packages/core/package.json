@@ -1,0 +1,14 @@
+{
+  "name": "@keepio/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme": "./src/shared/config/theme.ts"
+  },
+  "types": "./src/index.ts",
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

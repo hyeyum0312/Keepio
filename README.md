@@ -26,23 +26,33 @@ Keepio는 **저장하는 순간** AI가 콘텐츠 타입을 자동 분류하고,
 
 ## 기술 스택
 
-Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS v4
+Turborepo(monorepo) · Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS v4
+
+## 구조
+
+```
+keepio/
+├── apps/web/        # Next.js 앱 (UI·라우팅)
+└── packages/core/   # @keepio/core — 플랫폼 무관 로직 (web·mobile 공유)
+```
+
+향후 `apps/mobile`(React Native/Expo)이 `@keepio/core`를 공유한다.
 
 ## 시작하기
 
 ```bash
 npm install
-npm run dev
+npm run dev   # turbo → apps/web 개발 서버
 ```
 
 [http://localhost:3000](http://localhost:3000) 에서 확인.
 
 | 명령어 | 설명 |
 |---|---|
-| `npm run dev` | 개발 서버 |
-| `npm run build` | 프로덕션 빌드 |
-| `npm run start` | 프로덕션 실행 |
+| `npm run dev` | 개발 서버 (web) |
+| `npm run build` | 전체 빌드 (turbo) |
 | `npm run lint` | 린트 |
+| `npm run test` | 테스트 |
 
 ## 디자인 톤
 
@@ -55,4 +65,5 @@ npm run dev
 | [docs/PROJECT.md](docs/PROJECT.md) | 제품 기획·구조 상세 |
 | [docs/TECH_STACK.md](docs/TECH_STACK.md) | 스택·설정·명령어 |
 | [docs/STYLING.md](docs/STYLING.md) | 디자인 토큰·스타일 규칙 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | FSD·모노레포·RN 확장 설계 |
 | [CLAUDE.md](CLAUDE.md) | Claude 작업 규칙 |

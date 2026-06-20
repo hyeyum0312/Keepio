@@ -6,30 +6,38 @@
 
 | 영역 | 기술 | 버전 |
 |---|---|---|
+| 모노레포 | Turborepo + npm workspaces | turbo ^2 |
 | 프레임워크 | Next.js (**App Router**) | 16.2.9 |
 | UI 라이브러리 | React | 19.2.4 |
 | 언어 | TypeScript | ^5 |
 | 스타일링 | Tailwind CSS (`@tailwindcss/postcss`) | ^4 |
+| 상태 | Zustand(클라이언트) / TanStack Query(서버) | 예정 |
+| API 코드젠 | Orval (OpenAPI → Query 훅) | 예정 |
 | 린트 | ESLint (`eslint-config-next`) | ^9 |
+| 테스트 | Vitest + Testing Library | vitest ^4 |
 
-## 디렉터리 구조
+## 디렉터리 구조 (모노레포)
 
 ```
-app/        # Next.js App Router — 라우트·레이아웃·페이지
-public/     # 정적 자산
-docs/       # 프로젝트 지식 문서 (이 폴더)
+keepio/
+├── apps/web/        # @keepio/web — Next.js 앱 (UI·라우팅)
+├── packages/core/   # @keepio/core — 플랫폼 무관 로직 (web·mobile 공유)
+└── docs/            # 프로젝트 지식 문서
 ```
 
-## 명령어
+상세 FSD 레이어 구조와 배치 규칙은 `docs/ARCHITECTURE.md` 참고. 향후 `apps/mobile`(React Native/Expo)이 `@keepio/core`를 공유한다.
+
+## 명령어 (루트에서 turbo로 실행)
 
 | 목적 | 명령어 |
 |---|---|
-| 개발 서버 | `npm run dev` |
+| 개발 서버 (web) | `npm run dev` |
 | 프로덕션 빌드 | `npm run build` |
-| 프로덕션 실행 | `npm run start` |
 | 린트 | `npm run lint` |
-| 테스트 (1회) | `npm run test` |
-| 테스트 (감시) | `npm run test:watch` |
+| 테스트 | `npm run test` |
+| web만 dev | `npm run dev:web` |
+
+> 특정 워크스페이스만 실행: `npm run <script> --workspace=@keepio/web`
 
 ## 테스트
 

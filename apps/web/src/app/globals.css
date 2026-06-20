@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* 토큰 SSOT: packages/core/src/shared/config/theme.ts — 값 변경 시 양쪽을 함께 수정 */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  /* AI 기능 전용 강조색 (STYLING.md) */
+  --ai: #7f77dd;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ai: var(--ai);
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
