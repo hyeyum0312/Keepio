@@ -1,9 +1,11 @@
 # History & Commit Policy
 
 ## 목적
+
 Git은 실제 diff의 원본, `docs/HISTORY.md`는 커밋별 **이유·영향·검증·주의사항**의 원본이다. 중복 diff 서술은 금지한다.
 
 ## 매 커밋 규칙
+
 1. `docs/HISTORY.md` **한 파일**에 최신순으로 기록한다. 기존 기록은 수정·삭제·재정렬하지 않는다.
 2. 기록 필수 항목: 날짜, Conventional Commit 메시지, Feature ID(없으면 `N/A`), 목적, 변경 요약, 영향 범위, 실행한 테스트와 결과, 남은 위험/롤백.
 3. 실제로 실행하지 않은 테스트는 `미실행(사유)`로 기록한다. 예시/추측/성능 추정값을 성공 결과처럼 쓰지 않는다.
@@ -13,10 +15,12 @@ Git은 실제 diff의 원본, `docs/HISTORY.md`는 커밋별 **이유·영향·�
 7. 변경 사항이 비밀키, 개인정보, 비공개 URL, 토큰을 포함하면 HISTORY에 복사하지 않는다.
 
 ## 토큰·읽기 전략
+
 - AI는 기본적으로 최근 3~5개 항목과 해당 Feature만 읽는다. 전체 HISTORY 자동 로딩 금지.
 - 이전 변경의 근거가 필요할 때만 `git log -- path`, `git blame`, ADR 및 관련 항목을 좁혀서 확인한다.
 
 ## 검증 및 주의
+
 - 커밋 전 `scripts/check-history.py`로 기존 본문 보존과 신규 항목 추가를 검사한다.
 - `git diff --cached`를 기준으로 확인하므로 HISTORY를 스테이징해야 한다.
 - 로컬 hook은 우회 가능하므로 CI에서 같은 검사를 수행해야 한다. CI에서는 `scripts/check-history.py BASE_REF`로 PR base와 비교하며, 사용 전 fetch 깊이와 브랜치 참조를 확인한다.
@@ -24,8 +28,10 @@ Git은 실제 diff의 원본, `docs/HISTORY.md`는 커밋별 **이유·영향·�
 - 작업 트리의 첫 커밋/파일 최초 생성은 스크립트에서 별도 처리한다.
 
 ## 항목 형식
+
 ```md
 ## YYYY-MM-DD | feat(bookmark): reuse saved URL
+
 - Feature: FEAT-001
 - 목적: ...
 - 변경: ...

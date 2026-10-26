@@ -13,8 +13,8 @@
   --color-foreground: var(--foreground);
   --color-ai: var(--ai);
   --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo",
-    "Noto Sans KR", sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 body {

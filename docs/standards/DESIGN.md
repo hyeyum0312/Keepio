@@ -11,12 +11,13 @@
 9. Change visual tokens/components only if requested or required by acceptance criteria; do not redesign UI for domain-logic changes.
 
 ## Keepio token status
+
 Defined in `apps/web/src/app/globals.css` (`:root` CSS variables → `@theme inline`). The CSS variables are the only source.
 
-| Token | Status |
-|---|---|
-| `background`, `foreground` | defined |
-| `surface`, `muted`, `border`, `primary`, `primary-foreground`, `destructive`, `success`, `warning`, `focus-ring` | not defined yet |
-| `ai` (#7f77dd) | exists from the earlier plan ("only AI features use purple"); keep or drop is D-09 |
+| Token                                                                                                            | Status                                                                             |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `background`, `foreground`                                                                                       | defined                                                                            |
+| `surface`, `muted`, `border`, `primary`, `primary-foreground`, `destructive`, `success`, `warning`, `focus-ring` | not defined yet                                                                    |
+| `ai` (#7f77dd)                                                                                                   | exists from the earlier plan ("only AI features use purple"); keep or drop is D-09 |
 
 Do not add colors until D-09 decides tone and values.
