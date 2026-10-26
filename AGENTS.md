@@ -21,7 +21,7 @@ Claude Code에서는 `/task`(계획) → `/feature`(새 기능일 때 명세) �
 
 ## 자동 게이트
 
-- Claude Code: 파일 편집 직후 `.claude/hooks/post-edit.sh`가 Prettier를 적용하고 `apps/web` ts/tsx의 ESLint 위반을 되돌려준다. 받은 위반은 코드로 고친다.
+- Claude Code: 파일 편집 직후 `.claude/hooks/post-edit.sh`가 Prettier를 적용하고 `apps/web`·`apps/api` ts/tsx의 ESLint 위반을 되돌려준다. 받은 위반은 코드로 고친다.
 - 완료 판정은 `npm run verify`, 최종 기준은 CI다. 로컬 hook은 우회 가능하므로 `--no-verify`를 쓰지 않는다.
 
 ## 절대 규칙
@@ -38,7 +38,7 @@ Claude Code에서는 `/task`(계획) → `/feature`(새 기능일 때 명세) �
 
 ## 파일·네이밍
 
-`(lint)` 표시는 `apps/web/eslint.config.mjs`가 강제한다.
+`(lint)` 표시는 `apps/web/eslint.config.mjs`가 강제한다. `apps/api`는 파일·폴더 kebab-case(Nest 중간 확장자 허용)와 테스트 규칙만 강제한다.
 
 - 디렉터리: kebab-case; React 컴포넌트: PascalCase.tsx; 훅: useXxx.ts; 일반 TS 파일: kebab-case.ts; 변수/함수 camelCase; 타입/클래스 PascalCase; 상수 UPPER_SNAKE_CASE(모듈 상수만). (파일·폴더명은 lint, features/shared 대상)
 - 기능 중심 모듈, 내부에 `ui/`, `model/`, `api/`, `lib/`을 필요할 때만 사용. 공통화는 실제 재사용 2회 이상·명확한 책임일 때만.
