@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import vitest from "@vitest/eslint-plugin";
 import checkFile from "eslint-plugin-check-file";
 
 // hex/rgb/hsl/oklch 리터럴, Tailwind 임의 색상(bg-[#fff]) 모두 포함
@@ -33,6 +34,17 @@ const eslintConfig = defineConfig([
         },
       ],
       "@typescript-eslint/ban-ts-comment": "warn",
+    },
+  },
+  // QUALITY.md 테스트 작성 규칙
+  {
+    files: ["src/**/*.test.{ts,tsx}"],
+    plugins: { vitest },
+    rules: {
+      "vitest/no-focused-tests": "error",
+      "vitest/no-disabled-tests": "error",
+      "vitest/expect-expect": "error",
+      "vitest/no-identical-title": "error",
     },
   },
   // AGENTS.md 파일·네이밍

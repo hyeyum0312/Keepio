@@ -1,13 +1,30 @@
 #!/usr/bin/env bash
 # 빠른 로컬 게이트. 전체 검증(npm run verify)과 CI를 대체하지 않는다.
+# 통과 시 출력 최소화, 실패 시 마지막 40줄만 보여준다(AI 컨텍스트 절약).
 set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 
-python3 scripts/check-history.py
+python3 scripts/check-history.py >/dev/null
 
 staged=()
 while IFS= read -r -d '' f; do staged+=("$f"); done < <(git diff --cached --name-only -z --diff-filter=ACMR)
-if [ ${#staged[@]} -gt 0 ]; then
-  node_modules/.bin/prettier --check --ignore-unknown "${staged[@]}"
+[ ${#staged[@]} -gt 0 ] || exit 0
+
+if ! out="$(node_modules/.bin/prettier --check --ignore-unknown --log-level warn "${staged[@]}" 2>&1)"; then
+  echo "$out" | tail -n 40
+  echo "→ npm run format" >&2
+  exit 1
+fi
+
+# apps/web 소스와 관련된 테스트만. 한글 경로 대응으로 apps/web 기준 상대경로를 넘긴다.
+web=()
+for f in "${staged[@]}"; do
+  case "$f" in apps/web/src/*.ts | apps/web/src/*.tsx) web+=("${f#apps/web/}") ;; esac
+done
+if [ ${#web[@]} -gt 0 ]; then
+  if ! out="$(cd apps/web && npm run --silent test:related -- "${web[@]}" 2>&1)"; then
+    echo "$out" | tail -n 40
+    exit 1
+  fi
 fi
