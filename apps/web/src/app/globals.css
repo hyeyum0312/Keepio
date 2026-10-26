@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* 토큰 SSOT: packages/core/src/shared/config/theme.ts — 값 변경 시 양쪽을 함께 수정 */
+/* 디자인 토큰 원본(ADR-002). 규칙: docs/standards/DESIGN.md */
 :root {
   --background: #ffffff;
   --foreground: #171717;

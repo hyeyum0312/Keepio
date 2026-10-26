@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Keepio",
-  description: "링크를 모으고, 분류하고, 비교해 결정하는 링크 큐레이션 앱",
+  description: "Save once. Curate freely. Share beautifully.",
 };
 
 export default function RootLayout({
