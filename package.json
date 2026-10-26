@@ -12,9 +12,15 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "dev:web": "npm run dev --workspace=@keepio/web"
+    "dev:web": "npm run dev --workspace=@keepio/web",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run format:check && turbo run lint typecheck test"
   },
   "devDependencies": {
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "turbo": "^2"
   }
 }

@@ -23,9 +23,8 @@ jobs:
           node-version: '22' # Replace with repository's pinned supported LTS version.
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test:unit
-      - run: npm run db:migrate:test
-      - run: npm run test:integration
+      - run: npm run verify # format:check + lint + typecheck + test
+      # Add when apps/api and the test DB exist:
+      # - run: npm run db:migrate:test
+      # - run: npm run test:integration
       - run: npm run build
