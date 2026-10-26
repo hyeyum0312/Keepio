@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-26 | style: Prettier 일괄 적용
+- Feature: N/A
+- 목적: 이후 diff에 서식 변경이 섞이지 않도록 기존 파일을 한 번에 정렬한다.
+- 변경: 27개 파일(문서 표 정렬·JSON 예시 공백, globals.css, turbo.json, CI 예시). 의미 변경 없음. HISTORY.md는 불변 규칙 때문에 포맷 대상에서 제외.
+- 영향: 서식만. `git blame` 시 이 커밋은 건너뛰어도 된다.
+- 검증: `npm run verify` PASS(format:check 통과, turbo lint/typecheck/test 4/4).
+- 주의/롤백: revert로 롤백. 추후 `.git-blame-ignore-revs`에 등록 고려.
+
 ## 2026-10-26 | chore: verify 단일 완료 게이트와 Prettier 도입
 - Feature: N/A
 - 목적: AI·사람·CI가 같은 명령 하나로 완료를 판정하게 한다. 문서 규칙("검증 후 보고")을 실행 가능한 게이트로 바꾸는 첫 단계.
