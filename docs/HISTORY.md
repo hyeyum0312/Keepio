@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-26 | chore(db): Prisma 7 + PostgreSQL 16 로컬 DB, /health DB 상태, 개발 환경 문서
+- Feature: N/A
+- 목적: Phase 0 "NestJS + PostgreSQL 프로젝트 구성"의 2단계. api가 실제 DB에 연결되고, 처음 보는 사람도 설치·실행할 수 있게 한다.
+- 변경: `docker-compose.yml`(postgres:16, keepio·keepio_test DB). 로컬 포트를 다른 프로젝트와 겹치지 않는 7710번대로 통일 — web 7710(`--port`), api 7711(기본값·`.env`), DB 127.0.0.1:7712, 루트 `prisma/`(빈 baseline 마이그레이션)·`prisma.config.ts`, `.env.example`. api `PrismaModule`(adapter-pg, `DB_POOL_MAX` 상한, 연결 timeout 5초, 종료 시 `$disconnect`), `/health`가 `SELECT 1`(2초 timeout)로 DB 확인 — up 200 / down 503. main.ts가 루트 `.env`를 있을 때만 로드. 루트 `db:*`·`dev:api`(turbo 경유) 스크립트, turbo `//#db:generate`를 api build·dev·typecheck·test 앞에 실행. 생성 코드는 git·Prettier·ESLint 제외. `docs/SETUP.md`(설치·버전·명령·문제 해결), README·docs/README 링크, ADR-004에 Prisma 결정 추가.
+- 영향: `/health` 응답에 `db` 필드 추가(계약 신규, 소비자 없음). api 실행에 DB와 `.env` 필요. 새 의존성 prisma·@prisma/client·@prisma/adapter-pg 7.10.1(11일 경과).
+- 검증: `npm run verify` PASS(7/7, 생성 코드 삭제 상태에서 시작해 generate 자동 실행 확인), `npm run build` PASS(3/3), `npm audit` 0건. 단위 테스트 3개(up 200, down 503, OpenAPI) PASS. 실제 기동 — DB up 200 `{"status":"ok","db":"up"}`, 컨테이너 정지 시 503 `{"status":"error","db":"down"}`, 재시작 후 200 자동 복구, SIGTERM 정상 종료. `prisma migrate deploy` dev·test DB 모두 적용, `db:status` up to date. `npm run dev:api`를 생성 코드·dist 없는 상태에서 실행해 /health 200. 포트 변경 후 `db:up`(7712)·`db:status` up to date, `dev:api` 7711 /health 200, `dev:web` 7710 200, CORS `Access-Control-Allow-Origin: http://localhost:7710` 확인. Prisma 엔진 install script 보류 상태에서 generate·migrate 동작 확인. 실제 DB 통합 테스트(`*.int.test.ts`)는 미실행(다음 커밋).
+- 주의/롤백: `docker compose down -v`는 로컬 데이터 삭제. baseline 마이그레이션은 `SELECT 1`만 실행. Prisma 8은 RC 단계라 보류. revert 후 `docker compose down`으로 롤백.
+
 ## 2026-10-26 | chore(api): NestJS 12 앱 뼈대와 Vitest·ESLint 게이트
 - Feature: N/A
 - 목적: Phase 0 "NestJS + PostgreSQL 프로젝트 구성"의 1단계. DB 없이 실행·검증 가능한 API 기반을 만들고 기존 게이트(verify, 편집 훅, pre-commit)에 편입한다.

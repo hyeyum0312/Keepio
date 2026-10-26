@@ -36,6 +36,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# prisma generated client (npm run db:generate)
+apps/api/src/generated/
 
 # vercel
 .vercel

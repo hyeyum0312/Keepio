@@ -4,6 +4,7 @@ node_modules
 out
 build
 dist
+apps/api/src/generated
 coverage
 package-lock.json
 next-env.d.ts

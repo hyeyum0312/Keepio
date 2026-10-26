@@ -5,19 +5,20 @@
 ## 현재 상태
 
 - `apps/web`: Next.js 스켈레톤(빈 페이지 + 테스트 1개). 기능 구현 전.
-- `apps/api`: NestJS 12 스켈레톤(`GET /health`, `/docs` OpenAPI). 도구 결정은 [ADR-004](docs/decisions/ADR-004-api-toolchain.md).
+- `apps/api`: NestJS 12 + Prisma 7 + PostgreSQL 16 스켈레톤(`GET /health`에 DB 상태, `/docs` OpenAPI). 설치·실행: [docs/SETUP.md](docs/SETUP.md). 도구 결정은 [ADR-004](docs/decisions/ADR-004-api-toolchain.md).
 - `apps/worker`, `apps/mobile`: 아직 없음([03 폴더 구조](docs/spec/03-BACKEND-ARCHITECTURE.md)).
 - 웹 구조는 기능 단위([ADR-002](docs/decisions/ADR-002-feature-first-structure.md)). 공유 패키지(`packages/*`)는 필요해질 때 만든다.
 
 ## 명령어 (루트, turbo)
 
-| 목적                              | 명령어                                                                  |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| 설치                              | `npm install`                                                           |
-| 개발 서버                         | `npm run dev` (web만: `npm run dev:web`)                                |
-| 완료 판정 (포맷·린트·타입·테스트) | `npm run verify`                                                        |
-| 빌드 / 린트 / 타입 / 테스트       | `npm run build` / `npm run lint` / `npm run typecheck` / `npm run test` |
-| 포맷 적용                         | `npm run format`                                                        |
+| 목적                              | 명령어                                                                            |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| 설치                              | `npm install`                                                                     |
+| 개발 서버                         | `npm run dev` (web만: `npm run dev:web`, api만: `npm run dev:api`)                |
+| 로컬 DB                           | `npm run db:up` / `db:down` / `db:deploy` / `db:migrate` ([SETUP](docs/SETUP.md)) |
+| 완료 판정 (포맷·린트·타입·테스트) | `npm run verify`                                                                  |
+| 빌드 / 린트 / 타입 / 테스트       | `npm run build` / `npm run lint` / `npm run typecheck` / `npm run test`           |
+| 포맷 적용                         | `npm run format`                                                                  |
 
 특정 워크스페이스만: `npm run <script> --workspace=@keepio/web`
 

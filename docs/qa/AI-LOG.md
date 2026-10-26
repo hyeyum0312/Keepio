@@ -20,6 +20,7 @@ AI의 실수, 환경 함정, 문서와 현실의 불일치를 발견했을 때 �
 | 2026-10-26 | 환경 함정        | 편집 훅이 Prettier에 한글 절대경로를 넘겨 `.prettierignore`가 무시됨. HISTORY 편집 시 기존 기록이 재포맷되어 불변 규칙 위반                            | `check-history.py`가 커밋 전 차단               | 훅이 저장소 기준 상대경로로 전달. 수정 후 같은 편집이 추가분만 남는지 확인                         | 게이트 |
 | 2026-10-26 | 환경 함정        | 루트 `overrides`를 추가해도 기존 lockfile 항목(multer 2.4.0)이 유지돼 `npm ls`가 invalid. lock에서 multer만 지우자 아예 설치되지 않음                  | `npm ls multer`                                 | 부모(`@nestjs/platform-express`)와 함께 lock 항목 제거 후 재설치해 `overridden` 확인               | 문서   |
 | 2026-10-26 | 게이트 공백      | api 빌드 산출물 `dist/`가 `.gitignore`·`.prettierignore`에 없어 커밋·format 검사에 섞일 뻔함                                                           | `npm run verify`의 format:check 실패            | 두 ignore 파일에 dist 추가                                                                         | 게이트 |
+| 2026-10-26 | 문서-현실 불일치 | `dev:api`가 workspace 스크립트를 직접 호출해 turbo의 `db:generate` 의존성을 건너뜀. 깨끗한 클론에서 api가 생성 코드 없이 실패할 상태였음               | SETUP.md에 쓸 명령을 실제 실행하며 확인         | `dev:api`를 `turbo run dev --filter`로 변경, 생성 코드·dist 삭제 상태에서 /health 200 확인         | 게이트 |
 
 ## 기능별 지표 (기능 완료 시 한 줄)
 
