@@ -12,7 +12,9 @@
 |---|---|
 | 설치 | `npm install` |
 | 개발 서버 | `npm run dev` (web만: `npm run dev:web`) |
-| 빌드 / 린트 / 테스트 | `npm run build` / `npm run lint` / `npm run test` |
+| 완료 판정 (포맷·린트·타입·테스트) | `npm run verify` |
+| 빌드 / 린트 / 타입 / 테스트 | `npm run build` / `npm run lint` / `npm run typecheck` / `npm run test` |
+| 포맷 적용 | `npm run format` |
 
 특정 워크스페이스만: `npm run <script> --workspace=@keepio/web`
 
