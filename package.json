@@ -16,7 +16,8 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && turbo run lint typecheck test"
+    "verify": "npm run format:check && turbo run lint typecheck test",
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "prettier": "^3.9.10",
