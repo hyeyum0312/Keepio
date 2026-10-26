@@ -8,7 +8,8 @@ file="$(jq -r '.tool_response.filePath // .tool_input.file_path // empty')"
 [ -n "$file" ] && [ -f "$file" ] || exit 0
 case "$file" in "$root"/*) ;; *) exit 0 ;; esac
 
-"$root/node_modules/.bin/prettier" --write --ignore-unknown --log-level warn "$file" >/dev/null 2>&1
+# 한글 경로를 절대경로로 넘기면 .prettierignore 가 적용되지 않아 저장소 기준 상대경로로 넘긴다
+(cd "$root" && node_modules/.bin/prettier --write --ignore-unknown --log-level warn "${file#"$root"/}") >/dev/null 2>&1
 
 case "$file" in
   "$root"/apps/web/*.ts | "$root"/apps/web/*.tsx | "$root"/apps/web/*.mjs)
