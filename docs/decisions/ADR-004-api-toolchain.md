@@ -1,0 +1,21 @@
+# ADR-004: apps/api 도구 — Nest 12(ESM), Vitest + SWC, class-validator
+
+- Status: accepted (2026-10-26)
+- Context / problem:
+  - spec 03은 테스트를 Jest, 검증을 "class-validator 또는 Zod"로 열어 두었다. web은 이미 Vitest와 Vitest ESLint 규칙(QUALITY.md)을 쓴다.
+  - Nest 12는 ESM 전용 패키지(`"type": "module"`)다. Jest의 ESM 지원은 실험적 플래그가 필요하다.
+  - Nest DI는 데코레이터 메타데이터(`emitDecoratorMetadata`)가 필요한데 Vitest 기본 변환기(esbuild)는 이를 내보내지 않는다.
+- Options:
+  - 테스트: (a) Jest + ts-jest (b) Vitest + `unplugin-swc`
+  - 검증: (a) class-validator + `@nestjs/swagger` (b) Zod + nestjs-zod
+- Decision: 테스트 (b), 검증 (a).
+  - 저장소 테스트 러너를 Vitest 하나로 유지하고 ESLint 테스트 규칙을 그대로 재사용한다. SWC가 데코레이터 메타데이터를 처리한다.
+  - DTO는 class-validator 데코레이터로 검증하고 같은 클래스로 OpenAPI 스키마를 만든다. 전역 `ValidationPipe({ whitelist, forbidNonWhitelisted, transform })`.
+  - api는 ESM(`"type": "module"`, `module: nodenext`, 상대 import에 `.js` 확장자).
+- Consequences / side effects:
+  - spec 03의 Jest 표기와 다르다(이 ADR이 우선).
+  - web과 api가 Zod 스키마를 공유하는 방식은 쓰지 않는다. 계약 공유가 필요해지면 OpenAPI에서 `packages/api-client`를 생성하는 방향을 검토한다.
+  - `@swc/core` postinstall은 npm allow-scripts 정책으로 보류 상태지만 플랫폼 바이너리(optional dependency)로 동작한다.
+  - `@nestjs/platform-express` 12.2.0이 `multer` 2.4.0(GHSA-q7qp-rjg7-q26m)을 고정해 루트 `overrides`로 2.5.0을 강제한다. Nest가 2.5.0 이상을 쓰는 버전을 내면 override를 제거한다.
+- Verification: `GET /health`·`/docs-json` Supertest 테스트, `nest build` 후 실제 기동해 `/health` 200 확인.
+- Rollback / migration: 아직 도메인 코드가 없어 러너 교체 비용이 작다. 이 ADR의 커밋 revert로 되돌린다.

@@ -18,6 +18,8 @@ AI의 실수, 환경 함정, 문서와 현실의 불일치를 발견했을 때 �
 | 2026-10-26 | 게이트 공백      | Node 버전이 어디에도 고정되지 않아 RCE 취약점(CVE-2026-111497)이 있는 v24.19.0으로 개발 중이었고, CI 예시도 `"22"`로 패치 버전 미지정                  | 사용자 요청으로 apps/api 착수 전 보안 공지 확인 | `.nvmrc` + `engines` + `.npmrc engine-strict`. 24.19.0에서 `npm ci`가 EBADENGINE으로 실패함을 확인 | 게이트 |
 | 2026-10-26 | 문서-현실 불일치 | 루트 `packageManager`가 `npm@10.9.0`인데 실제 설치·lockfile 생성은 npm 11.19.1. Corepack 사용 시 install script 보류 정책이 없는 npm 10이 쓰일 수 있음 | 보안 커밋 중 버전 대조                          | 미조치. 다음 툴체인 정리 때 결정                                                                   | 문서   |
 | 2026-10-26 | 환경 함정        | 편집 훅이 Prettier에 한글 절대경로를 넘겨 `.prettierignore`가 무시됨. HISTORY 편집 시 기존 기록이 재포맷되어 불변 규칙 위반                            | `check-history.py`가 커밋 전 차단               | 훅이 저장소 기준 상대경로로 전달. 수정 후 같은 편집이 추가분만 남는지 확인                         | 게이트 |
+| 2026-10-26 | 환경 함정        | 루트 `overrides`를 추가해도 기존 lockfile 항목(multer 2.4.0)이 유지돼 `npm ls`가 invalid. lock에서 multer만 지우자 아예 설치되지 않음                  | `npm ls multer`                                 | 부모(`@nestjs/platform-express`)와 함께 lock 항목 제거 후 재설치해 `overridden` 확인               | 문서   |
+| 2026-10-26 | 게이트 공백      | api 빌드 산출물 `dist/`가 `.gitignore`·`.prettierignore`에 없어 커밋·format 검사에 섞일 뻔함                                                           | `npm run verify`의 format:check 실패            | 두 ignore 파일에 dist 추가                                                                         | 게이트 |
 
 ## 기능별 지표 (기능 완료 시 한 줄)
 

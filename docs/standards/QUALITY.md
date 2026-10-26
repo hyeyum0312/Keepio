@@ -22,13 +22,13 @@
 
 Run cheap checks often, expensive ones once. Never claim a pass without running it.
 
-| When                             | What                                                     | How                                                       |
-| -------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
-| Every file edit                  | format + lint of that file                               | Claude Code PostToolUse hook (automatic)                  |
-| Before an AI reports a step done | tests related to changed files, **once**                 | `npm run test:related --workspace=@keepio/web -- <files>` |
-| Every commit                     | HISTORY check, Prettier + related tests for staged files | `.githooks/pre-commit` (automatic)                        |
-| Task done (`/finish`)            | format, lint, typecheck, all unit tests, **once**        | `npm run verify`                                          |
-| PR / main                        | verify + DB integration + build (+ E2E later)            | CI                                                        |
+| When                             | What                                                     | How                                                         |
+| -------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
+| Every file edit                  | format + lint of that file                               | Claude Code PostToolUse hook (automatic)                    |
+| Before an AI reports a step done | tests related to changed files, **once**                 | `npm run test:related -w @keepio/web -- <files>` (api 동일) |
+| Every commit                     | HISTORY check, Prettier + related tests for staged files | `.githooks/pre-commit` (automatic)                          |
+| Task done (`/finish`)            | format, lint, typecheck, all unit tests, **once**        | `npm run verify`                                            |
+| PR / main                        | verify + DB integration + build (+ E2E later)            | CI                                                          |
 
 - Do not run tests after every edit: mid-change states fail by design and the noise costs tokens and focus.
 - If related tests in pre-commit exceed ~30s, move them to pre-push and record the change in HISTORY.

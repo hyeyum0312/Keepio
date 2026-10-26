@@ -5,7 +5,8 @@
 ## 현재 상태
 
 - `apps/web`: Next.js 스켈레톤(빈 페이지 + 테스트 1개). 기능 구현 전.
-- `apps/api`, `apps/worker`, `apps/mobile`: 아직 없음([03 폴더 구조](docs/spec/03-BACKEND-ARCHITECTURE.md)).
+- `apps/api`: NestJS 12 스켈레톤(`GET /health`, `/docs` OpenAPI). 도구 결정은 [ADR-004](docs/decisions/ADR-004-api-toolchain.md).
+- `apps/worker`, `apps/mobile`: 아직 없음([03 폴더 구조](docs/spec/03-BACKEND-ARCHITECTURE.md)).
 - 웹 구조는 기능 단위([ADR-002](docs/decisions/ADR-002-feature-first-structure.md)). 공유 패키지(`packages/*`)는 필요해질 때 만든다.
 
 ## 명령어 (루트, turbo)

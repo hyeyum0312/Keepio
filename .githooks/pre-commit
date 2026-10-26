@@ -17,14 +17,15 @@ if ! out="$(node_modules/.bin/prettier --check --ignore-unknown --log-level warn
   exit 1
 fi
 
-# apps/web 소스와 관련된 테스트만. 한글 경로 대응으로 apps/web 기준 상대경로를 넘긴다.
-web=()
-for f in "${staged[@]}"; do
-  case "$f" in apps/web/src/*.ts | apps/web/src/*.tsx) web+=("${f#apps/web/}") ;; esac
-done
-if [ ${#web[@]} -gt 0 ]; then
-  if ! out="$(cd apps/web && npm run --silent test:related -- "${web[@]}" 2>&1)"; then
+# 앱 소스와 관련된 테스트만. 한글 경로 대응으로 앱 기준 상대경로를 넘긴다.
+for app in web api; do
+  files=()
+  for f in "${staged[@]}"; do
+    case "$f" in apps/"$app"/src/*.ts | apps/"$app"/src/*.tsx) files+=("${f#apps/"$app"/}") ;; esac
+  done
+  [ ${#files[@]} -gt 0 ] || continue
+  if ! out="$(cd "apps/$app" && npm run --silent test:related -- "${files[@]}" 2>&1)"; then
     echo "$out" | tail -n 40
     exit 1
   fi
-fi
+done

@@ -1,0 +1,41 @@
+{
+  "name": "@keepio/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:related": "vitest related --run --reporter=dot --silent=passed-only --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^12.0.8",
+    "@nestjs/testing": "^12.2.0",
+    "@swc/core": "^1.16.18",
+    "@types/node": "^24.19.2",
+    "@types/supertest": "^7.2.1",
+    "@vitest/eslint-plugin": "~1.5.4",
+    "eslint": "^9.39.5",
+    "eslint-plugin-check-file": "^3.3.2",
+    "supertest": "^7.3.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "unplugin-swc": "^2.0.0",
+    "vitest": "^4.1.12"
+  },
+  "dependencies": {
+    "@nestjs/common": "12.2.0",
+    "@nestjs/core": "12.2.0",
+    "@nestjs/platform-express": "12.2.0",
+    "@nestjs/swagger": "12.0.2",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
+  }
+}

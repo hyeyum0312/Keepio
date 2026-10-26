@@ -22,6 +22,9 @@
     "verify": "npm run format:check && turbo run lint typecheck test --output-logs=errors-only",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
   },
+  "overrides": {
+    "multer": "2.5.0"
+  },
   "devDependencies": {
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
