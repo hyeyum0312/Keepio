@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# 빠른 로컬 게이트. 전체 검증(npm run verify)과 CI를 대체하지 않는다.
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+python3 scripts/check-history.py
+
+staged=()
+while IFS= read -r -d '' f; do staged+=("$f"); done < <(git diff --cached --name-only -z --diff-filter=ACMR)
+if [ ${#staged[@]} -gt 0 ]; then
+  node_modules/.bin/prettier --check --ignore-unknown "${staged[@]}"
+fi

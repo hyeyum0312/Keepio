@@ -17,6 +17,11 @@
 4. **검증**: 완료 판정은 `npm run verify`. 변경 범위의 테스트 → 타입/린트 → 영향받는 통합/E2E → 빌드. 실행하지 못한 항목은 명시하고 통과했다고 주장하지 않는다.
 5. **보고**: 변경 요약, 테스트 명령과 실제 결과, 잔여 위험, 롤백 방법, 문서 갱신 여부를 간결하게 기록한다.
 
+## 자동 게이트
+
+- Claude Code: 파일 편집 직후 `.claude/hooks/post-edit.sh`가 Prettier를 적용하고 `apps/web` ts/tsx의 ESLint 위반을 되돌려준다. 받은 위반은 코드로 고친다.
+- 완료 판정은 `npm run verify`, 최종 기준은 CI다. 로컬 hook은 우회 가능하므로 `--no-verify`를 쓰지 않는다.
+
 ## 절대 규칙
 
 - 추측한 API 응답/비즈니스 규칙/성능 수치를 사실로 사용하지 않는다. 미정 사항은 `docs/OPEN-QUESTIONS.md`에 기록한다.
@@ -46,5 +51,5 @@
 - 신규 사용자 기능/행동 변경 전 `docs/features/README.md`를 확인하고 기능 문서를 생성 또는 수정한다. 요구사항·데이터 계약·수용 기준·회귀 범위를 승인받고 구현한다. 단순 리팩터링은 새 Feature 문서를 만들지 않는다.
 - 구현 완료는 관련 테스트 실행 결과 확인 후에만 선언한다. 테스트 파일 경로와 실행 명령을 Feature 문서에 기록한다.
 - **매 커밋** `docs/HISTORY.md`의 최상단에 한 항목을 추가한다. 이유·영향·실제 검증·주의/롤백을 적고 과거 기록은 변경하지 않는다. 자세한 규칙: `docs/standards/HISTORY.md`.
-- 커밋 전 staged HISTORY 검사(`python scripts/check-history.py`)를 수행한다. 실제 테스트·타입·린트·빌드는 별도로 실행한다. Git hook은 CI의 대체물이 아니다.
+- 커밋 전 staged HISTORY 검사(`python3 scripts/check-history.py`)를 수행한다. `.githooks/pre-commit`이 이 검사와 staged 파일 Prettier 검사를 자동 실행한다(`npm install` 시 `core.hooksPath` 설정). 실제 테스트·타입·린트·빌드는 별도로 실행한다. Git hook은 CI의 대체물이 아니다.
 - 매 작업에서 HISTORY 전체를 읽지 않는다. 최신 3~5개 항목 및 관련 Feature만 확인한다.
