@@ -91,16 +91,17 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 
 ## 4. 매일 쓰는 명령어
 
-| 하고 싶은 것                        | 명령어                                                  |
-| ----------------------------------- | ------------------------------------------------------- |
-| DB 켜기 / 끄기                      | `npm run db:up` / `npm run db:down` (데이터는 유지)     |
-| api 개발 서버 (코드 수정 시 재시작) | `npm run dev:api` → 종료는 `Ctrl+C`                     |
-| web 개발 서버                       | `npm run dev:web`                                       |
-| 완료 판정 (포맷·린트·타입·테스트)   | `npm run verify`                                        |
-| 빌드                                | `npm run build`                                         |
-| api 테스트만                        | `npm run test --workspace=@keepio/api`                  |
-| 마이그레이션 상태                   | `npm run db:status`                                     |
-| DB 직접 들여다보기 (psql)           | `docker compose exec postgres psql -U keepio -d keepio` |
+| 하고 싶은 것                         | 명령어                                                  |
+| ------------------------------------ | ------------------------------------------------------- |
+| DB 켜기 / 끄기                       | `npm run db:up` / `npm run db:down` (데이터는 유지)     |
+| api 개발 서버 (코드 수정 시 재시작)  | `npm run dev:api` → 종료는 `Ctrl+C`                     |
+| web 개발 서버                        | `npm run dev:web`                                       |
+| 완료 판정 (포맷·린트·타입·테스트)    | `npm run verify`                                        |
+| 빌드                                 | `npm run build`                                         |
+| api 테스트만                         | `npm run test --workspace=@keepio/api`                  |
+| 통합 테스트 (실제 DB, `keepio_test`) | `npm run db:migrate:test` → `npm run test:integration`  |
+| 마이그레이션 상태                    | `npm run db:status`                                     |
+| DB 직접 들여다보기 (psql)            | `docker compose exec postgres psql -U keepio -d keepio` |
 
 ## 5. DB 스키마를 바꿀 때
 
@@ -133,13 +134,24 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 | 7711 | api (NestJS)        | `PORT`로 변경                                |
 | 7712 | PostgreSQL (Docker) | `docker-compose.yml`. 컨테이너 안에서는 5432 |
 
-## 8. 문제 해결
+## 8. 테스트와 CI
 
-| 증상                                              | 원인 / 해결                                                                                  |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `npm install`이 `EBADENGINE`                      | Node 버전이 낮다 → `nvm use` (없으면 `nvm install`)                                          |
-| `/health`가 503 `{"db":"down"}`                   | DB 컨테이너가 꺼짐 → `npm run db:up`. OrbStack 앱이 실행 중인지 확인                         |
-| `Cannot find module …/generated/prisma/client.js` | Prisma client 미생성 → `npm run db:generate` (turbo로 실행하는 명령은 자동 생성)             |
-| `DATABASE_URL is not set`                         | `.env`가 없다 → `cp .env.example .env`                                                       |
-| `EADDRINUSE :7711`                                | api가 이미 떠 있다 → 기존 터미널에서 `Ctrl+C`, 또는 `lsof -nP -iTCP:7711`로 확인             |
-| 로컬 DB를 완전히 초기화하고 싶다                  | `docker compose down -v` → `npm run db:up` → `npm run db:deploy` (**로컬 데이터 전부 삭제**) |
+| 종류        | 파일            | 대상 DB                                            | 실행                                              |
+| ----------- | --------------- | -------------------------------------------------- | ------------------------------------------------- |
+| 단위 테스트 | `*.test.ts`     | 없음(DB는 가짜로 대체)                             | `npm run verify`에 포함, 커밋 시 관련 테스트 자동 |
+| 통합 테스트 | `*.int.test.ts` | `DATABASE_URL_TEST` (이름이 `_test`로 끝나야 실행) | `npm run test:integration`                        |
+
+- 통합 테스트 전에 테스트 DB에 마이그레이션을 적용한다: `npm run db:migrate:test`.
+- GitHub에 push하거나 PR을 열면 `.github/workflows/ci.yml`이 깨끗한 환경에서 `npm ci → verify → db:migrate:test → test:integration → build`를 실행한다. PR이면 HISTORY 보존 검사도 한다. CI가 최종 기준이다.
+- turbo는 선언하지 않은 환경 변수를 작업에 넘기지 않는다. DB 관련 새 환경 변수를 만들면 `turbo.json`의 `globalPassThroughEnv`에도 추가한다.
+
+## 9. 문제 해결
+
+| 증상                                                  | 원인 / 해결                                                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `npm install`이 `EBADENGINE`                          | Node 버전이 낮다 → `nvm use` (없으면 `nvm install`)                                          |
+| `/health`가 503 `{"db":"down"}`                       | DB 컨테이너가 꺼짐 → `npm run db:up`. OrbStack 앱이 실행 중인지 확인                         |
+| `Cannot find module …/generated/prisma/client.js`     | Prisma client 미생성 → `npm run db:generate` (turbo로 실행하는 명령은 자동 생성)             |
+| `DATABASE_URL is not set` / `Connection url is empty` | `.env`가 없다 → `cp .env.example .env`                                                       |
+| `EADDRINUSE :7711`                                    | api가 이미 떠 있다 → 기존 터미널에서 `Ctrl+C`, 또는 `lsof -nP -iTCP:7711`로 확인             |
+| 로컬 DB를 완전히 초기화하고 싶다                      | `docker compose down -v` → `npm run db:up` → `npm run db:deploy` (**로컬 데이터 전부 삭제**) |

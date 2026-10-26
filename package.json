@@ -15,6 +15,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:integration": "turbo run test:integration --output-logs=errors-only",
     "dev:web": "npm run dev --workspace=@keepio/web",
     "dev:api": "turbo run dev --filter=@keepio/api",
     "typecheck": "turbo run typecheck",
@@ -25,6 +26,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "db:migrate:test": "PRISMA_TARGET=test prisma migrate deploy",
     "db:status": "prisma migrate status",
     "verify": "npm run format:check && turbo run lint typecheck test --output-logs=errors-only",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"

@@ -17,6 +17,7 @@
 | 개발 서버                         | `npm run dev` (web만: `npm run dev:web`, api만: `npm run dev:api`)                |
 | 로컬 DB                           | `npm run db:up` / `db:down` / `db:deploy` / `db:migrate` ([SETUP](docs/SETUP.md)) |
 | 완료 판정 (포맷·린트·타입·테스트) | `npm run verify`                                                                  |
+| DB 통합 테스트                    | `npm run db:migrate:test && npm run test:integration`                             |
 | 빌드 / 린트 / 타입 / 테스트       | `npm run build` / `npm run lint` / `npm run typecheck` / `npm run test`           |
 | 포맷 적용                         | `npm run format`                                                                  |
 

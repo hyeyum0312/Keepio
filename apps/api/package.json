@@ -10,6 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.int.config.mts",
     "test:related": "vitest related --run --reporter=dot --silent=passed-only --passWithNoTests",
     "test:watch": "vitest"
   },

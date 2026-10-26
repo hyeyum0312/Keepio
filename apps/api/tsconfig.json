@@ -16,6 +16,6 @@
     "outDir": "dist",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "*.mts"],
+  "include": ["src/**/*.ts", "*.mts", "vitest.int.setup.ts"],
   "exclude": ["node_modules", "dist"]
 }

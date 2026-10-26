@@ -1,0 +1,48 @@
+# 최종 품질 게이트. 로컬 hook은 우회 가능하므로 이 workflow가 기준이다(AGENTS.md).
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: keepio
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: keepio_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd 'pg_isready -U keepio' --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      # CI에는 개발 DB가 없다. 두 변수 모두 일회용 테스트 DB를 가리킨다.
+      DATABASE_URL: postgresql://keepio:test_only@localhost:5432/keepio_test
+      DATABASE_URL_TEST: postgresql://keepio:test_only@localhost:5432/keepio_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: HISTORY 보존 검사 (PR)
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/check-history.py origin/${{ github.base_ref }}
+      - run: npm ci
+      - run: npm run verify # format:check + lint + typecheck + unit test
+      - run: npm run db:migrate:test
+      - run: npm run test:integration
+      - run: npm run build
