@@ -4,7 +4,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* AI 기능 전용 강조색 (STYLING.md) */
+  /* AI 기능 전용 강조색 — 유지 여부는 docs/OPEN-QUESTIONS.md D-09 */
   --ai: #7f77dd;
 }
 

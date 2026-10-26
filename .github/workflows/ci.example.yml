@@ -1,0 +1,31 @@
+# Example only: rename to ci.yml AFTER scripts and test DB are configured.
+name: CI Example
+on: [pull_request, push]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: keepio
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: keepio_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U keepio' --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://keepio:test_only@localhost:5432/keepio_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Replace with repository's pinned supported LTS version.
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run db:migrate:test
+      - run: npm run test:integration
+      - run: npm run build
