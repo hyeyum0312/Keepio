@@ -1,69 +1,22 @@
-# Keepio
+# keepio
 
-> 인스타·블로그·유튜브 등에서 모은 링크를 **AI가 자동 분류**하고, 사용자가 **컬렉션으로 묶어 비교·결정까지** 하는 링크 큐레이션 앱.
+외부 앱에서 공유한 링크를 저장하고 AI로 정리한 뒤, 버킷으로 묶어 웹페이지로 발행하는 서비스. 스펙은 [docs/spec/](docs/spec/), 문서 목차는 [docs/README.md](docs/README.md).
 
-## 무엇을 해결하나
+## 현재 상태
+- `apps/web`: Next.js 스켈레톤(빈 페이지 + 테스트 1개). 기능 구현 전.
+- `apps/api`, `apps/worker`, `apps/mobile`: 아직 없음([03 폴더 구조](docs/spec/03-BACKEND-ARCHITECTURE.md)).
+- 이전 구조(FSD, `packages/core`)의 빈 폴더가 남아 있으며 정리 예정([ADR-002](docs/decisions/ADR-002-feature-first-structure.md)).
 
-"나중에 봐야지" 하고 쏟아내듯 저장한 링크는 정리가 안 돼 결국 다시 못 찾고 사라진다.
-Keepio는 **저장하는 순간** AI가 콘텐츠 타입을 자동 분류하고, 사용자가 자기 프로젝트(여행·결혼준비 등) 단위로 자유롭게 묶을 수 있게 해 "쌓아두기만 하는 쓰레기통"이 되지 않게 한다.
-
-## 핵심 구조 — 두 개의 독립적인 분류 축
-
-| 축 | 주체 | 의미 | 예시 |
-|---|---|---|---|
-| **카테고리** | AI 자동 | 콘텐츠 본질 타입 | 카페·호텔·맛집·아티클·영상·장소 |
-| **컬렉션** | 사용자 직접 | 프로젝트·맥락 (중첩 가능) | 교토 여행, 강릉 > 가족여행 > 호텔 |
-
-한 링크는 **카테고리 1개 + 여러 컬렉션**에 동시에 속한다. AI는 추천만, 결정은 사용자.
-
-## 주요 기능
-
-1. **저장** — 공유 시트 / 앱 내 `+` / URL 입력 모두 통합 시트로, 1초 저장.
-2. **분류** — AI 자동 카테고리 + 다중선택 + 자연어 검색으로 일괄 정리.
-3. **컬렉션** — 재귀 중첩. 자식 있으면 카드 그리드, 말단이면 리스트.
-4. **비교** — 후보가 모이면 AI가 비교 템플릿(스펙/무드/일정/허브) 자동 선택.
-5. **결정** — 결정 도우미에 누적, 회상 가능.
-
-## 기술 스택
-
-Turborepo(monorepo) · Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS v4
-
-## 구조
-
-```
-keepio/
-├── apps/web/        # Next.js 앱 (UI·라우팅)
-└── packages/core/   # @keepio/core — 플랫폼 무관 로직 (web·mobile 공유)
-```
-
-향후 `apps/mobile`(React Native/Expo)이 `@keepio/core`를 공유한다.
-
-## 시작하기
-
-```bash
-npm install
-npm run dev   # turbo → apps/web 개발 서버
-```
-
-[http://localhost:3000](http://localhost:3000) 에서 확인.
-
-| 명령어 | 설명 |
+## 명령어 (루트, turbo)
+| 목적 | 명령어 |
 |---|---|
-| `npm run dev` | 개발 서버 (web) |
-| `npm run build` | 전체 빌드 (turbo) |
-| `npm run lint` | 린트 |
-| `npm run test` | 테스트 |
+| 설치 | `npm install` |
+| 개발 서버 | `npm run dev` (web만: `npm run dev:web`) |
+| 빌드 / 린트 / 테스트 | `npm run build` / `npm run lint` / `npm run test` |
 
-## 디자인 톤
+특정 워크스페이스만: `npm run <script> --workspace=@keepio/web`
 
-토스처럼 미니멀한 그레이스케일. AI 기능만 보라색(`#7F77DD`) 한 톤으로 강조. 그라데이션·과한 그림자·이모지 배제.
-
-## 문서
-
-| 문서 | 내용 |
-|---|---|
-| [docs/PROJECT.md](docs/PROJECT.md) | 제품 기획·구조 상세 |
-| [docs/TECH_STACK.md](docs/TECH_STACK.md) | 스택·설정·명령어 |
-| [docs/STYLING.md](docs/STYLING.md) | 디자인 토큰·스타일 규칙 |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | FSD·모노레포·RN 확장 설계 |
-| [CLAUDE.md](CLAUDE.md) | Claude 작업 규칙 |
+## AI 협업
+1. 에이전트는 [AGENTS.md](AGENTS.md)를 먼저 읽는다. Claude는 [CLAUDE.md](CLAUDE.md) 진입점을 사용.
+2. 새 기능은 [docs/features/FEATURE-TEMPLATE.md](docs/features/FEATURE-TEMPLATE.md)로 먼저 명세한다.
+3. 매 커밋 [docs/HISTORY.md](docs/HISTORY.md)를 최신순으로 갱신하고, `python3 scripts/check-history.py`로 형식을 검사한다(hook 연결 예정).
