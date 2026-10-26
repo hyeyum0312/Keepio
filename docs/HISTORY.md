@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-26 | fix(ci): postgres 서비스 healthcheck 인자 제거
+- Feature: N/A
+- 목적: 첫 CI 실행(run 40294677023)이 서비스 컨테이너 생성 단계에서 실패해 이후 단계가 전혀 실행되지 않았다.
+- 변경: `--health-cmd 'pg_isready -U keepio'` → `--health-cmd pg_isready`. runner가 따옴표 안 공백을 나눠 `-U`를 docker 옵션으로 해석(`unknown shorthand flag: 'U'`, exit 125).
+- 영향: CI 설정만. healthcheck는 접속 수락 여부만 확인(인증 사용자 지정 불필요).
+- 검증: 로컬에서 같은 옵션으로 postgres:16 컨테이너 실행해 `healthy` 도달 확인. GitHub Actions 재실행 결과는 push 후 확인(미실행).
+- 주의/롤백: 로컬 CI 재현은 GitHub 서비스 컨테이너 단계를 흉내 내지 못한다. revert로 롤백.
+
 ## 2026-10-26 | chore(test): 실제 PostgreSQL 통합 테스트와 CI 활성화
 - Feature: N/A
 - 목적: Phase 0 "NestJS + PostgreSQL 프로젝트 구성"의 3단계. 백엔드 제약을 실제 DB로 검증하는 경로와, 로컬 hook을 우회해도 막히는 최종 게이트(CI)를 갖춘다.
