@@ -6,7 +6,7 @@
 
 - `apps/web`: Next.js 스켈레톤(빈 페이지 + 테스트 1개). 기능 구현 전.
 - `apps/api`, `apps/worker`, `apps/mobile`: 아직 없음([03 폴더 구조](docs/spec/03-BACKEND-ARCHITECTURE.md)).
-- 이전 구조(FSD, `packages/core`)의 빈 폴더가 남아 있으며 정리 예정([ADR-002](docs/decisions/ADR-002-feature-first-structure.md)).
+- 웹 구조는 기능 단위([ADR-002](docs/decisions/ADR-002-feature-first-structure.md)). 공유 패키지(`packages/*`)는 필요해질 때 만든다.
 
 ## 명령어 (루트, turbo)
 

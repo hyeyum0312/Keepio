@@ -19,9 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@keepio/core": ["../../packages/core/src/index.ts"],
-      "@keepio/core/*": ["../../packages/core/src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
