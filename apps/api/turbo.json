@@ -13,6 +13,10 @@
     },
     "test": {
       "dependsOn": ["//#db:generate"]
+    },
+    "test:integration": {
+      "dependsOn": ["//#db:generate"],
+      "cache": false
     }
   }
 }

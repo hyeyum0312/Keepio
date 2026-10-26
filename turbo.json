@@ -1,5 +1,11 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalPassThroughEnv": [
+    "DATABASE_URL",
+    "DATABASE_URL_TEST",
+    "DB_POOL_MAX",
+    "PRISMA_TARGET"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -11,6 +17,9 @@
     },
     "lint": {},
     "test": {},
+    "test:integration": {
+      "cache": false
+    },
     "typecheck": {},
     "//#db:generate": {
       "inputs": ["prisma/schema.prisma"],

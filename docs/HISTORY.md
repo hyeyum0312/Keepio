@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-26 | chore(test): 실제 PostgreSQL 통합 테스트와 CI 활성화
+- Feature: N/A
+- 목적: Phase 0 "NestJS + PostgreSQL 프로젝트 구성"의 3단계. 백엔드 제약을 실제 DB로 검증하는 경로와, 로컬 hook을 우회해도 막히는 최종 게이트(CI)를 갖춘다.
+- 변경: api `vitest.int.config.mts`(`*.int.test.ts`만, 파일 순차 실행)·`vitest.int.setup.ts`(`DATABASE_URL_TEST` 필수, DB 이름 `_test` 아니면 거부), `health.int.test.ts`(실제 DB /health 200, baseline 적용 확인). 루트 `test:integration`(turbo, 캐시 없음)·`db:migrate:test`(`PRISMA_TARGET=test`). turbo `globalPassThroughEnv`(DATABASE_URL·DATABASE_URL_TEST·DB_POOL_MAX·PRISMA_TARGET). `prisma.config.ts`는 URL이 없어도 generate 진행. `ci.example.yml` → `ci.yml`(main push·PR, 읽기 권한, 동시 실행 취소, 20분 제한, PR HISTORY 검사, npm ci → verify → db:migrate:test → test:integration → build). SETUP·README 반영.
+- 영향: push 시 GitHub Actions 실행 시작(아직 push 안 함). 단위 테스트·verify는 DB 없이 동작.
+- 검증: 로컬 `test:integration` 2 passed, 단위 3 passed(분리 확인). dev DB를 `DATABASE_URL_TEST`로 지정하면 setup이 거부. git 추적 파일만 복사한 깨끗한 폴더에서 CI 단계 재현 — `npm ci`·`verify`·`db:migrate:test`·`test:integration`(2 passed)·`build` PASS(Node 24.22.1, 로컬 PG 16 keepio_test). 재현 중 format 누락 3파일과 turbo 환경 변수 차단을 발견해 수정. 환경 변수 없이 verify PASS, migrate는 "Connection url is empty", 통합 테스트는 "DATABASE_URL_TEST is not set"으로 실패 확인. `check-history.py origin/main` OK. GitHub Actions 실제 실행은 미실행(push 전).
+- 주의/롤백: CI의 postgres 서비스·Ubuntu 환경은 로컬 재현과 다를 수 있어 첫 실행 결과 확인 필요. 새 DB 환경 변수는 `globalPassThroughEnv`에 추가해야 turbo 작업에 전달된다. revert로 롤백(CI 비활성화).
+
 ## 2026-10-26 | chore(db): Prisma 7 + PostgreSQL 16 로컬 DB, /health DB 상태, 개발 환경 문서
 - Feature: N/A
 - 목적: Phase 0 "NestJS + PostgreSQL 프로젝트 구성"의 2단계. api가 실제 DB에 연결되고, 처음 보는 사람도 설치·실행할 수 있게 한다.
