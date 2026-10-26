@@ -25,4 +25,5 @@
 1. 에이전트는 [AGENTS.md](AGENTS.md)를 먼저 읽는다. Claude는 [CLAUDE.md](CLAUDE.md) 진입점을 사용.
 2. 새 기능은 [docs/features/FEATURE-TEMPLATE.md](docs/features/FEATURE-TEMPLATE.md)로 먼저 명세한다.
 3. 매 커밋 [docs/HISTORY.md](docs/HISTORY.md)를 최신순으로 갱신한다. `npm install` 후 git pre-commit이 형식과 staged 파일 포맷을 검사한다.
-4. Claude Code 설정은 [.claude/settings.json](.claude/settings.json): 편집 시 Prettier·ESLint 훅, 안전한 명령 허용 목록.
+4. 작업 흐름: `/task <요청>` → `/feature <이름>`(새 기능) → 구현 → `/finish`.
+5. Claude Code 설정은 [.claude/settings.json](.claude/settings.json): 편집 시 Prettier·ESLint 훅, 안전한 명령 허용 목록.
