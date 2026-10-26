@@ -63,6 +63,7 @@
 3. **AI 비동기 신뢰성:** Transactional Outbox, BullMQ, 멱등 Worker, 재시도.
 4. **발행물 버전:** 불변 스냅샷과 공개 버전 원자적 전환.
 5. **운영/보안:** 사용량 쿼터, 권한 검증, SSRF 대응.
+6. **AI 협업 하네스:** 규칙을 린트·훅·verify 게이트로 강제, 사람/AI 역할 분담, AI 실수→게이트 전환 기록([ADR-003](../decisions/ADR-003-ai-harness-enforcement.md), [AI-LOG](../qa/AI-LOG.md)).
 
 ## 기록 템플릿
 

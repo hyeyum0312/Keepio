@@ -24,6 +24,7 @@ ADR(`decisions/`) > spec(`spec/`) > standards(`standards/`) 순으로 우선한�
 
 - [역할별 규칙](standards/): 제품·디자인·프론트·백엔드·품질·운영·이력
 - [기능 명세](features/) · [작업 계획](plans/) · [QA 기록](qa/) · [이력](HISTORY.md)
+- [AI 협업 로그](qa/AI-LOG.md): AI 실수·환경 함정과 게이트 전환 기록
 
 ## AI 실행 프롬프트 — `prompts/`
 

@@ -54,4 +54,5 @@ Claude Code에서는 `/task`(계획) → `/feature`(새 기능일 때 명세) �
 - 구현 완료는 관련 테스트 실행 결과 확인 후에만 선언한다. 테스트 파일 경로와 실행 명령을 Feature 문서에 기록한다.
 - **매 커밋** `docs/HISTORY.md`의 최상단에 한 항목을 추가한다. 이유·영향·실제 검증·주의/롤백을 적고 과거 기록은 변경하지 않는다. 자세한 규칙: `docs/standards/HISTORY.md`.
 - 커밋 전 staged HISTORY 검사(`python3 scripts/check-history.py`)를 수행한다. `.githooks/pre-commit`이 이 검사와 staged 파일 Prettier 검사를 자동 실행한다(`npm install` 시 `core.hooksPath` 설정). 실제 테스트·타입·린트·빌드는 별도로 실행한다. Git hook은 CI의 대체물이 아니다.
+- AI 실수·환경 함정·문서와 현실의 불일치를 발견하면 `docs/qa/AI-LOG.md`에 한 줄 남기고, 가능하면 게이트로 전환한다.
 - 매 작업에서 HISTORY 전체를 읽지 않는다. 최신 3~5개 항목 및 관련 Feature만 확인한다.
