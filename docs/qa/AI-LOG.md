@@ -14,6 +14,7 @@ AI의 실수, 환경 함정, 문서와 현실의 불일치를 발견했을 때 �
 | 2026-10-26 | 게이트 공백      | 완료 기준 "타입 검사"가 문서에만 있고 `typecheck` 스크립트가 없었음                                                                         | 하네스 점검                                     | `typecheck`(next typegen + tsc) 추가. 타입 오류 파일을 넣어 실패 확인             | 게이트 |
 | 2026-10-26 | AI 실수          | AGENTS.md 네이밍 줄 전체에 `(lint)` 표시를 붙여, 린트가 강제하지 않는 변수·상수 네이밍까지 강제되는 것처럼 과장                             | 커밋 전 자기 검토                               | "파일·폴더명은 lint, features/shared 대상"으로 범위를 좁혀 표기                   | 문서   |
 | 2026-10-26 | AI 실수          | `/feature` 스킬 `allowed-tools`에 `Write(path)` 규칙을 씀. 파일 경로 권한은 `Edit(path)`로만 매칭되어 의도한 제한이 동작하지 않을 수 있었음 | Claude Code 설정 문서와 대조                    | `Edit(docs/features/**)`로 수정                                                   | 문서   |
+| 2026-10-26 | 환경 함정        | `@vitest/eslint-plugin` 최신(1.6.x)이 TypeScript 6을 요구해 설치 실패(ERESOLVE). `^`로 두면 재설치 때 다시 깨짐                             | npm 설치 오류                                   | TS5 호환 1.5.4를 `~1.5.4`로 고정. `--force`/`--legacy-peer-deps`로 우회하지 않음  | 게이트 |
 
 ## 기능별 지표 (기능 완료 시 한 줄)
 
