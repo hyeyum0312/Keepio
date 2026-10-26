@@ -1,4 +1,4 @@
-# ADR-004: apps/api 도구 — Nest 12(ESM), Vitest + SWC, class-validator
+# ADR-004: apps/api 도구 — Nest 12(ESM), Vitest + SWC, class-validator, Prisma 7
 
 - Status: accepted (2026-10-26)
 - Context / problem:
@@ -12,6 +12,8 @@
   - 저장소 테스트 러너를 Vitest 하나로 유지하고 ESLint 테스트 규칙을 그대로 재사용한다. SWC가 데코레이터 메타데이터를 처리한다.
   - DTO는 class-validator 데코레이터로 검증하고 같은 클래스로 OpenAPI 스키마를 만든다. 전역 `ValidationPipe({ whitelist, forbidNonWhitelisted, transform })`.
   - api는 ESM(`"type": "module"`, `module: nodenext`, 상대 import에 `.js` 확장자).
+  - Prisma 7: 스키마는 spec 03대로 루트 `prisma/`, 접속 정보는 `prisma.config.ts`, 클라이언트는 `@prisma/adapter-pg`(풀 상한 `DB_POOL_MAX`). 생성 코드는 `apps/api/src/generated/prisma`(커밋하지 않음, turbo `//#db:generate`가 api 작업 전에 생성). worker가 생기면 `packages/db`로 옮긴다.
+  - 첫 마이그레이션은 빈 baseline. 인증 모델은 D-04 결정 후 Phase 1에서 추가한다.
 - Consequences / side effects:
   - spec 03의 Jest 표기와 다르다(이 ADR이 우선).
   - web과 api가 Zod 스키마를 공유하는 방식은 쓰지 않는다. 계약 공유가 필요해지면 OpenAPI에서 `packages/api-client`를 생성하는 방향을 검토한다.

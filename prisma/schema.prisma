@@ -1,0 +1,13 @@
+// 스키마 원본. 테이블 설계는 docs/spec/04-DATABASE-API.md, 모델은 Phase 1에서 추가한다.
+// 접속 정보는 prisma.config.ts(DATABASE_URL)에 있다.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../apps/api/src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

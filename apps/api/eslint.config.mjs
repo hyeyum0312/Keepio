@@ -4,7 +4,7 @@ import vitest from "@vitest/eslint-plugin";
 import checkFile from "eslint-plugin-check-file";
 
 const eslintConfig = defineConfig([
-  globalIgnores(["dist/**"]),
+  globalIgnores(["dist/**", "src/generated/**"]),
   ...tseslint.configs.recommended,
   {
     rules: {

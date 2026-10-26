@@ -11,6 +11,10 @@
     },
     "lint": {},
     "test": {},
-    "typecheck": {}
+    "typecheck": {},
+    "//#db:generate": {
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": ["apps/api/src/generated/prisma/**"]
+    }
   }
 }

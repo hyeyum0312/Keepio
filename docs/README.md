@@ -14,6 +14,10 @@ ADR(`decisions/`) > spec(`spec/`) > standards(`standards/`) 순으로 우선한�
 4. [DB 및 API 설계](spec/04-DATABASE-API.md)
 5. [개발 계획·테스트·포트폴리오](spec/05-ROADMAP-PORTFOLIO.md)
 
+## 개발 환경
+
+- [개발 환경 설정](SETUP.md): 설치할 것, 버전, 명령어, 문제 해결
+
 ## 결정과 미결정
 
 - [ADR](decisions/): 스펙과 달라진 결정과 그 이유
