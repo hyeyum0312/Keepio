@@ -2,7 +2,7 @@
 
 ## Stack (apps/web)
 
-- Installed: Next.js 16.2.9 (App Router only), React 19.2.4, TypeScript strict, Tailwind CSS v4, ESLint 9, Vitest 4 + Testing Library (jsdom). Candidates, confirm before installing: TanStack Query, Zustand (only for state shared across screens), shadcn/ui + Radix, Orval.
+- Installed: Next.js 16.4.3 (App Router only), React 19.2.4, TypeScript strict, Tailwind CSS v4, ESLint 9, Vitest 4 + Testing Library (jsdom). API client: `@keepio/api-client` (Orval-generated TanStack Query 5 hooks + fetch, ADR-005). Candidates, confirm before installing: Zustand (only for state shared across screens), shadcn/ui + Radix.
 - Next.js 16 may differ from training data: read the relevant guide in `node_modules/next/dist/docs/` before writing framework code.
 - Server components by default; add `"use client"` only for interaction/state. Tests are colocated as `*.test.ts(x)`.
 
@@ -23,7 +23,7 @@ apps/web/src/
 
 - Feature-first: `features/bookmarks/{ui,model,api,lib}`; `shared/ui`, `shared/lib` for proven cross-feature code. `ui` renders props, `model` owns UI state/domain orchestration, `api` owns transport. Keep public exports explicit.
 - Server is source of truth for category membership, classification status, quotas, ordering, permissions, publish status and totals. Do not guess or reconstruct from incomplete pages. Client derives presentation-only state (selection count, expanded/collapsed, input validity).
-- Typed API client generated or checked against OpenAPI. Normalize error and pagination handling; no duplicate fetch wrappers per component.
+- Typed API client generated from OpenAPI (`npm run openapi:generate`; never edit `packages/api-client/src/generated`). `npm run openapi:check` in verify fails when code and spec drift. Normalize error and pagination handling; no duplicate fetch wrappers per component.
 
 ## Network / state
 
