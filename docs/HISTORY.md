@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | chore(skill): /task가 현재 git 상태와 기존 파일을 먼저 확인하도록 보강
+- Feature: N/A
+- 목적: 대화 기억에 의존해 이미 끝난 작업을 다시 계획하고 기존 파일을 덮어쓴 실수의 재발 방지.
+- 변경: `.claude/skills/task/SKILL.md`에 0단계(git status·log, HISTORY 파일 직접 확인, 중복 작업이면 보고) 추가, 기존 경로는 읽고 계획·ADR/Feature 번호는 현재 파일 목록 기준 규칙 추가. AI-LOG에 사례 기록.
+- 영향: 스킬 정의·문서만.
+- 검증: pre-commit(HISTORY·포맷·관련 테스트) 실행. 코드 변경 없어 verify 미실행. 스킬 동작은 다음 `/task` 실행에서 확인 필요.
+- 주의/롤백: 이 세션의 중복 ADR 커밋은 push 전이라 reset으로 제거(이력 없음). revert로 롤백.
+
 ## 2026-10-26 | fix(ci): postgres 서비스 healthcheck 인자 제거
 - Feature: N/A
 - 목적: 첫 CI 실행(run 40294677023)이 서비스 컨테이너 생성 단계에서 실패해 이후 단계가 전혀 실행되지 않았다.
