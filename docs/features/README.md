@@ -7,3 +7,9 @@
 - 현재 확정되지 않은 사항은 `docs/OPEN-QUESTIONS.md`로 연결
 - Feature는 기대 동작, standards는 구현 방식, ADR은 선택 이유, HISTORY는 변경 이유를 기록한다.
 - 파일명 `kebab-case.md`; ID `FEAT-###`; 하나의 기능에 문서 하나를 원칙으로 한다.
+
+## 목록
+
+| ID       | 기능                                                  | Status |
+| -------- | ----------------------------------------------------- | ------ |
+| FEAT-001 | [링크 저장: URL 정규화와 중복 방지](bookmark-save.md) | Draft  |
