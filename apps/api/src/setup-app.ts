@@ -1,5 +1,8 @@
 import { type INestApplication, ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { ApiErrorResponse } from "./common/api-error.js";
+import { ApiExceptionFilter } from "./common/api-exception.filter.js";
+import { requestContext } from "./common/request-context.js";
 
 type SetupOptions = {
   webOrigin?: string;
@@ -10,6 +13,8 @@ export function setupApp(
   app: INestApplication,
   { webOrigin }: SetupOptions = {},
 ) {
+  app.use(requestContext);
+  app.useGlobalFilters(new ApiExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -30,5 +35,7 @@ export function createOpenApiDocument(app: INestApplication) {
     .setTitle("keepio API")
     .setVersion("0.1.0")
     .build();
-  return SwaggerModule.createDocument(app, config);
+  return SwaggerModule.createDocument(app, config, {
+    extraModels: [ApiErrorResponse],
+  });
 }

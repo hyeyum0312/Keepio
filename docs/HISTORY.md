@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | feat(api): 공통 오류 응답·요청 ID·접근 로그·환경 변수 검증 (ADR-006)
+- Feature: N/A
+- 목적: 기능 구현 전에 모든 API가 공유할 오류 계약·관측성·설정 검증을 고정한다.
+- 변경: `common/api-error.ts`(`ApiErrorResponse`, `ApiException`), `common/api-exception.filter.ts`(전역 필터), `common/request-context.ts`(x-request-id 검증·생성, AsyncLocalStorage, 쿼리 제외 접근 로그), `config/env.ts`(`loadEnv`). main은 `loadEnv`·운영 JSON 로거, PrismaService는 `loadEnv` 사용. `/health` DB down은 예외 대신 503 상태로 같은 본문. OpenAPI에 `ApiErrorResponse` 추가 → api-client 재생성. `@types/express` 5.0.6 추가. ADR-006, BACKEND 규칙 2줄, `.env.example` NODE_ENV, FEAT-001 오류 형태 참조, AI-LOG 1건.
+- 영향: 모든 오류 응답 본문 형태 변경(소비자 없음). `/health` 응답 형태·상태 코드 유지.
+- 검증: api 단위 12개 PASS(env 4, 오류·요청 ID 5, health 3), 통합 2개 PASS(실제 PG). 404 쿼리 미노출 테스트가 수정 전 코드에서 실패함을 확인. 운영 모드 실제 기동 — JSON 로그, 접근 로그 쿼리 제외, `/health` 200, 잘못된 DATABASE_URL로 exit 1·비밀값 미출력. `npm run verify` PASS(8/8).
+- 주의/롤백: 로그 수집 서비스는 미정(배포 단계). `setup-app.ts`에서 필터·미들웨어 제거로 롤백.
+
 ## 2026-10-28 | chore(deps): Dependabot 주간 업데이트, 공개 14일 경과 릴리스만
 - Feature: N/A
 - 목적: 수동으로 지키던 "공개 직후 버전 회피" 원칙을 자동화하고, 보안 패치가 방치되지 않게 한다.

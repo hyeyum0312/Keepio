@@ -9,3 +9,5 @@
 - Query efficiency: index by observed access patterns, cursor pagination, avoid N+1, bounded result sizes. Measure before caching. DB pool and worker concurrency have explicit limits.
 - Quotas: enforce atomically under concurrency, distinguish active bookmark count vs metered AI usage. No in-memory counter as authority.
 - Security: use maintained auth solution; token rotation, secure storage, authorization tests, secret management, rate limits. Do not log tokens, URLs containing sensitive query data, or AI payloads without redaction.
+- Errors: throw `ApiException(status, code, message)`; every error body is `{ code, message, requestId, details? }` (ADR-006). Clients branch on `code`, never on `message`. Document error responses with `ApiErrorResponse` in OpenAPI.
+- Config: read environment only through `loadEnv()` (`apps/api/src/config/env.ts`); add new variables there with validation, to `.env.example`, and to turbo `globalPassThroughEnv` if tests need them.
