@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | docs(harness): HARNESS-PLAN을 현재 상태로 갱신, blame 제외 커밋 등록
+- Feature: N/A
+- 목적: 계획 단계에 머물러 있던 하네스 문서를 실제 구현과 남은 일 기준으로 맞추고, 일괄 포맷 커밋이 `git blame`을 가리지 않게 한다.
+- 변경: HARNESS-PLAN 단계별 상태 표·현재 CI 정책(브랜치 보호 미적용 명시). `.git-blame-ignore-revs`(f99f5f3), `prepare`에서 `blame.ignoreRevsFile` 설정.
+- 영향: 문서·로컬 git 설정만.
+- 검증: `npm run prepare` 후 `git config blame.ignoreRevsFile` 값 확인. pre-commit 실행.
+- 주의/롤백: GitHub 웹 blame은 저장소 루트의 같은 파일을 자동 인식한다. revert 후 `git config --unset blame.ignoreRevsFile`.
+
 ## 2026-10-28 | feat(api-client): OpenAPI 내보내기, Orval 클라이언트 생성, 명세 불일치 게이트 (Phase 0-2)
 - Feature: N/A
 - 목적: 웹이 API 응답을 추측하지 않고 생성된 타입·훅만 쓰게 하고, 코드와 명세가 어긋나면 verify에서 막는다(ADR-005).

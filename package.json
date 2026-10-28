@@ -29,7 +29,7 @@
     "db:migrate:test": "PRISMA_TARGET=test prisma migrate deploy",
     "db:status": "prisma migrate status",
     "verify": "npm run format:check && npm run openapi:check && turbo run lint typecheck test --output-logs=errors-only",
-    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks && git config blame.ignoreRevsFile .git-blame-ignore-revs || true",
     "openapi:generate": "turbo run build --filter=@keepio/api --output-logs=errors-only >/dev/null && node apps/api/dist/openapi-export.js packages/api-client/openapi.json && npm run --silent generate -w @keepio/api-client >/dev/null && prettier --write --log-level warn packages/api-client/openapi.json packages/api-client/src/generated",
     "openapi:check": "bash scripts/check-openapi.sh"
   },
