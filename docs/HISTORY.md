@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | docs(agents): Anti-Laziness·Anti-Hallucination 규칙, 현재 단계(기본 세팅) 명시, 배포·모바일·디자인 보류
+- Feature: N/A
+- 목적: 사용자 지시 반영 — 근거 확인·완전 구현·실제 검증·최종 보고 규칙을 AI 공통 규약에 추가하고, 지금은 기본 세팅 단계임을 AI가 읽는 문서에 고정한다.
+- 변경: AGENTS.md에 "Anti-Laziness & Anti-Hallucination" 절(사용자 제공 원문)과 현재 단계 문단 추가. `/finish` 최종 보고 항목을 Final Report 형식에 맞춤. OPEN-QUESTIONS D-08(모바일 구현 단계에서)·D-09(사용자가 직접 세팅) 보류 표시, D-12(배포 호스팅·CD, 맨 마지막) 추가. HARNESS-PLAN CI 계획에서 배포를 D-12 이후로.
+- 영향: 문서·스킬 정의만. 기존 CI(검사)는 유지.
+- 검증: 문서 전용, pre-commit만 실행.
+- 주의/롤백: "현재 단계" 문단은 기능 구현을 시작할 때 갱신해야 한다. revert로 롤백.
+
 ## 2026-10-28 | feat(web): TanStack Query Provider·기본 정책, API 주소 설정
 - Feature: N/A
 - 목적: 첫 화면 기능이 바로 생성된 api-client 훅을 쓸 수 있게 하고, 요청 정책을 한곳에서 고정한다(FRONTEND.md Network / state).
