@@ -1,0 +1,22 @@
+# ADR-006: API 공통 기반 — 오류 응답 형태, 요청 ID·접근 로그, 환경 변수 검증
+
+- Status: accepted (2026-10-28)
+- Context / problem:
+  - FEAT-001 명세에서 오류 응답 공통 형태가 미확정이었다. 기능마다 정하면 형태가 갈라지고 클라이언트 분기 코드가 늘어난다.
+  - OPERATIONS.md는 요청 ID와 PII를 가린 구조화 로그를 요구한다. 환경 변수는 사용 시점마다 흩어져 읽혔다(DATABASE_URL·DB_POOL_MAX·PORT).
+- Options:
+  - 오류: (a) Nest 기본 응답 (b) 전역 필터로 단일 형태 (c) RFC 9457 problem+json
+  - 로그: (a) nestjs-pino (b) Nest `ConsoleLogger({ json })` 내장
+  - 환경 변수: (a) `@nestjs/config` + 스키마 라이브러리 (b) 의존성 없는 검증 함수
+- Decision: 오류 (b), 로그 (b), 환경 변수 (b).
+  - 오류 응답: `{ code, message, requestId, details? }`(`ApiErrorResponse`, OpenAPI `extraModels`로 클라이언트 타입 생성). `code`는 UPPER_SNAKE_CASE 안정 식별자이고 클라이언트는 `message`가 아니라 `code`로 분기한다. 도메인 오류는 `ApiException(status, code, message)`. 입력 검증 실패는 `400 VALIDATION_FAILED` + `details`. 처리하지 못한 오류는 `500 INTERNAL_ERROR`, 원인은 로그에만. 404 기본 메시지는 쿼리를 되돌려주므로 `Not found`로 고정.
+  - `/health`의 DB down은 오류가 아니라 점검 결과라 예외 대신 `503` + `HealthResponse`.
+  - 요청 ID: `x-request-id`가 `[A-Za-z0-9-]{8,64}`이면 사용, 아니면 UUID 생성. 응답 헤더·오류 본문·로그에 같은 값. AsyncLocalStorage로 전달.
+  - 접근 로그: method·path(쿼리 제외)·status·durationMs·requestId. `/health` 성공은 생략. 운영(`NODE_ENV=production`)은 JSON 한 줄, 로컬은 사람이 읽는 형식.
+  - 환경 변수: `loadEnv()`가 시작 시 모든 문제를 모아 한 번에 실패시키고, 메시지에 값은 넣지 않는다.
+  - RFC 9457은 표준이지만 지금 소비자는 우리 클라이언트뿐이라 단순한 형태를 택했다. 외부 공개 API가 생기면 재검토.
+- Consequences / side effects:
+  - 모든 오류 응답 본문이 바뀐다(소비자 없음, `/health` 형태는 유지).
+  - 로그 수집·검색(외부 서비스)은 배포 단계에서 결정.
+- Verification: `api-exception.filter.test.ts`(검증 실패·도메인 예외·404 쿼리 미노출·500 원인 숨김·요청 ID 유지/교체), `env.test.ts`(기본값·문제 일괄 보고·비밀값 미노출). 운영 모드 실제 기동에서 JSON 로그와 접근 로그의 쿼리 제외, 잘못된 DATABASE_URL로 기동 시 즉시 종료(비밀값 미출력) 확인.
+- Rollback / migration: 필터·미들웨어 등록을 `setup-app.ts`에서 제거하면 Nest 기본 동작으로 돌아간다.

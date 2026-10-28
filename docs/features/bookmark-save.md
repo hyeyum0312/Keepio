@@ -26,7 +26,7 @@
 - API 요청/응답/오류 (형태 미확정, OpenAPI로 확정):
   - `POST /api/bookmarks` body `{ url: string }`
   - 신규 `201 { id, url, normalizedUrl, createdAt }`, 기존 `200` 같은 형태. 신규/기존 구분 방식(상태 코드만 vs 필드 추가) 미확정.
-  - `400 { code: "INVALID_URL" | "UNSUPPORTED_SCHEME" | "URL_TOO_LONG" }` (오류 공통 형태는 미확정)
+  - `400 { code: "INVALID_URL" | "UNSUPPORTED_SCHEME" | "URL_TOO_LONG" }` (공통 형태 `{ code, message, requestId, details? }`, ADR-006)
 - DB 변경/마이그레이션:
   - `users`(최소 컬럼, 인증 기능에서 확장), `bookmarks(id, user_id, original_url, normalized_url, created_at, updated_at, deleted_at)`. 제목·설명·썸네일·분류 상태는 해당 기능에서 추가.
   - 부분 UNIQUE `bookmarks(user_id, normalized_url) WHERE deleted_at IS NULL` — Prisma로 표현이 어려워 SQL 마이그레이션.

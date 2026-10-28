@@ -1,9 +1,10 @@
-import { Controller, Get, ServiceUnavailableException } from "@nestjs/common";
+import { Controller, Get, HttpStatus, Res } from "@nestjs/common";
 import {
   ApiOkResponse,
   ApiProperty,
   ApiServiceUnavailableResponse,
 } from "@nestjs/swagger";
+import type { Response } from "express";
 import { PrismaService } from "../prisma/prisma.service.js";
 
 const DB_CHECK_TIMEOUT_MS = 2_000;
@@ -23,7 +24,10 @@ export class HealthController {
   @Get()
   @ApiOkResponse({ type: HealthResponse })
   @ApiServiceUnavailableResponse({ type: HealthResponse })
-  async check(): Promise<HealthResponse> {
+  // DB down은 오류가 아니라 점검 결과라 예외 대신 503 상태로 같은 형태를 돌려준다
+  async check(
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<HealthResponse> {
     let timer: NodeJS.Timeout | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(
@@ -35,10 +39,8 @@ export class HealthController {
       await Promise.race([this.prisma.$queryRaw`SELECT 1`, timeout]);
       return { status: "ok", db: "up" };
     } catch {
-      throw new ServiceUnavailableException({
-        status: "error",
-        db: "down",
-      } satisfies HealthResponse);
+      res.status(HttpStatus.SERVICE_UNAVAILABLE);
+      return { status: "error", db: "down" };
     } finally {
       clearTimeout(timer);
     }
