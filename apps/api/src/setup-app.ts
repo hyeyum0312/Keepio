@@ -21,11 +21,14 @@ export function setupApp(
     app.enableCors({ origin: webOrigin, credentials: true });
   }
 
+  SwaggerModule.setup("docs", app, () => createOpenApiDocument(app));
+}
+
+// /docs와 packages/api-client 생성(openapi-export.ts)이 같은 문서를 쓴다
+export function createOpenApiDocument(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle("keepio API")
     .setVersion("0.1.0")
     .build();
-  SwaggerModule.setup("docs", app, () =>
-    SwaggerModule.createDocument(app, config),
-  );
+  return SwaggerModule.createDocument(app, config);
 }

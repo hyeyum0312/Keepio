@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | feat(api-client): OpenAPI 내보내기, Orval 클라이언트 생성, 명세 불일치 게이트 (Phase 0-2)
+- Feature: N/A
+- 목적: 웹이 API 응답을 추측하지 않고 생성된 타입·훅만 쓰게 하고, 코드와 명세가 어긋나면 verify에서 막는다(ADR-005).
+- 변경: api `createOpenApiDocument` 분리, `openapi-export.ts`(Nest preview 모드, DB 불필요). `packages/api-client`(Orval 8.43.0 react-query+fetch, mutator `apiFetch`, 생성물 커밋, typecheck). 루트 `openapi:generate`(turbo로 api 빌드 → 내보내기 → 생성 → prettier), `openapi:check`(`scripts/check-openapi.sh`, 해시 비교) → verify에 포함. ADR-005, FRONTEND(Next 16.4.3 표기 정정, 클라이언트 규칙)·BACKEND·SETUP·README 갱신, ADR-003에 "위반 예제는 검증 대상 게이트까지 도달" 원칙 추가, AI-LOG 2건.
+- 영향: verify가 api 빌드를 포함해 몇 초 늘어남. 웹 소비 코드·QueryClientProvider는 아직 없음(첫 소비 기능에서 정책과 함께 추가). 새 의존성 orval 8.43.0, @tanstack/react-query 5.104.3(peer) — 둘 다 공개 약 2주 경과 버전으로 고정.
+- 검증: `npm run verify` PASS(8/8), `npm run build` PASS(3/3). `HealthResponse`에 선택 속성 추가 후 재생성 없이 `openapi:check` exit 1, 복원 후 exit 0. Prisma 생성 코드를 지운 깨끗한 상태에서 `openapi:check` 통과(turbo가 db:generate 선행). 2회 연속 생성 결과 동일(결정적).
+- 주의/롤백: Node는 nvm v24.22.1 사용(셸 기본 v24.19.0은 engine-strict로 거부). 생성물 손수정 금지. revert로 롤백.
+
 ## 2026-10-28 | docs: D-01(삭제 URL 재저장 → 409 복구 안내)·D-11(임시 사용자 Guard) 결정 반영
 - Feature: FEAT-001
 - 목적: FEAT-001 구현을 막던 정책 두 가지를 사용자 결정으로 확정한다.

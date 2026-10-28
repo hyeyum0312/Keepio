@@ -91,17 +91,18 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 
 ## 4. 매일 쓰는 명령어
 
-| 하고 싶은 것                         | 명령어                                                  |
-| ------------------------------------ | ------------------------------------------------------- |
-| DB 켜기 / 끄기                       | `npm run db:up` / `npm run db:down` (데이터는 유지)     |
-| api 개발 서버 (코드 수정 시 재시작)  | `npm run dev:api` → 종료는 `Ctrl+C`                     |
-| web 개발 서버                        | `npm run dev:web`                                       |
-| 완료 판정 (포맷·린트·타입·테스트)    | `npm run verify`                                        |
-| 빌드                                 | `npm run build`                                         |
-| api 테스트만                         | `npm run test --workspace=@keepio/api`                  |
-| 통합 테스트 (실제 DB, `keepio_test`) | `npm run db:migrate:test` → `npm run test:integration`  |
-| 마이그레이션 상태                    | `npm run db:status`                                     |
-| DB 직접 들여다보기 (psql)            | `docker compose exec postgres psql -U keepio -d keepio` |
+| 하고 싶은 것                             | 명령어                                                  |
+| ---------------------------------------- | ------------------------------------------------------- |
+| DB 켜기 / 끄기                           | `npm run db:up` / `npm run db:down` (데이터는 유지)     |
+| api 개발 서버 (코드 수정 시 재시작)      | `npm run dev:api` → 종료는 `Ctrl+C`                     |
+| web 개발 서버                            | `npm run dev:web`                                       |
+| 완료 판정 (포맷·린트·타입·테스트)        | `npm run verify`                                        |
+| 빌드                                     | `npm run build`                                         |
+| API 명세·클라이언트 재생성 (api 변경 후) | `npm run openapi:generate`                              |
+| api 테스트만                             | `npm run test --workspace=@keepio/api`                  |
+| 통합 테스트 (실제 DB, `keepio_test`)     | `npm run db:migrate:test` → `npm run test:integration`  |
+| 마이그레이션 상태                        | `npm run db:status`                                     |
+| DB 직접 들여다보기 (psql)                | `docker compose exec postgres psql -U keepio -d keepio` |
 
 ## 5. DB 스키마를 바꿀 때
 
