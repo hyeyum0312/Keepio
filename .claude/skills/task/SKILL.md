@@ -10,8 +10,9 @@ allowed-tools: Read, Grep, Glob, Bash(git status *), Bash(git log *), Bash(git d
 
 요청: $ARGUMENTS
 
+0. **현재 상태부터 확인한다.** `git status -sb`, `git log --oneline -10`을 실행하고 `docs/HISTORY.md` 최근 3개 항목을 **파일에서** 읽는다. 대화 기억으로 대신하지 않는다. 요청과 같은 작업이 이미 커밋돼 있으면 계획 대신 그 사실을 보고한다.
 1. `AGENTS.md`의 우선순위대로 **관련 문서만** 찾는다. 대상 영역 standards 1~2개, 해당 spec 절, 관련 ADR·Feature, `docs/OPEN-QUESTIONS.md`에서 걸리는 항목, `docs/HISTORY.md` 최근 3개 항목. 전체 문서를 읽지 않는다.
-2. 관련 코드와 기존 테스트를 확인한다. 추측한 API·규칙은 "미확정"으로 표시한다.
+2. 관련 코드와 기존 테스트를 확인한다. 변경 예상 경로가 이미 있으면 읽고 나서 계획한다(새 파일로 덮어쓰지 않는다). ADR·Feature 번호는 현재 파일 목록에서 다음 번호를 정한다. 추측한 API·규칙은 "미확정"으로 표시한다.
 3. `docs/plans/TASK-TEMPLATE.md`의 항목(완료 보고 제외)을 채워 **응답으로** 보고한다. 파일로 저장하지 않는다.
 4. 함께 판단해 적는다:
    - 새 사용자 행동/계약 변경이면 "Feature 문서 필요 → `/feature`", 리팩터링이면 "불필요".
