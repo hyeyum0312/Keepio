@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | feat(web): TanStack Query Provider·기본 정책, API 주소 설정
+- Feature: N/A
+- 목적: 첫 화면 기능이 바로 생성된 api-client 훅을 쓸 수 있게 하고, 요청 정책을 한곳에서 고정한다(FRONTEND.md Network / state).
+- 변경: `app/query-client.ts`(refetchOnWindowFocus false, 쿼리 retry 1, 뮤테이션 retry 0, 캐시 수치는 기본값), `app/providers.tsx`(컴포넌트 수명당 QueryClient, `configureApiClient`, 운영 빌드에서 `NEXT_PUBLIC_API_BASE_URL` 없으면 실패), layout에 Providers. web 의존성 `@tanstack/react-query` 5.104.3·`@keepio/api-client`, `transpilePackages`. `apps/web/.env.example`, CI에 검증용 API 주소, SETUP 설치 단계·문제 해결 1행, FRONTEND 정책 1줄.
+- 영향: 화면 변화 없음. web 운영 빌드에 `NEXT_PUBLIC_API_BASE_URL` 필요.
+- 검증: web 테스트 2개 PASS(Providers 기본 정책 포함). turbo로 환경 변수만 넘긴 빌드 PASS, 값 없이 빌드 시 의도대로 실패 확인. `npm run build` PASS(3/3), `npm run verify` PASS(8/8).
+- 주의/롤백: staleTime 등 캐시 수치는 측정 후 결정. revert로 롤백.
+
 ## 2026-10-28 | feat(api): 공통 오류 응답·요청 ID·접근 로그·환경 변수 검증 (ADR-006)
 - Feature: N/A
 - 목적: 기능 구현 전에 모든 API가 공유할 오류 계약·관측성·설정 검증을 고정한다.

@@ -75,6 +75,7 @@ docker --version                      # 확인
 nvm use
 npm install                           # 의존성 설치 + git hook 연결
 cp .env.example .env                  # 로컬 환경 변수. .env는 커밋되지 않는다
+cp apps/web/.env.example apps/web/.env.local   # web(API 주소). 운영 빌드에 필수
 npm run db:up                         # PostgreSQL 컨테이너 시작
 npm run db:deploy                     # 마이그레이션 적용
 npm run dev:api                       # api 실행 (Prisma client 생성 포함)
@@ -148,11 +149,12 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 
 ## 9. 문제 해결
 
-| 증상                                                  | 원인 / 해결                                                                                  |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `npm install`이 `EBADENGINE`                          | Node 버전이 낮다 → `nvm use` (없으면 `nvm install`)                                          |
-| `/health`가 503 `{"db":"down"}`                       | DB 컨테이너가 꺼짐 → `npm run db:up`. OrbStack 앱이 실행 중인지 확인                         |
-| `Cannot find module …/generated/prisma/client.js`     | Prisma client 미생성 → `npm run db:generate` (turbo로 실행하는 명령은 자동 생성)             |
-| `DATABASE_URL is not set` / `Connection url is empty` | `.env`가 없다 → `cp .env.example .env`                                                       |
-| `EADDRINUSE :7711`                                    | api가 이미 떠 있다 → 기존 터미널에서 `Ctrl+C`, 또는 `lsof -nP -iTCP:7711`로 확인             |
-| 로컬 DB를 완전히 초기화하고 싶다                      | `docker compose down -v` → `npm run db:up` → `npm run db:deploy` (**로컬 데이터 전부 삭제**) |
+| 증상                                                         | 원인 / 해결                                                                                  |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `npm install`이 `EBADENGINE`                                 | Node 버전이 낮다 → `nvm use` (없으면 `nvm install`)                                          |
+| `/health`가 503 `{"db":"down"}`                              | DB 컨테이너가 꺼짐 → `npm run db:up`. OrbStack 앱이 실행 중인지 확인                         |
+| `Cannot find module …/generated/prisma/client.js`            | Prisma client 미생성 → `npm run db:generate` (turbo로 실행하는 명령은 자동 생성)             |
+| `NEXT_PUBLIC_API_BASE_URL is required in production` (build) | web 운영 빌드에 API 주소가 없다 → `cp apps/web/.env.example apps/web/.env.local`             |
+| `DATABASE_URL is not set` / `Connection url is empty`        | `.env`가 없다 → `cp .env.example .env`                                                       |
+| `EADDRINUSE :7711`                                           | api가 이미 떠 있다 → 기존 터미널에서 `Ctrl+C`, 또는 `lsof -nP -iTCP:7711`로 확인             |
+| 로컬 DB를 완전히 초기화하고 싶다                             | `docker compose down -v` → `npm run db:up` → `npm run db:deploy` (**로컬 데이터 전부 삭제**) |

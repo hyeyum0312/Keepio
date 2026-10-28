@@ -31,6 +31,8 @@ jobs:
       # CI에는 개발 DB가 없다. 두 변수 모두 일회용 테스트 DB를 가리킨다.
       DATABASE_URL: postgresql://keepio:test_only@localhost:5432/keepio_test
       DATABASE_URL_TEST: postgresql://keepio:test_only@localhost:5432/keepio_test
+      # web 운영 빌드는 API 주소가 없으면 실패한다(검증용 값)
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:7711
     steps:
       - uses: actions/checkout@v4
         with:
