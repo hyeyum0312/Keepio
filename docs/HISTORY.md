@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | docs(readme): 현재 상태를 기본 세팅 완료 기준으로 갱신
+- Feature: N/A
+- 목적: README "현재 상태"가 초기 스켈레톤 기준(web 빈 페이지·테스트 1개, packages 없음)에 머물러 실제와 달랐다.
+- 변경: 단계(기본 세팅 완료, 보류 항목 D-08·D-09·D-12), web Provider·API 주소, api ADR-006, `packages/api-client` 항목 추가.
+- 영향: 문서만.
+- 검증: 저장소 파일(`apps/`, `packages/`, ADR 목록)과 대조. pre-commit만 실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-28 | docs(agents): Anti-Laziness·Anti-Hallucination 규칙, 현재 단계(기본 세팅) 명시, 배포·모바일·디자인 보류
 - Feature: N/A
 - 목적: 사용자 지시 반영 — 근거 확인·완전 구현·실제 검증·최종 보고 규칙을 AI 공통 규약에 추가하고, 지금은 기본 세팅 단계임을 AI가 읽는 문서에 고정한다.
