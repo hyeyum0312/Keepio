@@ -27,6 +27,8 @@ apps/web/src/
 
 ## Network / state
 
+- App-wide defaults live in `apps/web/src/app/query-client.ts` (no window-focus refetch, query retry 1, mutation retry 0; staleTime/gcTime stay library defaults until measured). Override per query only with a documented reason. API base URL: `NEXT_PUBLIC_API_BASE_URL` (required for production builds).
+
 - Each query has documented key, owner, stale policy, invalidation triggers, loading/error states. Prefer request deduplication via query library; no polling unless product requirement and interval documented.
 - Mutations invalidate only affected keys; no speculative refetch storms. Avoid optimistic updates for destructive/complex relationships without rollback plan.
 - Avoid effect-driven fetch loops; stable dependency arrays; abort in-flight requests on unmount/navigation; clean up listeners/timers/observers. Never retain large API payloads in redundant global stores.
