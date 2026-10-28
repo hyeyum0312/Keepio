@@ -25,7 +25,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-check-file": "^3.3.2",
     "supertest": "^7.3.1",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.71.2",
     "unplugin-swc": "^2.0.0",
     "vitest": "^4.1.12"
