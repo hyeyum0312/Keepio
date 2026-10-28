@@ -22,7 +22,7 @@
     "@types/node": "^24.19.2",
     "@types/supertest": "^7.2.1",
     "@vitest/eslint-plugin": "~1.5.4",
-    "eslint": "^9.39.5",
+    "eslint": "^10.12.0",
     "eslint-plugin-check-file": "^3.3.2",
     "supertest": "^7.3.1",
     "typescript": "^5.9.3",
