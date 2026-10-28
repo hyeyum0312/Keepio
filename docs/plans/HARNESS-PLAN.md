@@ -28,7 +28,7 @@
 ## CI 실행 정책
 
 - 현재: push·PR마다 `npm ci` → verify → `db:migrate:test` → `test:integration` → build. PR은 HISTORY 보존 검사 추가.
-- 계획: main 배포 전 smoke, 웹 E2E. 모바일은 별도 기기/시뮬레이터 워크플로(네이티브 빌드 비용 고려).
+- 계획: 웹 E2E. 배포·CD(배포 전 smoke 포함)는 호스팅 결정(D-12) 후 맨 마지막. 모바일은 별도 기기/시뮬레이터 워크플로(네이티브 빌드 비용 고려).
 - 실패 시 merge 차단은 GitHub 브랜치 보호 규칙의 필수 체크로만 강제된다. 지금은 main에 직접 push하므로 **미적용**.
 
 ## 적용 주의

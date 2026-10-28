@@ -17,4 +17,4 @@ allowed-tools: Read, Grep, Glob, Edit(docs/**), Bash(npm run verify), Bash(npm r
 5. 이번 작업 중 게이트가 잡은 위반, 고친 AI 실수, 환경 함정이 있었으면 `docs/qa/AI-LOG.md`에 한 줄 추가한다. Feature 완료면 기능별 지표 행도 측정한 값으로 추가한다.
 6. Conventional Commit 메시지 초안(제목 + 요약 2~4줄 + 대화에서 지정된 attribution)과 HISTORY 항목을 보여주고 승인을 기다린다.
 7. 승인되면 `git add`(관련 파일만) → `git commit`. pre-commit이 실패하면 원인을 고쳐 다시 커밋하고, `--no-verify`는 쓰지 않는다.
-8. 보고: 커밋 해시, 실행한 검증과 결과, 남은 위험, 롤백 방법.
+8. 보고(AGENTS.md Final Report): 커밋 해시, 실제 수정한 파일, 구현 완료 항목, 실행한 검증과 결과, 미완료 항목, 예상되는 사이드이펙트, 롤백 방법.
