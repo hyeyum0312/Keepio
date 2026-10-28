@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-28 | chore(deps): Dependabot 주간 업데이트, 공개 14일 경과 릴리스만
+- Feature: N/A
+- 목적: 수동으로 지키던 "공개 직후 버전 회피" 원칙을 자동화하고, 보안 패치가 방치되지 않게 한다.
+- 변경: `.github/dependabot.yml`(npm 주간·minor/patch 묶음·PR 최대 5개, github-actions 월간, 둘 다 `cooldown` 14일). standards/HISTORY에 Dependabot PR도 HISTORY 항목 필수(리뷰어가 추가) 명시, OPERATIONS에 의존성 정책 1줄.
+- 영향: push 후 GitHub이 매주 PR을 연다. 머지 전 CI와 HISTORY 항목이 필요하다.
+- 검증: Prettier 검사. Dependabot 설정 유효성은 push 후 GitHub의 Dependabot 탭에서 확인 필요(미실행).
+- 주의/롤백: Dependabot이 PR 브랜치에 사람이 커밋하면 자동 rebase를 멈춘다(충돌 시 `@dependabot recreate`). 파일 삭제로 롤백.
+
 ## 2026-10-28 | docs(harness): HARNESS-PLAN을 현재 상태로 갱신, blame 제외 커밋 등록
 - Feature: N/A
 - 목적: 계획 단계에 머물러 있던 하네스 문서를 실제 구현과 남은 일 기준으로 맞추고, 일괄 포맷 커밋이 `git blame`을 가리지 않게 한다.
