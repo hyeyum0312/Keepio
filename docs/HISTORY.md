@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | docs(git): 브랜치 전략 PR 검증 결과, 검증용 PR 분리 규칙
+- Feature: N/A
+- 목적: 직전 항목(ADR-007)에서 PR로 미룬 검증 결과를 기록하고, 검증 중 생긴 AI 실수를 규칙으로 막는다.
+- 변경: BRANCHING.md AI 에이전트 절에 "검증용 PR은 별도 브랜치·커밋" 1줄. AI-LOG 1건.
+- 영향: 문서만. 이 커밋으로 PR #9의 필수 체크 막힘이 풀린다(새 커밋에는 #9 CI 결과만 붙음).
+- 검증: PR #9(작업 브랜치→dev) CI `verify` 통과, 처음 merge 상태 CLEAN. 임시 PR #10(작업 브랜치→stg)은 "chore/branch-strategy → stg 는 허용되지 않는 경로다(ADR-007)"로 실패·BLOCKED 확인 후 닫음. GitHub API로 dev 규칙 deletion·non_fast_forward·pull_request·required_status_checks 활성 확인. #10이 같은 커밋을 써서 #9도 BLOCKED가 됐고, #9 CI 재실행(통과)으로는 풀리지 않음을 확인. dev→stg 승격 PR은 #9 merge 후 미실행(대기).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-29 | chore(git): dev·stg·prod 브랜치 전략과 PR 필수화, 보안 설정 (ADR-007)
 - Feature: N/A
 - 목적: main 직접 push 구조라 CI 실패 코드도 들어갔다. 실무 흐름(작업 브랜치→dev→stg→prod)을 프로젝트 규칙으로 고정하고 CI 통과를 merge 조건으로 강제한다(사용자 결정). public 저장소인데 비밀값 감지가 꺼져 있었다.
