@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(deps): minor·patch 7개(turbo 2.11, React 19.3, testing-library)
+- Feature: N/A
+- 목적: Dependabot #3 반영.
+- 변경: turbo 2.9.18→2.11.8, react·react-dom 19.2.4→19.3.0(web·api-client), @types/react 19.3.0, @types/react-dom 19.3.0, @testing-library/react 16.3.3, @testing-library/user-event 14.6.8. 이번에 올린 패키지는 범위(`^2`, `^19`, `^16.3.2` 등)를 정확한 버전으로 고정(의존성 정책).
+- 영향: web·api-client·빌드 도구. Next 16.4.3의 peer `react ^19.0.0` 충족. 모든 버전 공개 16~63일.
+- 검증: 버전별 공개일 npm 조회, `npm ls` invalid·UNMET 없음. verify·build는 이 브랜치 마지막 커밋에서 실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-29 | chore(ci): actions/checkout·setup-node v4 → v7
 - Feature: N/A
 - 목적: Dependabot #1·#2 반영(한 브랜치로 모아 HISTORY 충돌·반복 CI를 피한다, 사용자 결정).
