@@ -144,7 +144,7 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 | 통합 테스트 | `*.int.test.ts` | `DATABASE_URL_TEST` (이름이 `_test`로 끝나야 실행) | `npm run test:integration`                        |
 
 - 통합 테스트 전에 테스트 DB에 마이그레이션을 적용한다: `npm run db:migrate:test`.
-- GitHub에 push하거나 PR을 열면 `.github/workflows/ci.yml`이 깨끗한 환경에서 `npm ci → verify → db:migrate:test → test:integration → build`를 실행한다. PR이면 HISTORY 보존 검사도 한다. CI가 최종 기준이다.
+- `dev`·`stg`·`prod`로 PR을 열면 `.github/workflows/ci.yml`이 깨끗한 환경에서 PR 경로·HISTORY 검사 → `npm ci → verify → db:migrate:test → test:integration → build`를 바뀐 패키지 범위로 실행한다. CI가 최종 기준이고, 통과해야 merge된다. 브랜치·PR 규칙: `docs/standards/BRANCHING.md`.
 - turbo는 선언하지 않은 환경 변수를 작업에 넘기지 않는다. DB 관련 새 환경 변수를 만들면 `turbo.json`의 `globalPassThroughEnv`에도 추가한다.
 
 ## 9. 문제 해결

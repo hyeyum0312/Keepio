@@ -5,6 +5,11 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 
+# 보호 브랜치에서 직접 커밋 금지(docs/standards/BRANCHING.md). 작업 브랜치를 만든다.
+case "$(git branch --show-current)" in
+  dev | stg | prod | main) echo "보호 브랜치에서 직접 커밋 금지 → git switch -c feature/<이름>" >&2; exit 1 ;;
+esac
+
 python3 scripts/check-history.py >/dev/null
 
 staged=()

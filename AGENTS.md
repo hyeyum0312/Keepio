@@ -7,7 +7,7 @@
 1. 사용자 최신 지시 > 이 파일 > 해당 영역 standards > 확정된 PRD/API 계약 > 기존 코드 관례. 충돌하면 조용히 추측하지 말고 보고한다.
 2. 시작 시 `git status`, 패키지 스크립트, 관련 코드/테스트, 해당 문서만 확인한다. 검색 범위를 먼저 좁힌다.
 3. 스펙 원본: 제품 `docs/spec/01-PRD.md`; 디자인 `docs/spec/02-DESIGN.md`; 백엔드 `docs/spec/03-BACKEND-ARCHITECTURE.md`; DB/API `docs/spec/04-DATABASE-API.md`; 로드맵 `docs/spec/05-ROADMAP-PORTFOLIO.md`. 스펙과 다른 결정은 `docs/decisions/`의 ADR이 우선한다.
-4. 역할별 가이드: `docs/standards/PRODUCT.md`, `DESIGN.md`, `FRONTEND.md`, `BACKEND.md`, `QUALITY.md`, `OPERATIONS.md`.
+4. 역할별 가이드: `docs/standards/PRODUCT.md`, `DESIGN.md`, `FRONTEND.md`, `BACKEND.md`, `QUALITY.md`, `OPERATIONS.md`, 브랜치·PR `BRANCHING.md`.
 
 ## 작업 프로토콜 (매 작업)
 
@@ -21,6 +21,8 @@
 - 비용은 필수 요소를 줄이는 근거가 아니다. 필수 요소는 보안, 데이터 무결성, 정확성, 장애 대응에 필요한 로그·백업·관측, 접근성이다. 이런 요소는 빼거나 줄이지 않고, 같은 목적을 더 효율적으로 달성하는 방법을 찾는다. 필수인지 애매하면 사용자에게 묻는다.
 
 Claude Code에서는 `/task`(계획) → `/feature`(새 기능일 때 명세) → 구현 → `/finish`(검증·HISTORY·커밋)로 실행한다. 정의: `.claude/skills/`.
+
+작업은 `dev`에서 딴 작업 브랜치에서 하고 PR로 올린다. 보호 브랜치(`dev`·`stg`·`prod`)에 직접 커밋하지 않고, PR merge는 사용자가 한다(`docs/standards/BRANCHING.md`).
 
 1. **이해**: 목적·완료 기준·데이터 출처·관련 코드·기존 테스트를 확인한다.
 2. **계획**: 변경 파일, API/DB 영향, 실패·삭제·권한·성능·비용·회귀 위험, 테스트 범위를 5~10줄로 제시. 큰 변경/계약 변경은 승인 전 구현하지 않는다.
