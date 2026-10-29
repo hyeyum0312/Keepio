@@ -1,10 +1,10 @@
 # 최종 품질 게이트. 로컬 hook은 우회 가능하므로 이 workflow가 기준이다(AGENTS.md).
 name: CI
-# 평소에는 바뀐 패키지만 검사하고(scripts/ci-scope.sh), 주 1회·수동 실행은 전체 검사한다.
+# PR은 바뀐 패키지만 검사하고(scripts/ci-scope.sh), 주 1회·수동 실행은 전체 검사한다.
+# dev·stg·prod는 보호 브랜치라 PR로만 바뀌므로 push에서는 다시 돌리지 않는다(ADR-007).
 on:
   pull_request:
-  push:
-    branches: [main]
+    branches: [dev, stg, prod]
   schedule:
     - cron: "0 18 * * 0" # 매주 월요일 03:00 KST
   workflow_dispatch:
@@ -45,6 +45,19 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - name: 승격 경로 검사 (PR)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          case "$BASE:$HEAD" in
+            # 승격: dev→stg→prod, 긴급 수정: hotfix/*→prod 후 prod→stg→dev 역반영
+            stg:dev | prod:stg | prod:hotfix/* | stg:prod | dev:stg) ;;
+            dev:prod) echo "prod 변경은 stg를 거쳐 dev로 역반영한다(ADR-007)" >&2; exit 1 ;;
+            dev:*) ;;
+            *) echo "$HEAD → $BASE 는 허용되지 않는 경로다(ADR-007)" >&2; exit 1 ;;
+          esac
       - name: HISTORY 보존 검사 (PR)
         if: github.event_name == 'pull_request'
         run: python3 scripts/check-history.py origin/${{ github.base_ref }}
@@ -52,7 +65,7 @@ jobs:
       - name: 검사 범위
         id: scope
         env:
-          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event_name == 'push' && github.event.before || '' }}
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: |
           bash scripts/ci-scope.sh "$BASE" >> "$GITHUB_OUTPUT"
           if grep -q '^turbo=--affected$' "$GITHUB_OUTPUT"; then echo "TURBO_SCM_BASE=$BASE" >> "$GITHUB_ENV"; fi
