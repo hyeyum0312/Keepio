@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(ci): actions/checkout·setup-node v4 → v7
+- Feature: N/A
+- 목적: Dependabot #1·#2 반영(한 브랜치로 모아 HISTORY 충돌·반복 CI를 피한다, 사용자 결정).
+- 변경: `ci.yml`의 `actions/checkout@v7`, `actions/setup-node@v7`.
+- 영향: CI만. checkout v7의 깨지는 변경은 `pull_request_target`·`workflow_run`에서 fork PR 체크아웃 차단 — 이 저장소는 사용하지 않는다. setup-node v7은 ESM 전환·캐시 출력 추가.
+- 검증: 릴리스 노트(v5~v7) 확인. 실제 동작은 이 브랜치 PR의 CI로 확인.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-29 | fix(deps): undici 7.29.1 취약점 해소(orval 경유, 범위 지정 override)
 - Feature: N/A
 - 목적: Dependabot 경보 5건(undici 7.x < 7.30.1, high 4·medium 1). 취약 버전은 orval 8.43.0 → `@scalar/json-magic@0.15.7` 경로에만 있다(개발용 코드 생성 도구, 서버 미포함). #12는 orval을 4일 된 8.45.0(`^` 범위)으로 올려 14일·정확한 버전 규칙에 어긋나므로 닫는다(사용자 결정).
