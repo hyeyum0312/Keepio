@@ -34,7 +34,10 @@
     "openapi:check": "bash scripts/check-openapi.sh"
   },
   "overrides": {
-    "multer": "2.5.0"
+    "multer": "2.5.0",
+    "@scalar/json-magic@0.15.7": {
+      "undici": "7.30.1"
+    }
   },
   "devDependencies": {
     "prettier": "^3.9.10",

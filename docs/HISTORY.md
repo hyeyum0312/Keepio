@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | fix(deps): undici 7.29.1 취약점 해소(orval 경유, 범위 지정 override)
+- Feature: N/A
+- 목적: Dependabot 경보 5건(undici 7.x < 7.30.1, high 4·medium 1). 취약 버전은 orval 8.43.0 → `@scalar/json-magic@0.15.7` 경로에만 있다(개발용 코드 생성 도구, 서버 미포함). #12는 orval을 4일 된 8.45.0(`^` 범위)으로 올려 14일·정확한 버전 규칙에 어긋나므로 닫는다(사용자 결정).
+- 변경: 루트 `overrides`에 `"@scalar/json-magic@0.15.7": { "undici": "7.30.1" }`(7.30.1은 공개 14일). lock에서 해당 경로 7.29.1 항목 제거 후 재설치.
+- 영향: dev 의존성만. orval 8.43.0 유지. `@scalar/json-magic@0.17.0`의 undici 8.12.3(패치 버전 8.12.2 이상)은 그대로.
+- 검증: `npm ls undici --all`에서 7.29.1 사라짐, 0.15.7 경로 7.30.1, 8.12.3 경로 불변 확인. 첫 시도(`orval > @scalar/json-magic` 중첩 override)는 8.12.3 경로까지 7.30.1로 끌어내려 invalid가 되어 버전 지정 키로 바꿈. verify·openapi:check는 이 브랜치 마지막 커밋에서 실행. 승격 PR #13(dev→stg) — PR 경로·HISTORY 보존 검사·verify 통과, stg merge 방식 merge commit만 허용 API로 확인, 사용자 merge(974e1c1).
+- 주의/롤백: orval을 올릴 때 이 override가 불필요해지면 제거한다. revert로 롤백.
+
 ## 2026-10-29 | chore(claude): 커밋·PR의 AI 작성자 표시 끄기
 - Feature: N/A
 - 목적: 사용자 결정 — 커밋·PR에 Claude 공동 작성자·"Generated with" 표시를 남기지 않는다. AI 하네스(AGENTS·게이트·AI-LOG) 자체는 포트폴리오 사례로 유지하고, 과거 커밋 이력은 다시 쓰지 않는다.
