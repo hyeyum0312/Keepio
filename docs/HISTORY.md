@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(claude): 커밋·PR의 AI 작성자 표시 끄기
+- Feature: N/A
+- 목적: 사용자 결정 — 커밋·PR에 Claude 공동 작성자·"Generated with" 표시를 남기지 않는다. AI 하네스(AGENTS·게이트·AI-LOG) 자체는 포트폴리오 사례로 유지하고, 과거 커밋 이력은 다시 쓰지 않는다.
+- 변경: `.claude/settings.json`에 `attribution.commit`·`attribution.pr` 빈 값. `/finish` 커밋 메시지 초안에서 attribution 항목 제거(표시를 넣지 않는다고 명시).
+- 영향: Claude Code가 만드는 커밋·PR에 작성자 표시가 붙지 않는다. 코드·CI 영향 없음.
+- 검증: `jq -e .attribution .claude/settings.json`로 JSON·값 확인. 실제 커밋에 표시가 붙지 않는지는 이 커밋 메시지로 확인. PR #9 merge(231e3b2) 확인 — squash 메시지에 기존 커밋의 공동 작성자 줄이 남았고 과거 이력 유지 결정에 따라 그대로 둠.
+- 주의/롤백: 설정은 Claude Code 세션 재시작 후 반영될 수 있다. revert로 롤백.
+
 ## 2026-10-29 | docs(git): 브랜치 전략 PR 검증 결과, 검증용 PR 분리 규칙
 - Feature: N/A
 - 목적: 직전 항목(ADR-007)에서 PR로 미룬 검증 결과를 기록하고, 검증 중 생긴 AI 실수를 규칙으로 막는다.

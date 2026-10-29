@@ -15,6 +15,6 @@ allowed-tools: Read, Grep, Glob, Edit(docs/**), Bash(npm run verify), Bash(npm r
 3. 관련 Feature 문서가 있으면 "구현 결과"에 실제 실행 명령과 결과를 채우고, 수용 기준이 모두 검증됐을 때만 Status를 `Implemented`로 바꾼다.
 4. `docs/HISTORY.md` 마커 바로 아래에 `docs/standards/HISTORY.md` 형식으로 항목 하나를 추가한다. 검증 칸에는 **이번에 실제로 실행한** 명령과 결과만 쓴다. 실행하지 않은 것은 `미실행(사유)`.
 5. 이번 작업 중 게이트가 잡은 위반, 고친 AI 실수, 환경 함정이 있었으면 `docs/qa/AI-LOG.md`에 한 줄 추가한다. Feature 완료면 기능별 지표 행도 측정한 값으로 추가한다.
-6. Conventional Commit 메시지 초안(제목 + 요약 2~4줄 + 대화에서 지정된 attribution)과 HISTORY 항목을 보여주고 승인을 기다린다.
+6. Conventional Commit 메시지 초안(제목 + 요약 2~4줄. AI 작성자 표시(Co-Authored-By 등)는 넣지 않는다)과 HISTORY 항목을 보여주고 승인을 기다린다.
 7. 승인되면 작업 브랜치인지 확인하고(보호 브랜치면 멈추고 브랜치 이름을 묻는다) `git add`(관련 파일만) → `git commit`. pre-commit이 실패하면 원인을 고쳐 다시 커밋하고, `--no-verify`는 쓰지 않는다. push·PR 생성(`dev` 대상)은 따로 승인받고, merge는 하지 않는다(`docs/standards/BRANCHING.md`).
 8. 보고(AGENTS.md Final Report): 커밋 해시, PR 링크(있으면), 실제 수정한 파일, 구현 완료 항목, 실행한 검증과 결과, 미완료 항목, 예상되는 사이드이펙트, 롤백 방법.
