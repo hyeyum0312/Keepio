@@ -27,11 +27,11 @@
 
 ## CI 실행 정책
 
-- 현재: push·PR마다 `npm ci` → verify → `db:migrate:test` → `test:integration` → build. PR은 HISTORY 보존 검사 추가.
-- 범위: `scripts/ci-scope.sh`가 PR은 base 브랜치, main push는 직전 push와 비교해 바뀐 패키지(+의존 패키지)만 lint·typecheck·test·build한다(`turbo --affected`). DB 통합 테스트는 api가 범위에 있을 때만. format:check·openapi:check는 매번 전체. prisma·CI 설정·scripts 변경, 주 1회(월 03:00 KST)·수동 실행은 전체 검사.
+- 현재: `dev`·`stg`·`prod` 대상 PR마다(ADR-007, push 재실행 없음) `npm ci` → verify → `db:migrate:test` → `test:integration` → build. PR 경로 검사(BRANCHING.md 허용 경로)·HISTORY 보존 검사 추가.
+- 범위: `scripts/ci-scope.sh`가 PR base 브랜치와 비교해 바뀐 패키지(+의존 패키지)만 lint·typecheck·test·build한다(`turbo --affected`). DB 통합 테스트는 api가 범위에 있을 때만. format:check·openapi:check는 매번 전체. prisma·CI 설정·scripts 변경, 주 1회(월 03:00 KST)·수동 실행은 전체 검사.
 - 원격 캐시(turbo remote cache)는 외부 계정이 필요해 D-12에서 함께 결정.
 - 계획: 웹 E2E. 배포·CD(배포 전 smoke 포함)는 호스팅 결정(D-12) 후 맨 마지막. 모바일은 별도 기기/시뮬레이터 워크플로(네이티브 빌드 비용 고려).
-- 실패 시 merge 차단은 GitHub 브랜치 보호 규칙의 필수 체크로만 강제된다. 지금은 main에 직접 push하므로 **미적용**.
+- 실패 시 merge 차단: `dev`·`stg`·`prod` 보호 규칙의 필수 체크 `verify`(ADR-007).
 
 ## 적용 주의
 
