@@ -1,9 +1,13 @@
 # 최종 품질 게이트. 로컬 hook은 우회 가능하므로 이 workflow가 기준이다(AGENTS.md).
 name: CI
+# 평소에는 바뀐 패키지만 검사하고(scripts/ci-scope.sh), 주 1회·수동 실행은 전체 검사한다.
 on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 18 * * 0" # 매주 월요일 03:00 KST
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -45,7 +49,17 @@ jobs:
         if: github.event_name == 'pull_request'
         run: python3 scripts/check-history.py origin/${{ github.base_ref }}
       - run: npm ci
-      - run: npm run verify # format:check + lint + typecheck + unit test
-      - run: npm run db:migrate:test
-      - run: npm run test:integration
-      - run: npm run build
+      - name: 검사 범위
+        id: scope
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event_name == 'push' && github.event.before || '' }}
+        run: |
+          bash scripts/ci-scope.sh "$BASE" >> "$GITHUB_OUTPUT"
+          if grep -q '^turbo=--affected$' "$GITHUB_OUTPUT"; then echo "TURBO_SCM_BASE=$BASE" >> "$GITHUB_ENV"; fi
+      # format:check·openapi:check는 매번 전체, lint·typecheck·unit test는 범위 내 패키지만
+      - run: npm run verify -- ${{ steps.scope.outputs.turbo }}
+      - if: steps.scope.outputs.api == 'true'
+        run: npm run db:migrate:test
+      - if: steps.scope.outputs.api == 'true'
+        run: npm run test:integration -- ${{ steps.scope.outputs.turbo }}
+      - run: npm run build -- ${{ steps.scope.outputs.turbo }}
