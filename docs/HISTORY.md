@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | test(ci): CI 범위 검증용 임시 PR (merge하지 않음)
+- Feature: N/A
+- 목적: web만 바뀐 PR에서 api 검사가 빠지는지 확인.
+- 변경: web page.tsx 주석 1줄.
+- 영향: 없음(닫을 PR).
+- 검증: CI 로그로 확인.
+- 주의/롤백: merge하지 않고 닫는다.
+
 ## 2026-10-29 | ci: 바뀐 패키지만 검사(turbo --affected), 주 1회·수동 전체 검사
 - Feature: N/A
 - 목적: web·api(이후 모바일)가 한 저장소에 있어 CI가 매 push마다 전체를 검사했다. 로컬(pre-commit=staged 파일, verify=turbo 캐시)은 이미 변경 범위만 돌고 있었다.
