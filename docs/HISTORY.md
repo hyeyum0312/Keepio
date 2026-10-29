@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | ci: 바뀐 패키지만 검사(turbo --affected), 주 1회·수동 전체 검사
+- Feature: N/A
+- 목적: web·api(이후 모바일)가 한 저장소에 있어 CI가 매 push마다 전체를 검사했다. 로컬(pre-commit=staged 파일, verify=turbo 캐시)은 이미 변경 범위만 돌고 있었다.
+- 변경: `scripts/ci-scope.sh`(비교 기준·전체 검사 조건 판단, turbo 인자와 api 포함 여부 출력). `ci.yml`에 범위 단계, verify·통합·build에 `--affected`, DB 마이그레이션·통합 테스트는 api 범위일 때만, `schedule`(월 03:00 KST)·`workflow_dispatch` 전체 검사. HARNESS-PLAN CI 정책, QUALITY 표.
+- 영향: CI만. web만 바꾸면 api lint·typecheck·test·build·DB 통합을 건너뛴다. format:check·openapi:check는 매번 전체.
+- 검증: turbo 2.9.18에서 변경별 affected 확인 — web 파일→web, api 파일→api, api-client→api-client·web, turbo.json→전체, docs·prisma→없음(그래서 prisma는 전체 검사로 처리). 스크립트를 기준 없음·0 커밋·문서만·CI 변경 커밋으로 실행해 기대 출력 확인. web만 바꾼 상태의 build dry-run에 api 제외, 범위가 비었을 때 turbo exit 0 확인. GitHub Actions 실행 결과는 push 후 확인.
+- 주의/롤백: turbo는 api 변경을 web에 연결하지 않는다(생성 코드 경유) — openapi:check가 매번 전체로 이 연결을 검사한다. 놓친 경우는 주간 전체 검사로 잡는다. revert로 롤백.
+
 ## 2026-10-28 | docs(readme): 현재 상태를 기본 세팅 완료 기준으로 갱신
 - Feature: N/A
 - 목적: README "현재 상태"가 초기 스켈레톤 기준(web 빈 페이지·테스트 1개, packages 없음)에 머물러 실제와 달랐다.
