@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(git): dev·stg·prod 브랜치 전략과 PR 필수화, 보안 설정 (ADR-007)
+- Feature: N/A
+- 목적: main 직접 push 구조라 CI 실패 코드도 들어갔다. 실무 흐름(작업 브랜치→dev→stg→prod)을 프로젝트 규칙으로 고정하고 CI 통과를 merge 조건으로 강제한다(사용자 결정). public 저장소인데 비밀값 감지가 꺼져 있었다.
+- 변경: 규칙 `docs/standards/BRANCHING.md`, ADR-007. `ci.yml` 트리거를 dev·stg·prod 대상 PR·주간·수동으로(push 재실행 제거), PR 경로 검사 단계 추가. pre-commit이 보호 브랜치(dev·stg·prod·main) 커밋 차단. AGENTS(작업 브랜치·사용자 merge), `/finish`(push·PR 별도 승인, merge 안 함), HARNESS-PLAN·QUALITY·SETUP. GitHub: main→dev 이름 변경(기본 브랜치), stg·prod 생성, ruleset 2개(dev: squash만 / stg·prod: merge commit만, 공통 PR 필수·`verify` 필수·강제 push·삭제 금지·승인 미요구·우회 없음). Secret scanning·push protection·취약점 알림·Dependabot 보안 업데이트 켬.
+- 영향: 보호 브랜치 직접 push 불가, 모든 변경은 PR. CI는 PR당 1회. 서버 비용 없음(환경은 D-12).
+- 검증: pre-commit을 로컬 `stg` 브랜치에서 실행해 차단(exit 1), 작업 브랜치에서는 통과 경로 확인. GitHub API로 기본 브랜치 dev, ruleset 2개 생성, 보안 설정 enabled 응답 확인. 이 PR의 CI 필수 체크·승격 PR·잘못된 경로 PR 결과는 PR에서 확인 후 다음 항목에 기록.
+- 주의/롤백: 로컬 클론은 `git branch -m main dev && git branch -u origin/dev dev` 필요. 롤백은 ruleset 삭제, dev→main 이름 변경, `ci.yml` 트리거 복원.
+
 ## 2026-10-29 | docs(agents): 비용이 필수 요소를 줄이는 근거가 아님을 명시
 - Feature: N/A
 - 목적: 사용자 지시 반영 — 비용 최적화가 보안·정확성 같은 필수 요소까지 줄이는 근거로 읽히지 않게 한다.
