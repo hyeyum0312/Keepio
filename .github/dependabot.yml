@@ -11,6 +11,14 @@ updates:
     cooldown:
       default-days: 14
     open-pull-requests-limit: 5
+    # 메이저는 별도 검토 후 직접 올린다. @types/node는 .nvmrc의 Node 메이저(24)와 맞춘다.
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]

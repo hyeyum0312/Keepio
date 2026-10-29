@@ -5,6 +5,46 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(deps): Dependabot에서 @types/node·TypeScript·ESLint 메이저 제외
+- Feature: N/A
+- 목적: #5(@types/node 26)·#4(TypeScript 7)·#6(ESLint 10)은 보류·불일치로 닫는다. 같은 PR이 매주 다시 열리지 않게 한다(사용자 결정).
+- 변경: `dependabot.yml` npm `ignore`에 세 패키지의 semver-major.
+- 영향: 세 패키지의 minor·patch는 계속 제안된다. 메이저는 별도 검토 작업으로 올린다(TypeScript 7은 ESLint 플러그인 호환, ESLint 10은 eslint-config-next 지원 확인 필요).
+- 검증: Prettier 검사. Dependabot 반영은 다음 주간 실행에서 확인(미실행).
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-29 | chore(deps): jsdom 30, @types/node 24(Node 버전 정합), React 19.3.1 단일화
+- Feature: N/A
+- 목적: Dependabot #7(jsdom) 반영. #5(@types/node 26)는 고정 Node 24와 맞지 않아 닫고, 기존 web의 `^20`도 Node 24와 어긋나 있어 24로 맞춘다(사용자 결정). 직전 커밋의 React 19.3.0이 peer 해결로 두 벌 설치되는 문제를 고친다.
+- 변경: web jsdom 28.1.0→30.1.2(요구 Node `^24.15.0` 충족), web @types/node `^20`→24.19.2, api `^24.19.2`→24.19.2(정확한 버전). react·react-dom 19.3.0→19.3.1(web·api-client, 공개 15일) — lock의 react 계열 항목을 지우고 재설치해 루트 한 벌만 남김. AI-LOG 2건.
+- 영향: web·api-client·테스트 환경. 런타임 React 사본 1개.
+- 검증: lock에 react·react-dom 19.3.1 루트 1벌만 존재 확인. `npm run verify` PASS(8/8, format·openapi:check 포함). `npm run build` PASS(3/3). 통합 테스트는 로컬 미실행(api 코드 변경 없음, CI에서 실행).
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-29 | chore(deps): minor·patch 7개(turbo 2.11, React 19.3, testing-library)
+- Feature: N/A
+- 목적: Dependabot #3 반영.
+- 변경: turbo 2.9.18→2.11.8, react·react-dom 19.2.4→19.3.0(web·api-client), @types/react 19.3.0, @types/react-dom 19.3.0, @testing-library/react 16.3.3, @testing-library/user-event 14.6.8. 이번에 올린 패키지는 범위(`^2`, `^19`, `^16.3.2` 등)를 정확한 버전으로 고정(의존성 정책).
+- 영향: web·api-client·빌드 도구. Next 16.4.3의 peer `react ^19.0.0` 충족. 모든 버전 공개 16~63일.
+- 검증: 버전별 공개일 npm 조회, `npm ls` invalid·UNMET 없음. verify·build는 이 브랜치 마지막 커밋에서 실행.
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-29 | chore(ci): actions/checkout·setup-node v4 → v7
+- Feature: N/A
+- 목적: Dependabot #1·#2 반영(한 브랜치로 모아 HISTORY 충돌·반복 CI를 피한다, 사용자 결정).
+- 변경: `ci.yml`의 `actions/checkout@v7`, `actions/setup-node@v7`.
+- 영향: CI만. checkout v7의 깨지는 변경은 `pull_request_target`·`workflow_run`에서 fork PR 체크아웃 차단 — 이 저장소는 사용하지 않는다. setup-node v7은 ESM 전환·캐시 출력 추가.
+- 검증: 릴리스 노트(v5~v7) 확인. 실제 동작은 이 브랜치 PR의 CI로 확인.
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-29 | fix(deps): undici 7.29.1 취약점 해소(orval 경유, 범위 지정 override)
+- Feature: N/A
+- 목적: Dependabot 경보 5건(undici 7.x < 7.30.1, high 4·medium 1). 취약 버전은 orval 8.43.0 → `@scalar/json-magic@0.15.7` 경로에만 있다(개발용 코드 생성 도구, 서버 미포함). #12는 orval을 4일 된 8.45.0(`^` 범위)으로 올려 14일·정확한 버전 규칙에 어긋나므로 닫는다(사용자 결정).
+- 변경: 루트 `overrides`에 `"@scalar/json-magic@0.15.7": { "undici": "7.30.1" }`(7.30.1은 공개 14일). lock에서 해당 경로 7.29.1 항목 제거 후 재설치.
+- 영향: dev 의존성만. orval 8.43.0 유지. `@scalar/json-magic@0.17.0`의 undici 8.12.3(패치 버전 8.12.2 이상)은 그대로.
+- 검증: `npm ls undici --all`에서 7.29.1 사라짐, 0.15.7 경로 7.30.1, 8.12.3 경로 불변 확인. 첫 시도(`orval > @scalar/json-magic` 중첩 override)는 8.12.3 경로까지 7.30.1로 끌어내려 invalid가 되어 버전 지정 키로 바꿈. verify·openapi:check는 이 브랜치 마지막 커밋에서 실행. 승격 PR #13(dev→stg) — PR 경로·HISTORY 보존 검사·verify 통과, stg merge 방식 merge commit만 허용 API로 확인, 사용자 merge(974e1c1).
+- 주의/롤백: orval을 올릴 때 이 override가 불필요해지면 제거한다. revert로 롤백.
+
 ## 2026-10-29 | chore(claude): 커밋·PR의 AI 작성자 표시 끄기
 - Feature: N/A
 - 목적: 사용자 결정 — 커밋·PR에 Claude 공동 작성자·"Generated with" 표시를 남기지 않는다. AI 하네스(AGENTS·게이트·AI-LOG) 자체는 포트폴리오 사례로 유지하고, 과거 커밋 이력은 다시 쓰지 않는다.
