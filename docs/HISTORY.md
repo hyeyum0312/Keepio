@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(deps): Dependabot에서 @types/node·TypeScript·ESLint 메이저 제외
+- Feature: N/A
+- 목적: #5(@types/node 26)·#4(TypeScript 7)·#6(ESLint 10)은 보류·불일치로 닫는다. 같은 PR이 매주 다시 열리지 않게 한다(사용자 결정).
+- 변경: `dependabot.yml` npm `ignore`에 세 패키지의 semver-major.
+- 영향: 세 패키지의 minor·patch는 계속 제안된다. 메이저는 별도 검토 작업으로 올린다(TypeScript 7은 ESLint 플러그인 호환, ESLint 10은 eslint-config-next 지원 확인 필요).
+- 검증: Prettier 검사. Dependabot 반영은 다음 주간 실행에서 확인(미실행).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-29 | chore(deps): jsdom 30, @types/node 24(Node 버전 정합), React 19.3.1 단일화
 - Feature: N/A
 - 목적: Dependabot #7(jsdom) 반영. #5(@types/node 26)는 고정 Node 24와 맞지 않아 닫고, 기존 web의 `^20`도 Node 24와 어긋나 있어 24로 맞춘다(사용자 결정). 직전 커밋의 React 19.3.0이 peer 해결로 두 벌 설치되는 문제를 고친다.
