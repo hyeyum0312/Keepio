@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | chore(deps): jsdom 30, @types/node 24(Node 버전 정합), React 19.3.1 단일화
+- Feature: N/A
+- 목적: Dependabot #7(jsdom) 반영. #5(@types/node 26)는 고정 Node 24와 맞지 않아 닫고, 기존 web의 `^20`도 Node 24와 어긋나 있어 24로 맞춘다(사용자 결정). 직전 커밋의 React 19.3.0이 peer 해결로 두 벌 설치되는 문제를 고친다.
+- 변경: web jsdom 28.1.0→30.1.2(요구 Node `^24.15.0` 충족), web @types/node `^20`→24.19.2, api `^24.19.2`→24.19.2(정확한 버전). react·react-dom 19.3.0→19.3.1(web·api-client, 공개 15일) — lock의 react 계열 항목을 지우고 재설치해 루트 한 벌만 남김. AI-LOG 2건.
+- 영향: web·api-client·테스트 환경. 런타임 React 사본 1개.
+- 검증: lock에 react·react-dom 19.3.1 루트 1벌만 존재 확인. `npm run verify` PASS(8/8, format·openapi:check 포함). `npm run build` PASS(3/3). 통합 테스트는 로컬 미실행(api 코드 변경 없음, CI에서 실행).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-29 | chore(deps): minor·patch 7개(turbo 2.11, React 19.3, testing-library)
 - Feature: N/A
 - 목적: Dependabot #3 반영.
