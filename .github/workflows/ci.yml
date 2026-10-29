@@ -38,10 +38,10 @@ jobs:
       # web 운영 빌드는 API 주소가 없으면 실패한다(검증용 값)
       NEXT_PUBLIC_API_BASE_URL: http://localhost:7711
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
