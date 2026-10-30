@@ -28,6 +28,7 @@
 
 - 작업 브랜치에서만 커밋한다. 브랜치 생성·커밋·push·PR 생성은 사용자 승인 후에 한다.
 - PR merge는 사용자가 한다. AI는 merge하지 않는다.
+- 커밋 메시지·PR 제목·본문에 AI 작성자 표시(`Co-Authored-By: Claude`, `Generated with Claude Code` 등)를 넣지 않는다. GitHub 기여자 그래프에 AI가 올라간다. `.githooks/commit-msg`와 CI가 `scripts/check-ai-attribution.sh`로 막는다.
 - 검증용 PR(실패를 확인하는 PR 등)은 별도 브랜치·커밋으로 연다. 같은 커밋에 실패한 `verify`가 붙으면 실제 PR의 필수 체크가 막힌다.
 - PR 본문: 목적, 변경 요약, 설계 결정과 근거, 실제 실행한 검증, 측정(해당 시), 위험·롤백. 형식은 `.github/pull_request_template.md`를 따른다. HISTORY 항목과 내용이 같으면 요약해서 링크한다.
 
