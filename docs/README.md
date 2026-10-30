@@ -4,7 +4,7 @@
 
 ## 원본 우선순위
 
-ADR(`decisions/`) > spec(`spec/`) > standards(`standards/`) 순으로 우선한다. 같은 내용을 여러 문서에 다시 쓰지 않고 원본을 링크한다.
+spec(`spec/`)과 standards(`standards/`)가 최종 상태다. 결정이 바뀌면 이 문서들을 고치고, 바꾼 이유는 ADR(`decisions/`)에 남긴다(ADR-008). 같은 내용을 여러 문서에 다시 쓰지 않고 원본을 링크한다.
 
 ## 스펙 원본 (v0.3) — `spec/`
 
@@ -20,7 +20,7 @@ ADR(`decisions/`) > spec(`spec/`) > standards(`standards/`) 순으로 우선한�
 
 ## 결정과 미결정
 
-- [ADR](decisions/): 스펙과 달라진 결정과 그 이유
+- [ADR](decisions/): 결정 변경의 이유 기록(현재 상태는 spec·standards)
 - [미결정 사항](OPEN-QUESTIONS.md)
 - [스펙 검토 기록](REVIEW.md)
 

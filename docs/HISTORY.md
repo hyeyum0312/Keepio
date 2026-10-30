@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | docs(decisions): spec·standards를 최종 상태로, ADR은 변경 이유 기록
+- Feature: N/A
+- 목적: ADR이 쌓여도 spec·standards만 읽으면 현재 규칙을 알 수 있게 한다(사용자 결정, ADR-008).
+- 변경: AGENTS.md·docs/README.md 우선순위 문구 변경. ADR-001~007을 spec·standards와 대조해 빠진 두 건 반영: spec 03 검증(class-validator)·테스트(Vitest+SWC), PRD "MVP 제외"에 버킷 중첩·비교/결정 화면. ADR-008 추가.
+- 영향: 문서만. 이후 결정 변경 PR은 spec·standards 본문도 함께 고친다.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-30 | chore(claude): .env 읽기·--no-verify를 permissions.deny로 차단
 - Feature: N/A
 - 목적: AGENTS에 문장으로만 있던 금지(비밀 파일 읽기, hook 우회)를 Claude Code 설정으로 실행 단계에서 막는다. 토큰·보안 강의 내용 중 과하지 않은 것만 적용(사용자 결정). sandbox·AGENTS 축약·HISTORY 읽기 hook·서브에이전트·headless는 보류.
