@@ -6,7 +6,7 @@
 
 1. 사용자 최신 지시 > 이 파일 > 해당 영역 standards > 확정된 PRD/API 계약 > 기존 코드 관례. 충돌하면 조용히 추측하지 말고 보고한다.
 2. 시작 시 `git status`, 패키지 스크립트, 관련 코드/테스트, 해당 문서만 확인한다. 검색 범위를 먼저 좁힌다.
-3. 스펙 원본: 제품 `docs/spec/01-PRD.md`; 디자인 `docs/spec/02-DESIGN.md`; 백엔드 `docs/spec/03-BACKEND-ARCHITECTURE.md`; DB/API `docs/spec/04-DATABASE-API.md`; 로드맵 `docs/spec/05-ROADMAP-PORTFOLIO.md`. 스펙과 다른 결정은 `docs/decisions/`의 ADR이 우선한다.
+3. 스펙 원본: 제품 `docs/spec/01-PRD.md`; 디자인 `docs/spec/02-DESIGN.md`; 백엔드 `docs/spec/03-BACKEND-ARCHITECTURE.md`; DB/API `docs/spec/04-DATABASE-API.md`; 로드맵 `docs/spec/05-ROADMAP-PORTFOLIO.md`. spec·standards가 최종 상태다. 결정이 바뀌면 spec·standards를 고치고 `docs/decisions/` ADR에 이유를 남긴다. ADR은 이유가 필요할 때만 읽는다.
 4. 역할별 가이드: `docs/standards/PRODUCT.md`, `DESIGN.md`, `FRONTEND.md`, `BACKEND.md`, `QUALITY.md`, `OPERATIONS.md`, 브랜치·PR `BRANCHING.md`.
 
 ## 작업 프로토콜 (매 작업)
