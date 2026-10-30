@@ -45,7 +45,9 @@
 ## URL 정책
 
 - 사용자별 동일 정규화 URL은 기존 Bookmark 재사용.
-- 정규화 시 호스트/스킴/기본 포트/추적 파라미터를 보수적으로 처리.
+- 정규화 시 호스트/스킴/기본 포트/추적 파라미터를 보수적으로 처리. 제거하는 추적 파라미터: `utm_source`·`utm_medium`·`utm_campaign`·`utm_term`·`utm_content`·`fbclid`·`gclid`·`igshid`(FEAT-001). 목록 변경은 기존 저장분의 정규화 결과를 바꾸므로 별도 결정으로 한다.
+- `http`/`https`만 허용. 입력·정규화 결과 모두 2048자 이하(유니크 인덱스 항목 크기 한계).
+- `POST /api/bookmarks`는 신규 `201`, 기존 `200`(같은 body).
 - 경로·쿼리·fragment는 콘텐츠 구분에 쓰일 수 있으므로 일괄 제거 금지.
 - Soft Delete된 동일 URL 재저장 시 저장하지 않고 `409` + 기존 ID로 복구를 안내한다(D-01 결정, FEAT-001 AC-07).
 
