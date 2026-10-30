@@ -2,7 +2,7 @@
 
 ## Stack (apps/web)
 
-- Installed: Next.js 16.4.3 (App Router only), React 19.2.4, TypeScript strict, Tailwind CSS v4, ESLint 9, Vitest 4 + Testing Library (jsdom). API client: `@keepio/api-client` (Orval-generated TanStack Query 5 hooks + fetch, ADR-005). Candidates, confirm before installing: Zustand (only for state shared across screens), shadcn/ui + Radix.
+- Installed (exact versions: `apps/web/package.json`): Next.js 16 (App Router only), React 19, TypeScript strict, Tailwind CSS v4, ESLint 9, Vitest 4 + Testing Library (jsdom). API client: `@keepio/api-client` (Orval-generated TanStack Query 5 hooks + fetch, ADR-005). Candidates, confirm before installing: Zustand (only for state shared across screens), shadcn/ui + Radix.
 - Next.js 16 may differ from training data: read the relevant guide in `node_modules/next/dist/docs/` before writing framework code.
 - Server components by default; add `"use client"` only for interaction/state. Tests are colocated as `*.test.ts(x)`.
 
