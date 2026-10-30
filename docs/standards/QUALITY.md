@@ -11,7 +11,7 @@
 ## Regression gates
 
 - `npm run verify` (format:check → lint → typecheck → test) is the single local done-gate for humans, AI agents and CI. Do not report a task done without running it.
-- Automatic local gates: Claude Code PostToolUse hook (Prettier + ESLint on the edited file), git pre-commit (`check-history.py` + Prettier on staged files). Both are bypassable; CI is the final gate.
+- Automatic local gates: Claude Code PostToolUse hook (Prettier + ESLint on the edited file), git pre-commit (`check-history.py` + Prettier on staged files), git commit-msg (no AI attribution). All are bypassable; CI is the final gate.
 - Each bug fix adds a failing regression test first when practical.
 - Each PR/AI task states impacted modules and risk-based test selection; no blanket claim that targeted tests replace full suite.
 - Commit local fast gate: format/lint staged files, related unit tests, typecheck when practical. Push/PR CI: lint, typecheck, unit, integration, production builds; scheduled/release E2E/mobile smoke if too slow for every push.

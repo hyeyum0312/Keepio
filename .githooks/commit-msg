@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# 커밋 메시지에 AI 작성자 표시가 있으면 거부한다. CI에서도 같은 검사를 한다.
+set -euo pipefail
+exec bash "$(git rev-parse --show-toplevel)/scripts/check-ai-attribution.sh" --file "$1"

@@ -23,14 +23,16 @@
 7. 브랜치 이름은 kebab-case 영어: `feature/bookmark-save`, `fix/health-timeout`.
 8. HISTORY 항목은 작업 브랜치 커밋에서 작성한다. 승격 PR은 그대로 가져가므로 새로 쓰지 않는다. 역반영 충돌 시 hotfix 항목을 마커 바로 아래에 둔다.
 9. 작업 브랜치가 `dev`와 HISTORY에서 충돌하면 `dev`를 merge하지 않고 `dev` 위로 rebase한다(merge 커밋은 pre-commit HISTORY 검사를 통과하지 못한다). 자기 항목을 맨 위에 두고 `git push --force-with-lease`로 작업 브랜치만 갱신한다.
+10. PR은 목적 단위로 묶는다: 기능 하나, 또는 한 번에 요청받은 정리 묶음 = 작업 브랜치 하나 = PR 하나. 작은 수정마다 PR을 열지 않고, 열린 PR이 같은 목적이면 그 브랜치에 커밋을 더한다. 동시에 여는 PR은 가능한 한 하나로 유지한다(HISTORY 충돌 방지). ADR-010.
 
 ## AI 에이전트
 
 - 작업 브랜치에서만 커밋한다. 브랜치 생성·커밋·push·PR 생성은 사용자 승인 후에 한다.
 - PR merge는 사용자가 한다. AI는 merge하지 않는다.
+- 커밋 메시지·PR 제목·본문에 AI 작성자 표시(`Co-Authored-By: Claude`, `Generated with Claude Code` 등)를 넣지 않는다. GitHub 기여자 그래프에 AI가 올라간다. `.githooks/commit-msg`와 CI가 `scripts/check-ai-attribution.sh`로 막는다.
 - 검증용 PR(실패를 확인하는 PR 등)은 별도 브랜치·커밋으로 연다. 같은 커밋에 실패한 `verify`가 붙으면 실제 PR의 필수 체크가 막힌다.
 - PR 본문: 목적, 변경 요약, 설계 결정과 근거, 실제 실행한 검증, 측정(해당 시), 위험·롤백. 형식은 `.github/pull_request_template.md`를 따른다. HISTORY 항목과 내용이 같으면 요약해서 링크한다.
 
 ## 환경
 
-환경(서버·DB)은 브랜치와 별개로 단계적으로 만든다: 첫 배포 시 `dev`, QA가 필요할 때 `stg`, 출시 직전 `prod`(D-12). 브랜치만 있고 환경이 없는 기간에는 승격 PR이 CI 검증만 한다.
+환경(서버·DB)은 브랜치와 별개로 단계적으로 만든다: 첫 배포 시 `dev`, QA가 필요할 때 `stg`, 출시 직전 `prod`(D-12). 배포 환경이 없는 기간에는 승격(`dev`→`stg`→`prod`)을 하지 않는다. 승격 PR이 CI 검증 말고 하는 일이 없기 때문이다. 첫 배포 환경을 만들 때 다시 시작한다(ADR-010).

@@ -61,6 +61,16 @@ jobs:
       - name: HISTORY 보존 검사 (PR)
         if: github.event_name == 'pull_request'
         run: python3 scripts/check-history.py origin/${{ github.base_ref }}
+      - name: AI 작성자 표시 검사 (PR)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+          PR_TEXT: ${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
+        # dev에 이미 있는 커밋은 들어올 때 검사됐다. 제외하지 않으면 표시 금지 전(2026-10-29)의
+        # 커밋이 stg→prod 승격 PR을 영구히 막는다
+        run: |
+          bash scripts/check-ai-attribution.sh --revs HEAD --not "origin/$BASE" origin/dev
+          printf '%s' "$PR_TEXT" | bash scripts/check-ai-attribution.sh --stdin
       - run: npm ci
       - name: 검사 범위
         id: scope
