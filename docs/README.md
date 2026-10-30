@@ -30,6 +30,10 @@ ADR(`decisions/`) > spec(`spec/`) > standards(`standards/`) 순으로 우선한�
 - [기능 명세](features/) · [작업 계획](plans/) · [QA 기록](qa/) · [이력](HISTORY.md)
 - [AI 협업 로그](qa/AI-LOG.md): AI 실수·환경 함정과 게이트 전환 기록
 
+## 학습 노트 — `learning/`
+
+- [01 초기 세팅 전체 구조](learning/01-initial-setup.md): 기능 구현 전 기본 세팅 스냅샷(2026-10-29)
+
 ## AI 실행 프롬프트 — `prompts/`
 
 - [개발 AI](prompts/06-PROMPT-DEVELOPMENT.md) · [Claude Design](prompts/07-PROMPT-DESIGN.md)
