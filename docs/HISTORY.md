@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | feat(bookmarks): 링크 저장 API — URL 정규화와 동시 저장 중복 방지
+
+- Feature: FEAT-001
+- 목적: `POST /api/bookmarks`로 링크를 저장하고, 같은 링크(정규화 기준)는 동시에 100번 요청돼도 하나만 남게 한다. 첫 도메인 모듈.
+- 변경: `users`·`bookmarks` 테이블(UUID, 부분 UNIQUE `(user_id, normalized_url) WHERE deleted_at IS NULL` — Prisma `partialIndexes` preview, 길이 CHECK는 SQL). `bookmarks` 모듈(정규화 순수 함수, `ON CONFLICT DO NOTHING` + 승자 재조회, 201/200, 409 `bookmarkId`). `auth` 모듈(D-11 개발·테스트 전용 `UserGuard`, 운영 항상 401). `ApiException` 추가 필드. OpenAPI·클라이언트 재생성. BACKEND(raw SQL 규칙, 부분 인덱스·CHECK·롤백 블록, 트랜잭션은 필요한 첫 기능에서), QUALITY(동시성 테스트는 경합을 강제), OPERATIONS(수익 전 반복 비용은 사용자 승인), spec 04, AI-LOG 3건.
+- 영향: 새 테이블 2개, 북마크당 행 1개·인덱스 2개. 외부 호출 없음. `UserGuard`가 헤더를 믿으므로 인증(D-04) 전에는 배포하지 않는다(운영에서는 항상 401).
+- 검증: `npm run verify` PASS(8/8). `npm run test:integration` PASS(14: bookmarks 12, health 2). `npm run build` PASS. api 단위 41개 PASS. AC-03 100개 동시 요청 88~209ms(로컬 6회), 100개 모두 INSERT 도달 assert. `ON CONFLICT` 제거 변이 5회 모두 실패. 스키마 변경 없이 다시 만든 마이그레이션이 비어 있음(Prisma가 CHECK·부분 인덱스를 지우지 않음) 확인 후 삭제.
+- 주의/롤백: 코드는 revert. DB는 마이그레이션 끝의 롤백 블록(`DROP TABLE bookmarks; DROP TABLE users;` + `_prisma_migrations` 행 삭제). 운영 데이터 없음. `partialIndexes`는 preview라 Prisma 업그레이드 때 마이그레이션 diff를 확인한다.
+
+## 2026-10-30 | docs(feature): FEAT-001 명세 확정, 기능 구현 단계 시작
+
+- Feature: FEAT-001
+- 목적: 사용자 지시로 기본 세팅에서 기능 구현 단계로 전환하고, FEAT-001의 남은 결정을 확정해 승인받는다.
+- 변경: AGENTS 현재 단계를 "기능 구현(Phase 1)"으로. `bookmark-save.md` Approved — 추적 파라미터 8개, 입력·정규화 결과 2048자 상한(B-tree 인덱스 항목 한계), 신규 201/기존 200, 오류 문구 표(ADR-009), 빈 값은 INVALID_URL·필드 없음은 VALIDATION_FAILED. spec 04 URL 정책에 같은 내용.
+- 영향: 문서만. 이후 FEAT-001 구현이 이 명세를 기준으로 한다.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백. 추적 파라미터 목록을 바꾸면 기존 저장분의 정규화 결과가 달라진다.
+
 ## 2026-10-30 | docs(git): PR은 목적 단위로 묶고 배포 전에는 승격하지 않음 (ADR-010)
 
 - Feature: N/A

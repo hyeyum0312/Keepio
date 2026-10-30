@@ -18,12 +18,14 @@ export class ApiErrorResponse {
   details?: string[];
 }
 
-// 도메인 오류는 이 예외로 던진다. code는 UPPER_SNAKE_CASE 안정 식별자
+// 도메인 오류는 이 예외로 던진다. code는 UPPER_SNAKE_CASE 안정 식별자.
+// extra는 클라이언트 동작에 필요한 값(예: 복구할 bookmarkId). 쓰면 ApiErrorResponse를 상속한 응답 타입으로 문서화한다
 export class ApiException extends HttpException {
   constructor(
     status: HttpStatus,
     readonly code: string,
     message: string,
+    readonly extra?: Record<string, string>,
   ) {
     super(message, status);
   }

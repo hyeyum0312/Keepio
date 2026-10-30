@@ -30,6 +30,14 @@ class ProbeController {
     throw new ApiException(HttpStatus.CONFLICT, "BOOKMARK_DELETED", "deleted");
   }
 
+  @Get("domain-extra")
+  domainExtra() {
+    throw new ApiException(HttpStatus.CONFLICT, "BOOKMARK_DELETED", "deleted", {
+      bookmarkId: "bm-1",
+      code: "OVERRIDE_ATTEMPT",
+    });
+  }
+
   @Get("forbidden")
   forbidden() {
     throw new ForbiddenException("internal reason");
@@ -78,6 +86,18 @@ describe("오류 응답 형태와 요청 ID", () => {
     expect(res.body).toMatchObject({
       code: "BOOKMARK_DELETED",
       message: "deleted",
+    });
+  });
+
+  it("도메인 예외의 추가 필드는 응답에 싣되 공통 필드를 덮어쓰지 못한다", async () => {
+    const res = await request(app.getHttpServer()).get("/probe/domain-extra");
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      bookmarkId: "bm-1",
+      code: "BOOKMARK_DELETED",
+      message: "deleted",
+      requestId: res.headers["x-request-id"],
     });
   });
 

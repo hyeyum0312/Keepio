@@ -45,7 +45,13 @@ function toErrorBody(
   if (exception instanceof ApiException) {
     return {
       status: exception.getStatus(),
-      payload: { code: exception.code, message: exception.message, requestId },
+      // 공통 필드가 추가 필드를 덮어쓴다(형태 보장)
+      payload: {
+        ...exception.extra,
+        code: exception.code,
+        message: exception.message,
+        requestId,
+      },
     };
   }
   if (exception instanceof HttpException) {

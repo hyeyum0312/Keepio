@@ -6,6 +6,9 @@
  */
 
 export * from "./apiErrorResponse";
+export * from "./bookmarkDeletedErrorResponse";
+export * from "./bookmarkResponse";
 export * from "./healthResponse";
 export * from "./healthResponseDb";
 export * from "./healthResponseStatus";
+export * from "./saveBookmarkDto";
