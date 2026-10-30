@@ -17,6 +17,13 @@
       "Bash(git log *)",
       "Bash(git show *)",
       "Bash(python3 scripts/check-history.py *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./apps/*/.env.local)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit -n*)",
+      "Bash(git push --no-verify*)"
     ]
   },
   "hooks": {

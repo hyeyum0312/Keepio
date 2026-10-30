@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | chore(claude): .env 읽기·--no-verify를 permissions.deny로 차단
+- Feature: N/A
+- 목적: AGENTS에 문장으로만 있던 금지(비밀 파일 읽기, hook 우회)를 Claude Code 설정으로 실행 단계에서 막는다. 토큰·보안 강의 내용 중 과하지 않은 것만 적용(사용자 결정). sandbox·AGENTS 축약·HISTORY 읽기 hook·서브에이전트·headless는 보류.
+- 변경: `.claude/settings.json` `permissions.deny`에 `Read(./.env)`, `Read(./apps/*/.env.local)`, `git commit --no-verify`/`-n`, `git push --no-verify`. `BRANCHING.md` 9번(HISTORY 충돌 시 rebase + `--force-with-lease`). AI-LOG 3건.
+- 영향: Claude Code 세션만. 사람의 터미널 작업과 CI는 그대로. deny는 등록한 형태만 막으므로 최종 기준은 계속 CI다.
+- 검증: 설정 적용 후 같은 세션에서 Read(.env) 거부, Bash `head -c 0 .env` 거부, 스테이징 없는 상태의 `git commit --no-verify` 거부 확인. Prettier 검사. 코드 변경 없어 verify는 pre-commit 범위만.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-30 | fix(harness): 세팅 검증에서 찾은 게이트 공백 7건
 - Feature: N/A
 - 목적: 기능 구현 전 세팅 검증(사용자 요청)에서 찾은 공백을 게이트로 막는다. 결과: `docs/qa/TEST-REPORT.md`.
