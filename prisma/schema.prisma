@@ -1,4 +1,4 @@
-// 스키마 원본. 테이블 설계는 docs/spec/04-DATABASE-API.md, 모델은 Phase 1에서 추가한다.
+// 스키마 원본. 테이블 설계는 docs/spec/04-DATABASE-API.md.
 // 접속 정보는 prisma.config.ts(DATABASE_URL)에 있다.
 
 generator client {
@@ -6,8 +6,37 @@ generator client {
   output              = "../apps/api/src/generated/prisma"
   moduleFormat        = "esm"
   importFileExtension = "js"
+  // 활성 북마크 중복 방지용 부분 UNIQUE 인덱스를 스키마에 둔다(SQL로만 두면 이후 마이그레이션이 지우려 한다)
+  previewFeatures     = ["partialIndexes"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// 최소 컬럼만. 이메일·플랜 등은 인증 기능(D-04)에서 추가한다
+model User {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  bookmarks Bookmark[]
+
+  @@map("users")
+}
+
+model Bookmark {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  originalUrl   String    @map("original_url")
+  normalizedUrl String    @map("normalized_url")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  // raw INSERT도 값을 갖도록 DB 기본값을 함께 둔다
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(3)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  // 활성 북마크는 사용자별 정규화 URL당 하나. 동시 저장의 최종 권위(FEAT-001 AC-03)
+  @@unique([userId, normalizedUrl], map: "bookmarks_active_user_url_key", where: raw("deleted_at IS NULL"))
+  // 삭제된 행 포함 조회(AC-07 복구 안내)와 사용자별 목록
+  @@index([userId, normalizedUrl])
+  @@map("bookmarks")
 }

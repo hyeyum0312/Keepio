@@ -1,5 +1,7 @@
 # Performance / Cost / Operations
 
+- Until the service earns revenue, nothing may add a recurring bill without the user's approval. Prefer free tiers, scale-to-zero and pay-per-use; every plan names which choices create recurring cost (always-on servers, Redis/worker processes, AI calls, file storage, paid tiers) and estimates them. This never removes required elements (AGENTS: security, integrity, backups, observability).
+
 - Establish budgets after measurement; initially record p50/p95 API latency, request count per flow, AI tokens/cost per classification, worker queue age, DB pool utilization, memory RSS/heap, error rate.
 - Avoid unconditional client polling, repeated metadata fetches and duplicate AI classification. Deduplicate jobs by stable identity and state; bound retries and timeout.
 - Every cache proposal: problem metric, key, TTL, invalidation, max size, staleness tolerance, cost tradeoff and failure fallback. Default is no custom cache.

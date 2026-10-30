@@ -46,6 +46,7 @@ Run cheap checks often, expensive ones once. Never claim a pass without running 
 - Name tests as behavior sentences in Korean, prefixed with the Feature AC when one exists: `it("AC-01: 같은 URL을 다시 저장하면 기존 ID를 반환한다")`.
 - One behavior per test, arrange → act → assert. Mock only external boundaries (network, AI, clock, randomness); never mock own modules to make a test pass.
 - Bug fix: write the failing test first.
+- Concurrency tests must force the race, not hope for it: hold every request at the point before the contended write (barrier on the repository call) and assert all of them reached the write. Then remove the protection (e.g. `ON CONFLICT`) once and confirm the test fails every time. Example: FEAT-001 AC-03.
 - Enforced by ESLint (`src/**/*.test.ts(x)`): no `.only`, no `.skip` (use `.todo`), no test without `expect`, no duplicate titles.
 - Review-only: no `sleep`-based waits (use fake timers / `findBy*`), no unreviewed snapshot updates, no weakened assertions.
 - Coverage: no percentage target yet. Decide after measuring a few features; do not invent a number.
