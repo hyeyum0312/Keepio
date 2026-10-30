@@ -1,0 +1,21 @@
+# ADR-009: 오류 응답의 message는 서버가 주는 사용자 문구
+
+- Status: accepted (2026-10-30)
+- Context / problem:
+  - ADR-006의 오류 응답 `{ code, message, requestId, details? }`에서 `message`는 개발자용 영어 문장이었다. 사용자 문구는 프론트가 `code`를 보고 만들어야 했다.
+  - 그러면 같은 오류의 문구가 화면마다 따로 쓰여 어긋나고, 문구를 고칠 때 프론트 배포가 필요하다. 서버가 권위 있는 값을 주고 프론트는 재계산하지 않는다는 원칙(AGENTS)과도 맞지 않는다.
+- Options:
+  - (a) 유지: 프론트가 `code` → 문구 매핑을 가진다.
+  - (b) 서버가 `message`에 사용자 문구를 담고, 프론트는 가공 없이 표시한다. `code`는 동작 분기에만 쓴다.
+- Decision: (b) (사용자 결정).
+  - `message`: 사용자에게 그대로 보여주는 한국어 문장. 프론트는 치환·조합·번역하지 않는다.
+  - `code`: 동작 분기 전용(예: `BOOKMARK_DELETED` → 복구 버튼). 문구 선택에 쓰지 않는다.
+  - `details`: 개발자용 원문(class-validator 메시지 등). 사용자에게 보여주지 않는다.
+  - 사용자에게 의미 있는 검증(URL 형식 등)은 `VALIDATION_FAILED`가 아니라 도메인 `code`와 전용 문구로 던진다. 그 외 검증 실패·404·기타 HTTP 오류·500은 필터의 고정 문구를 쓴다. Nest 기본 메시지는 영어이고 내부 정보를 담을 수 있어 그대로 내보내지 않는다.
+  - 서버 응답이 없는 경우(오프라인·타임아웃)만 프론트 `shared`의 고정 문구를 쓴다.
+  - 기능별 오류 문구는 Feature 문서의 오류 표(`code | 상황 | 문구`)로 승인받고 쓴다.
+- Consequences / side effects:
+  - 한국어 단일 언어를 전제로 한다. 다국어가 필요해지면 서버가 `Accept-Language`로 문구를 고르도록 확장한다.
+  - 문구 수정은 api 배포로 반영된다. 문구는 계약의 일부가 아니므로 테스트·클라이언트가 문구로 분기하면 안 된다.
+- Verification: `api-exception.filter.test.ts`가 검증 실패·404·기타 HTTP 예외·500의 문구와 원래 메시지 비노출을 확인한다. `npm run verify`.
+- Rollback / migration: revert. 아직 도메인 오류를 쓰는 기능이 없어 데이터 영향 없음.

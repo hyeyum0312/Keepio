@@ -7,6 +7,7 @@
 
 export interface ApiErrorResponse {
   code: string;
+  /** 사용자에게 그대로 보여주는 문구. 분기는 code로 한다 */
   message: string;
   requestId: string;
   details?: string[];
