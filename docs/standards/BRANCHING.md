@@ -22,6 +22,7 @@
 6. merge 방식: 작업 브랜치→`dev`는 squash(PR 1개 = 커밋 1개). 승격·역반영은 merge commit(squash하면 브랜치 이력이 갈라진다).
 7. 브랜치 이름은 kebab-case 영어: `feature/bookmark-save`, `fix/health-timeout`.
 8. HISTORY 항목은 작업 브랜치 커밋에서 작성한다. 승격 PR은 그대로 가져가므로 새로 쓰지 않는다. 역반영 충돌 시 hotfix 항목을 마커 바로 아래에 둔다.
+9. 작업 브랜치가 `dev`와 HISTORY에서 충돌하면 `dev`를 merge하지 않고 `dev` 위로 rebase한다(merge 커밋은 pre-commit HISTORY 검사를 통과하지 못한다). 자기 항목을 맨 위에 두고 `git push --force-with-lease`로 작업 브랜치만 갱신한다.
 
 ## AI 에이전트
 
