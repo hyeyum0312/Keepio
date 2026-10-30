@@ -19,15 +19,17 @@ apps/api/src/
 ```
 
 - Create only the files a module needs. Files are `<domain>.<role>.ts` (kebab-case, lint); DTO files `dto/<action>-<domain>.dto.ts`, response models `dto/<domain>-response.dto.ts`. Relative imports end in `.js` (ESM).
-- Services do not inject `PrismaService`; they call the module's repository. No generic base repository. How a service-level transaction reaches repositories is decided in FEAT-001 and written here.
+- Services do not inject `PrismaService`; they call the module's repository. No generic base repository. FEAT-001 needed no multi-statement transaction (each statement is atomic and the unique index decides races); how a transaction reaches repositories is decided by the first feature that needs one (e.g. Outbox) and written here. Do not build it ahead.
+- Raw SQL only in repositories, only via tagged `$queryRaw`/`$executeRaw` (parameters bound, never string-built; `$queryRawUnsafe` is forbidden). Use it when Prisma's API cannot express the query (e.g. `ON CONFLICT … WHERE` on a partial index), alias columns to the record type, and cover it with an integration test.
 - Another module uses a domain only through the providers its module `exports`, never its repository, `dto/` or `lib/` files directly. Lint enforcement is added with the second domain module.
 - Controllers get the current user from one guard + decorator, never from body or query. Until auth (D-04), a dev/test-only guard supplies it and rejects in production (D-11); the auth feature replaces the guard without changing controllers.
 
 ## Migrations and tests
 
 - Schema `prisma/schema.prisma` (repo root), migrations `prisma/migrations/`. Commands and test DB setup: `docs/SETUP.md`.
-- Constraints Prisma cannot express (partial unique index, check constraints) go as SQL in the same migration: create with `--create-only`, add the SQL, then apply. Never edit a migration that has been applied anywhere.
-- Prisma Migrate has no down migrations. A migration PR states its rollback steps and data impact in HISTORY "주의/롤백"; the exact form is decided in FEAT-001 and written here.
+- Partial indexes go in the schema (`previewFeatures = ["partialIndexes"]`, `where: raw(...)`). An index added only as SQL is not in the schema, so a later `migrate dev` could drop it.
+- Constraints Prisma cannot express at all (CHECK) go as SQL in the same migration: create with `--create-only`, add the SQL, then apply. After applying, run `migrate dev --create-only` once more and confirm the result is empty (Prisma will not drop it), then delete that empty migration. Never edit a migration that has been applied anywhere.
+- Prisma Migrate has no down migrations. Each migration ends with a commented rollback block (the SQL to undo it and the `_prisma_migrations` row to delete), and HISTORY "주의/롤백" states the data impact. Example: `prisma/migrations/*_add_users_bookmarks`.
 - Unit `*.test.ts` next to the source; DB integration `*.int.test.ts` against the `_test` database, files run sequentially on one shared DB. Test layering and naming: `QUALITY.md`.
 
 ## Rules

@@ -29,6 +29,75 @@
         },
         "tags": ["Health"]
       }
+    },
+    "/api/bookmarks": {
+      "post": {
+        "operationId": "BookmarksController_save",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveBookmarkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "이미 저장된 링크",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "새로 저장",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkDeletedErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmarks"]
+      }
     }
   },
   "info": {
@@ -77,6 +146,64 @@
           }
         },
         "required": ["code", "message", "requestId"]
+      },
+      "SaveBookmarkDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://example.com/article?id=1"
+          }
+        },
+        "required": ["url"]
+      },
+      "BookmarkResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "description": "사용자가 저장한 원래 URL"
+          },
+          "normalizedUrl": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["id", "url", "normalizedUrl", "createdAt"]
+      },
+      "BookmarkDeletedErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "VALIDATION_FAILED"
+          },
+          "message": {
+            "type": "string",
+            "description": "사용자에게 그대로 보여주는 문구. 분기는 code로 한다"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bookmarkId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["code", "message", "requestId", "bookmarkId"]
       }
     }
   }

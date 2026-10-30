@@ -39,7 +39,8 @@
 - `categories(user_id, normalized_name)` UNIQUE
 - `publications(slug)` UNIQUE
 - `bookmarks(user_id, normalized_url) WHERE deleted_at IS NULL` 부분 UNIQUE 인덱스
-- Prisma가 직접 표현하기 어려운 DB 인덱스는 SQL 마이그레이션으로 관리
+- 부분 인덱스는 Prisma 스키마(`partialIndexes` preview)로, Prisma가 표현하지 못하는 제약(CHECK)은 SQL 마이그레이션으로 관리
+- `bookmarks` URL 길이 CHECK(`original_url`·`normalized_url` 2048자 이하)
 - 연결 대상이 같은 사용자 소유인지 서비스 계층에서 검증; 필요하면 DB 레벨 제약 보강
 
 ## URL 정책
