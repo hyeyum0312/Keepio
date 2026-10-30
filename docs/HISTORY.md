@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | fix(git): AI 작성자 표시 검사가 생성 문구를 링크 형태로만 잡도록
+
+- Feature: N/A
+- 목적: 직전 커밋의 첫 CI에서 PR 본문의 패턴 설명(링크 없는 "Generated with [Claude")이 오탐으로 실패했다.
+- 변경: `check-ai-attribution.sh` 생성 문구 패턴에 링크(`](http`)를 요구. 실제 자동 표시는 항상 `Generated with [Claude Code](https://…)` 형태다.
+- 영향: 규칙을 설명하는 PR·커밋 본문이 통과한다. trailer 검사는 그대로.
+- 검증: 메시지 fixture 10개 기대대로(차단 5 / 통과 5, 링크 없는 생성 문구 설명 추가). 실제 PR #22 제목·본문 `--stdin` 통과. `origin/dev` 전체 검사는 여전히 28개 탐지.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-30 | chore(git): 커밋·PR의 AI 작성자 표시를 hook과 CI로 차단
 
 - Feature: N/A

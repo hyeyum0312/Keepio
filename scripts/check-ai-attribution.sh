@@ -7,8 +7,9 @@
 #   check-ai-attribution.sh --stdin                (CI: PR 제목·본문)
 set -euo pipefail
 
-# trailer는 줄 맨 앞에 온다. 규칙을 설명하는 문장(본문 중간의 "Co-Authored-By: Claude")은 통과시킨다
-pattern='^[[:space:]]*co-authored-by:.*(claude|anthropic)|generated with \[claude'
+# 실제 표시의 형태만 잡는다: 줄 맨 앞의 trailer, 링크가 붙은 생성 문구.
+# 규칙을 설명하는 문장(본문 중간의 "Co-Authored-By: Claude", 링크 없는 "Generated with [Claude")은 통과시킨다
+pattern='^[[:space:]]*co-authored-by:.*(claude|anthropic)|generated with \[claude[^]]*\]\(http'
 
 fail() {
   echo "AI 작성자 표시 금지: $1" >&2
