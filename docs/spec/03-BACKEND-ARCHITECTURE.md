@@ -13,8 +13,8 @@
 | DB/ORM           | PostgreSQL / Prisma                               |
 | Queue            | Redis + BullMQ (비동기 작업 단계에서 도입)        |
 | 인증             | NestJS 인증 모듈, JWT + 안전한 Refresh Token 회전 |
-| Validation       | DTO + class-validator 또는 Zod 중 일관된 방식     |
-| 테스트           | Jest, Supertest, DB 통합 테스트                   |
+| Validation       | DTO + class-validator                             |
+| 테스트           | Vitest(+SWC), Supertest, DB 통합 테스트           |
 | 인프라           | Docker, GitHub Actions, 관리형 DB/스토리지        |
 | 웹/모바일        | Next.js / Expo + React Native WebView             |
 
