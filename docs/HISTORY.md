@@ -5,6 +5,33 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | docs(git): PR은 목적 단위로 묶고 배포 전에는 승격하지 않음 (ADR-010)
+
+- Feature: N/A
+- 목적: 작은 정리마다 PR을 열어 merge 부담이 크고 동시 PR끼리 HISTORY가 충돌했다. 배포 환경이 없어 승격 PR은 하는 일이 없다(사용자 결정).
+- 변경: `BRANCHING.md` 10번(기능·요청 묶음 = 브랜치 하나 = PR 하나, 열린 PR이 같은 목적이면 커밋 추가), 환경 절(배포 환경 전 승격 중단). ADR-010.
+- 영향: 이후 작업 흐름만. 작업 브랜치 → `dev` PR·CI 필수·보호 규칙은 그대로. `stg`는 승격 재개 때까지 `dev`보다 뒤처진다.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-30 | fix(git): AI 작성자 표시 검사가 생성 문구를 링크 형태로만 잡도록
+
+- Feature: N/A
+- 목적: 직전 커밋의 첫 CI에서 PR 본문의 패턴 설명(링크 없는 "Generated with [Claude")이 오탐으로 실패했다.
+- 변경: `check-ai-attribution.sh` 생성 문구 패턴에 링크(`](http`)를 요구. 실제 자동 표시는 항상 `Generated with [Claude Code](https://…)` 형태다.
+- 영향: 규칙을 설명하는 PR·커밋 본문이 통과한다. trailer 검사는 그대로.
+- 검증: 메시지 fixture 10개 기대대로(차단 5 / 통과 5, 링크 없는 생성 문구 설명 추가). 실제 PR #22 제목·본문 `--stdin` 통과. `origin/dev` 전체 검사는 여전히 28개 탐지.
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-30 | chore(git): 커밋·PR의 AI 작성자 표시를 hook과 CI로 차단
+
+- Feature: N/A
+- 목적: GitHub 기여자 그래프에 claude가 다시 올라가지 않게 한다(사용자 결정: 무조건 차단). PR #11의 설정(`attribution`)은 Claude Code 자동 표시만 끄므로, AI가 직접 쓰거나 다른 환경에서 커밋하면 다시 들어갈 수 있었다. squash merge는 PR 커밋 메시지를 그대로 dev 커밋에 옮긴다.
+- 변경: `scripts/check-ai-attribution.sh`(줄 맨 앞의 `Co-Authored-By: …claude/anthropic` trailer, `Generated with [Claude` 링크 문구 탐지, 대소문자 무시). `.githooks/commit-msg`. CI에 PR 커밋·제목·본문 검사 단계. `BRANCHING.md` AI 에이전트 규칙, `QUALITY.md` 로컬 게이트, AI-LOG 1건(표 열 너비 재정렬 포함).
+- 영향: 이후 모든 커밋과 PR. dev에 이미 있는 커밋은 CI 검사에서 제외한다 — 제외하지 않으면 표시 금지 전 커밋(`stg`에만 있는 #9)이 다음 stg→prod 승격 PR을 영구히 막는다. 기존 28개 커밋의 표시와 그래프 숫자는 그대로 남는다(히스토리 재작성 안 함).
+- 검증: 첫 커밋 시도에서 이 커밋 본문의 설명 문장("Co-Authored-By: Claude 등을 거부한다")이 오탐으로 거부됨 → 줄 시작 고정으로 수정. 메시지 fixture 9개 기대대로(차단 5: 표준 trailer·소문자·Generated 링크·anthropic 이메일·들여쓴 trailer / 통과 4: 주석 줄·본문의 "Claude Code" 단어·사람 공동 작성자·규칙 설명 문장). 실제 이력: `origin/stg --not origin/prod`는 231e3b2로 실패, `origin/dev`를 제외하면 통과, `origin/dev` 전체는 28개 모두 탐지. `--stdin` 통과·차단 확인. trailer를 넣은 실제 `git commit`이 commit-msg hook에서 거부되고 HEAD가 그대로임을 확인. `npm run format:check` PASS. CI 단계는 이 PR에서 처음 실행.
+- 주의/롤백: revert로 롤백. 검사가 오탐하면 hook을 우회하지 말고 패턴을 고친다.
+
 ## 2026-10-30 | feat(api): 오류 응답 message를 사용자 문구로 (ADR-009)
 
 - Feature: N/A
