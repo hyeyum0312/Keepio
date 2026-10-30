@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-29 | docs(learning): 초기 세팅 학습 노트 01
+- Feature: N/A
+- 목적: 사용자 요청 — 기본 세팅 완료 시점의 구조를 파트별(공통·web·api·api-client·게이트·Git·의존성·배포·AI 하네스)로 학습용 정리.
+- 변경: `docs/learning/01-initial-setup.md`(스냅샷 문서, dev f8065b6 기준). 규칙은 복사하지 않고 원본 문서·코드로 링크. `docs/README.md`에 학습 노트 목록 추가.
+- 영향: 문서만. 낡으면 새 노트를 추가하고 기존 노트는 고치지 않는다.
+- 검증: 문서의 상대 링크 전부 존재 확인(스크립트). PR #14 merge 후 Dependabot undici 경보 8건 모두 fixed 확인(API). pre-commit만 실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-29 | chore(deps): Dependabot에서 @types/node·TypeScript·ESLint 메이저 제외
 - Feature: N/A
 - 목적: #5(@types/node 26)·#4(TypeScript 7)·#6(ESLint 10)은 보류·불일치로 닫는다. 같은 PR이 매주 다시 열리지 않게 한다(사용자 결정).
