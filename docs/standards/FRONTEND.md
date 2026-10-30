@@ -19,7 +19,7 @@ apps/web/src/
 
 ## Boundaries
 
-- Enforced by ESLint (`apps/web/eslint.config.mjs`): no `@/features/<x>/<internal>` imports, no `../../` escaping a feature, `shared` must not import `features`, file/folder naming.
+- Enforced by ESLint (`apps/web/eslint.config.mjs`, `import/no-restricted-paths` on resolved paths, so relative and `@/` imports alike): code outside a feature imports it only via its `index.ts`, `shared` must not import `features`, file/folder naming. Relative imports inside one feature are free.
 
 - Feature-first: `features/bookmarks/{ui,model,api,lib}`; `shared/ui`, `shared/lib` for proven cross-feature code. `ui` renders props, `model` owns UI state/domain orchestration, `api` owns transport. Keep public exports explicit.
 - Server is source of truth for category membership, classification status, quotas, ordering, permissions, publish status and totals. Do not guess or reconstruct from incomplete pages. Client derives presentation-only state (selection count, expanded/collapsed, input validity).
