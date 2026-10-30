@@ -73,16 +73,18 @@ Public Web Page ───┘           │
 
 ## 폴더 구조
 
+`(예정)`은 아직 없는 폴더다. 해당 단계에서 만든다. `apps/api` 내부 구조는 `docs/standards/BACKEND.md`.
+
 ```text
 keepio/
   apps/
     api/         # NestJS REST
-    worker/      # NestJS BullMQ worker
+    worker/      # (예정) NestJS BullMQ worker — 비동기 작업 단계
     web/         # Next.js
-    mobile/      # Expo
+    mobile/      # (예정) Expo — 모바일 구현 단계
   packages/
-    shared/      # 타입/계약
-    api-client/
+    shared/      # (예정) 타입/계약 — 필요해질 때 (ADR-002)
+    api-client/  # OpenAPI → Orval 생성 클라이언트
   prisma/
   docs/
     decisions/   # ADR

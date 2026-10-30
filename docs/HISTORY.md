@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | docs(standards): 백엔드 모듈 구조·마이그레이션·테스트 관례 정리
+
+- Feature: N/A
+- 목적: 첫 도메인 모듈(FEAT-001) 전에 `apps/api` 안에서 모듈을 어디에 어떻게 만들지 문서로 고정한다. 지침 점검에서 찾은 공백과 불일치를 정리한다(사용자 승인).
+- 변경: `BACKEND.md`에 Structure(`src/<domain>/` 평면 배치 — 기존 `health`·Nest CLI 기본과 같음, 파일 역할·이름, service는 repository 경유, 모듈 간 `exports`만 사용, 사용자 식별은 guard+decorator)와 Migrations and tests(raw SQL 제약은 같은 마이그레이션에, 적용된 마이그레이션 수정 금지, down 없음 → 롤백은 HISTORY에) 추가. 모듈 목록은 spec 03을 원본으로. 트랜잭션 전달 방식·롤백 기록 형식은 FEAT-001에서 정해 반영. `FRONTEND.md` 버전 표기를 메이저만(실제 React 19.3.1과 어긋나 있었음). spec 03 폴더 구조에 아직 없는 `worker`·`mobile`·`shared`를 `(예정)`으로 표시.
+- 영향: 문서만. git 미추적 빈 폴더 `apps/api/src/modules/health`를 로컬에서 삭제(커밋 영향 없음).
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-10-30 | docs(decisions): spec·standards를 최종 상태로, ADR은 변경 이유 기록
 - Feature: N/A
 - 목적: ADR이 쌓여도 spec·standards만 읽으면 현재 규칙을 알 수 있게 한다(사용자 결정, ADR-008).
