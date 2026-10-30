@@ -63,7 +63,8 @@
             "example": "VALIDATION_FAILED"
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "사용자에게 그대로 보여주는 문구. 분기는 code로 한다"
           },
           "requestId": {
             "type": "string"

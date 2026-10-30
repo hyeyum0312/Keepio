@@ -6,7 +6,9 @@ export class ApiErrorResponse {
   @ApiProperty({ example: "VALIDATION_FAILED" })
   code!: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: "사용자에게 그대로 보여주는 문구. 분기는 code로 한다",
+  })
   message!: string;
 
   @ApiProperty()

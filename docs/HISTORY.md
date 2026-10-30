@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | feat(api): 오류 응답 message를 사용자 문구로 (ADR-009)
+
+- Feature: N/A
+- 목적: 프론트가 오류 문구를 만들거나 바꾸지 않고 서버 `message`를 그대로 보여주게 한다(사용자 결정). 문구를 한 곳에서 관리하고, 서버가 권위 있는 값을 주는 원칙과 맞춘다.
+- 변경: `api-exception.filter.ts`의 고정 문구(검증 실패·404·500)를 한국어 사용자 문구로 바꾸고, 도메인 예외가 아닌 HTTP 예외는 Nest 원래 메시지 대신 공통 문구를 쓴다. `ApiErrorResponse.message`에 OpenAPI 설명 추가 → `openapi:generate`. ADR-009, `BACKEND.md` Errors, `FRONTEND.md` Errors, `FEATURE-TEMPLATE.md` 오류 문구 표.
+- 영향: 모든 오류 응답의 `message` 값이 바뀐다(`code`·형태는 그대로). 현재 `message`를 읽는 클라이언트 코드는 없다. 이전에 그대로 나가던 비도메인 HTTP 예외 메시지가 더 이상 노출되지 않는다.
+- 검증: `npm run test:related -w @keepio/api` PASS(2 files, 9 tests, 403 비노출 테스트 추가). `npm run verify` PASS(8/8). 통합 테스트는 로컬 미실행(DB 쿼리 변경 없음, CI에서 실행).
+- 주의/롤백: revert로 롤백. 문구는 계약이 아니므로 테스트·클라이언트가 문구로 분기하지 않는다.
+
 ## 2026-10-30 | docs(standards): 백엔드 모듈 구조·마이그레이션·테스트 관례 정리
 
 - Feature: N/A

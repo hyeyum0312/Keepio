@@ -1,4 +1,11 @@
-import { Body, Controller, Get, HttpStatus, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  HttpStatus,
+  Post,
+} from "@nestjs/common";
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { IsUrl } from "class-validator";
@@ -21,6 +28,11 @@ class ProbeController {
   @Get("domain")
   domain() {
     throw new ApiException(HttpStatus.CONFLICT, "BOOKMARK_DELETED", "deleted");
+  }
+
+  @Get("forbidden")
+  forbidden() {
+    throw new ForbiddenException("internal reason");
   }
 
   @Get("crash")
@@ -53,6 +65,7 @@ describe("오류 응답 형태와 요청 ID", () => {
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({
       code: "VALIDATION_FAILED",
+      message: "입력한 내용을 확인해 주세요.",
       requestId: res.headers["x-request-id"],
     });
     expect(res.body.details.length).toBeGreaterThanOrEqual(2);
@@ -73,7 +86,19 @@ describe("오류 응답 형태와 요청 ID", () => {
 
     expect(res.status).toBe(404);
     expect(res.body.code).toBe("NOT_FOUND");
+    expect(res.body.message).toBe("요청한 주소를 찾을 수 없어요.");
     expect(JSON.stringify(res.body)).not.toContain("secret");
+  });
+
+  it("도메인 예외가 아닌 HTTP 예외는 원래 메시지 대신 사용자 문구를 반환한다", async () => {
+    const res = await request(app.getHttpServer()).get("/probe/forbidden");
+
+    expect(res.status).toBe(403);
+    expect(res.body).toMatchObject({
+      code: "FORBIDDEN",
+      message: "요청을 처리하지 못했어요.",
+    });
+    expect(JSON.stringify(res.body)).not.toContain("internal reason");
   });
 
   it("처리하지 못한 오류는 원인을 숨기고 INTERNAL_ERROR를 반환한다", async () => {
@@ -82,7 +107,7 @@ describe("오류 응답 형태와 요청 ID", () => {
     expect(res.status).toBe(500);
     expect(res.body).toEqual({
       code: "INTERNAL_ERROR",
-      message: "Internal server error",
+      message: "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
       requestId: res.headers["x-request-id"],
     });
   });
