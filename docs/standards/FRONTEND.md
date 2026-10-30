@@ -24,6 +24,7 @@ apps/web/src/
 - Feature-first: `features/bookmarks/{ui,model,api,lib}`; `shared/ui`, `shared/lib` for proven cross-feature code. `ui` renders props, `model` owns UI state/domain orchestration, `api` owns transport. Keep public exports explicit.
 - Server is source of truth for category membership, classification status, quotas, ordering, permissions, publish status and totals. Do not guess or reconstruct from incomplete pages. Client derives presentation-only state (selection count, expanded/collapsed, input validity).
 - Typed API client generated from OpenAPI (`npm run openapi:generate`; never edit `packages/api-client/src/generated`). `npm run openapi:check` in verify fails when code and spec drift. Normalize error and pagination handling; no duplicate fetch wrappers per component.
+- Errors (ADR-009): show the server's `message` as-is; never write, replace or compose error wording in the client. Branch behavior (buttons, navigation) on `code` only. Only when there is no server response (offline, timeout) use the fixed fallback wording in `shared`.
 
 ## Network / state
 
