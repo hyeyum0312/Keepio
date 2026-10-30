@@ -1,3 +1,5 @@
+import { readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -10,6 +12,13 @@ const COLOR_MESSAGE =
   "색상 리터럴 금지. globals.css 토큰(예: text-foreground, bg-ai)을 사용한다. 새 토큰이 필요하면 DESIGN.md 절차를 따른다.";
 const FEATURE_DEEP_IMPORT_MESSAGE =
   "다른 feature의 내부 폴더 import 금지. '@/features/<name>'(index.ts)로만 import한다.";
+// 경로 문자열이 아니라 실제로 가리키는 파일로 경계를 판단한다(상대 경로·별칭 모두).
+// 설정을 읽을 때 목록을 만들므로, 에디터 ESLint는 새 feature 폴더를 만든 뒤 재시작해야 반영된다.
+const FEATURE_NAMES = readdirSync(new URL("./src/features/", import.meta.url), {
+  withFileTypes: true,
+})
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -88,49 +97,25 @@ const eslintConfig = defineConfig([
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": [
+      "import/no-restricted-paths": [
         "error",
         {
-          patterns: [
-            {
-              group: ["@/features/*/*"],
+          // 에디터처럼 저장소 루트에서 실행해도 같은 기준으로 판단한다
+          basePath: fileURLToPath(new URL(".", import.meta.url)),
+          zones: [
+            ...FEATURE_NAMES.map((name) => ({
+              target: [
+                "./src/!(features)/**/*",
+                "./src/*",
+                `./src/features/!(${name})/**/*`,
+              ],
+              from: `./src/features/${name}`,
+              except: ["./index.ts"],
               message: FEATURE_DEEP_IMPORT_MESSAGE,
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["src/features/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
+            })),
             {
-              group: ["@/features/*/*"],
-              message: FEATURE_DEEP_IMPORT_MESSAGE,
-            },
-            {
-              group: ["../../*"],
-              message:
-                "feature 밖으로 나가는 상대 경로 금지. 다른 feature는 '@/features/<name>', 공용은 '@/shared/...'로 import.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["src/shared/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@/features/*", "@/features/*/*"],
+              target: "./src/shared",
+              from: "./src/features",
               message: "shared는 feature에 의존하지 않는다.",
             },
           ],

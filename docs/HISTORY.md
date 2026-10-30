@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | fix(harness): 세팅 검증에서 찾은 게이트 공백 7건
+- Feature: N/A
+- 목적: 기능 구현 전 세팅 검증(사용자 요청)에서 찾은 공백을 게이트로 막는다. 결과: `docs/qa/TEST-REPORT.md`.
+- 변경: web 경계 lint를 `no-restricted-imports` 문자열 패턴에서 `import/no-restricted-paths`(해석된 경로, basePath 고정, feature 목록은 `src/features` 폴더에서 생성)로 교체 — G1·G2·G3 차단, G7 오탐 해소. `eslint-plugin-import` 2.32.0을 web 직접 devDependency로 추가(이미 eslint-config-next 경유 설치, 사용자 승인). pre-commit이 HISTORY 검사 실패 이유를 출력(G4). `ci-scope.sh` 전체 검사 조건에 `prisma.config.ts`·`.nvmrc` 추가(G5·G6). `FRONTEND.md` Boundaries 갱신, AI-LOG 3건.
+- 영향: 같은 feature 안의 `@/features/<self>/...` 별칭 import는 더 이상 막히지 않는다(AGENTS 규칙은 "다른 기능"만 금지). 에디터 ESLint는 새 feature 폴더를 만든 뒤 재시작해야 경계가 반영된다(CLI·hook·CI는 매번 새로 읽음). `.nvmrc`·`prisma.config.ts` 변경 PR은 CI 전체 검사로 시간이 늘어난다.
+- 검증: 경계 fixture 15개(차단 7·통과 8) 기대대로, apps/web/src cwd에서 basePath 효과 확인(없음 0건/있음 3건). G4 메시지 출력 확인. scratch worktree에서 G5·G6 전체 검사, web만·docs만 회귀 확인. `npm run verify` PASS(8/8, web lint 포함 3개 새로 실행). `npm run build` PASS(3/3). 통합 테스트는 로컬 미실행(api 코드 변경 없음, CI에서 실행).
+- 주의/롤백: revert로 롤백. 롤백하면 G1~G7이 다시 열린다.
+
 ## 2026-10-30 | chore(github): PR 템플릿 추가와 레포 설명 통일
 - Feature: N/A
 - 목적: PR 본문 형식을 고정해 설계 근거와 실측 결과가 PR마다 남게 한다. GitHub 레포 설명이 README·스펙의 서비스 정의와 달라 README 기준으로 맞춘다(사용자 결정).

@@ -10,7 +10,11 @@ case "$(git branch --show-current)" in
   dev | stg | prod | main) echo "보호 브랜치에서 직접 커밋 금지 → git switch -c feature/<이름>" >&2; exit 1 ;;
 esac
 
-python3 scripts/check-history.py >/dev/null
+if ! out="$(python3 scripts/check-history.py 2>&1)"; then
+  echo "$out" >&2
+  echo "→ docs/HISTORY.md 맨 위에 이 커밋 항목을 추가하고 스테이징 (docs/standards/HISTORY.md)" >&2
+  exit 1
+fi
 
 staged=()
 while IFS= read -r -d '' f; do staged+=("$f"); done < <(git diff --cached --name-only -z --diff-filter=ACMR)
