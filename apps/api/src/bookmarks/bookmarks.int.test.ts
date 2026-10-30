@@ -85,7 +85,8 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
   it("AC-03: 같은 URL 저장 요청 100개를 동시에 보내도 활성 북마크는 1개이고 모든 ID가 같다", async () => {
     const userId = await newUser();
     // HTTP 요청은 연결 시차로 앞 요청이 먼저 끝나 경합이 일어나지 않을 때가 있다(ON CONFLICT를 빼도 5회 중 4회 통과).
-    // 100개가 모두 사전 조회에 도착한 뒤 함께 진행시켜, 매번 100개가 같은 순간 INSERT를 시도하게 한다.
+    // 100개가 모두 사전 조회를 "마친" 뒤(모두 없음을 본 상태) 함께 진행시켜, 매번 100개가 INSERT를 시도하게 한다.
+    // 조회 전에 모으면 풀(10개) 대기 때문에 늦은 조회가 먼저 저장된 행을 봐서 INSERT를 건너뛸 수 있다(CI에서 99회).
     // 동작은 바꾸지 않고 시점만 맞춘다
     const repo = app.get(BookmarksRepository);
     const findLatest = repo.findLatestByUrl.bind(repo);
@@ -93,9 +94,10 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
     let releaseAll!: () => void;
     const allArrived = new Promise<void>((resolve) => (releaseAll = resolve));
     vi.spyOn(repo, "findLatestByUrl").mockImplementation(async (...args) => {
+      const latest = await findLatest(...args);
       if (++arrived === CONCURRENT_REQUESTS) releaseAll();
       await allArrived;
-      return findLatest(...args);
+      return latest;
     });
     const insertSpy = vi.spyOn(repo, "insertIfAbsent");
 

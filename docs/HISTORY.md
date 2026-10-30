@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | fix(test): AC-03 동시성 테스트의 대기 지점을 조회 후로 옮김
+
+- Feature: FEAT-001
+- 목적: 이 PR의 CI에서 AC-03이 `insertIfAbsent` 99회로 실패했다. 테스트 결함이다(제품 코드 문제 아님): 대기 지점이 조회 전이라, 풀(10) 대기로 늦게 실행된 조회가 먼저 저장된 행을 보고 INSERT를 건너뛰었다. 로컬은 빨라서 통과했다.
+- 변경: `bookmarks.int.test.ts` 대기를 "조회를 마친 뒤·INSERT 전"으로. QUALITY 동시성 테스트 규칙 보강(작은 풀로도 한 번 실행). AI-LOG 1건.
+- 영향: 테스트만.
+- 검증: AC-03 로컬 4회 + `DB_POOL_MAX=2` 4회 모두 PASS(185~269ms). `ON CONFLICT` 제거 변이 5회 모두 실패.
+- 주의/롤백: revert로 롤백.
+
+## 2026-10-30 | chore(web): 로컬에서 web이 api를 호출하도록 개발용 사용자 연결
+
+- Feature: N/A (FEAT-001 D-11 연결)
+- 목적: 사용자가 프론트 화면을 직접 짤 수 있게 한다. api가 사용자 헤더를 요구해 web 요청이 모두 401이었다.
+- 변경: `prisma/seed-dev-user.sql` + `npm run db:seed:dev`(고정 개발 사용자, 재실행 안전). `configureApiClient`에 기본 헤더 옵션(요청별 헤더가 우선). web `providers.tsx`가 개발·테스트 모드에서만 `x-dev-user-id`를 붙인다. SETUP 설치·명령·문제 해결.
+- 영향: 로컬 개발만. 운영 빌드는 헤더를 보내지 않고, api도 운영에서는 항상 401. CORS는 변경 없음(cors 기본값이 요청 헤더를 허용, 실제 사전 요청으로 확인).
+- 검증: `npm run db:seed:dev` 2회(두 번째도 성공, 사용자 1명) 확인. web `providers.test.tsx` PASS(2, 헤더 부착·요청별 헤더 유지 추가). 빌드한 api를 띄워 Origin `localhost:7710` 사전 요청 204 + `Access-Control-Allow-Headers: content-type,x-dev-user-id`, 저장 201 → 재저장 200 확인(개발 DB에 북마크 1건 남음). `npm run verify` PASS(8/8), `npm run build` PASS. 운영 web 번들(`.next/static`)에 `x-dev-user-id`·개발 사용자 ID 0건.
+- 주의/롤백: revert로 롤백. 개발 사용자 ID는 SQL과 `providers.tsx` 두 곳에 있다(서로 주석으로 참조).
+
 ## 2026-10-30 | feat(bookmarks): 링크 저장 API — URL 정규화와 동시 저장 중복 방지
 
 - Feature: FEAT-001
