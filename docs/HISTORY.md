@@ -5,6 +5,14 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-10-30 | chore(github): PR 템플릿 추가와 레포 설명 통일
+- Feature: N/A
+- 목적: PR 본문 형식을 고정해 설계 근거와 실측 결과가 PR마다 남게 한다. GitHub 레포 설명이 README·스펙의 서비스 정의와 달라 README 기준으로 맞춘다(사용자 결정).
+- 변경: `.github/pull_request_template.md`(목적·변경 요약·설계 결정과 근거·검증·측정·위험/롤백). `BRANCHING.md` PR 본문 항목을 템플릿과 맞춤. GitHub 레포 설명을 README 첫 문장으로 변경(git 밖 설정).
+- 영향: 이후 웹에서 여는 PR 본문 기본값. 코드·CI 영향 없음.
+- 검증: Prettier 검사(pre-commit). 레포 설명은 `gh repo view`로 확인. 이 PR 본문을 템플릿 형식으로 작성(`gh pr create`는 템플릿을 자동 적용하지 않으므로 웹 PR 화면의 기본값 적용은 미확인).
+- 주의/롤백: revert로 롤백. 레포 설명은 `gh repo edit --description`으로 되돌린다.
+
 ## 2026-10-29 | docs(learning): 초기 세팅 학습 노트 01
 - Feature: N/A
 - 목적: 사용자 요청 — 기본 세팅 완료 시점의 구조를 파트별(공통·web·api·api-client·게이트·Git·의존성·배포·AI 하네스)로 학습용 정리.
