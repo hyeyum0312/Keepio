@@ -2,6 +2,7 @@
 export { authFetch } from "./model/auth-fetch";
 export { AccountPanel } from "./ui/AccountPanel";
 export { AuthBootstrap } from "./ui/AuthBootstrap";
+export { AuthSwitch } from "./ui/AuthSwitch";
 export { ForgotPasswordForm } from "./ui/ForgotPasswordForm";
 export { LoginForm } from "./ui/LoginForm";
 export { RequireAuth } from "./ui/RequireAuth";

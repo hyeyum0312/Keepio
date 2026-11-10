@@ -7,7 +7,7 @@ import { serverMessage, submit } from "../lib/server-message";
 import { clearSession } from "../model/session-store";
 import { AuthLayout, FormError, Notice } from "./FormParts";
 
-// FEAT-006 AC-12. RequireAuth 안에서만 쓴다(로그인 상태에서만 /api/me 조회).
+// FEAT-006 AC-12. 로그인 상태에서만 렌더한다(AuthSwitch·RequireAuth 안. /api/me 조회).
 // /api/me 쿼리: 생성 키, stale 기본값, 비로그인이 되면 AuthBootstrap이 캐시를 비운다
 export function AccountPanel() {
   const me = useMeControllerMe();
@@ -30,7 +30,7 @@ export function AccountPanel() {
       setError(r.message);
       return;
     }
-    // 비로그인 → RequireAuth가 /login으로, AuthBootstrap이 캐시 정리
+    // 비로그인 → 홈은 랜딩으로 바뀌고(AuthSwitch), AuthBootstrap이 캐시 정리
     clearSession();
   }
 

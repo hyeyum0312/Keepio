@@ -10,6 +10,7 @@ import {
   setSession,
 } from "../model/session-store";
 import { AccountPanel } from "./AccountPanel";
+import { AuthSwitch } from "./AuthSwitch";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { LoginForm } from "./LoginForm";
 import { RequireAuth } from "./RequireAuth";
@@ -296,7 +297,7 @@ describe("인증 화면 (FEAT-006)", () => {
       expect(replace).not.toHaveBeenCalled();
     });
 
-    it("AC-05·AC-12: 비로그인이 되면 /login으로 보낸다", () => {
+    it("AC-05: 보호 화면(RequireAuth)에서 비로그인이 되면 /login으로 보낸다", () => {
       renderWithClient(
         <RequireAuth>
           <p>비밀 내용</p>
@@ -309,7 +310,21 @@ describe("인증 화면 (FEAT-006)", () => {
       expect(screen.queryByText("비밀 내용")).not.toBeInTheDocument();
     });
 
-    it("AC-12: 로그인 상태면 내 이메일과 인증 여부를 보여 주고, 로그아웃하면 비로그인이 된다", async () => {
+    it("AC-06·AC-12: 홈은 확인 중 로딩, 비로그인이면 랜딩, 로그인이면 계정 화면을 보여 준다", () => {
+      renderWithClient(
+        <AuthSwitch authenticated={<p>계정 화면</p>} anonymous={<p>랜딩</p>} />,
+      );
+      expect(screen.getByRole("status")).toHaveTextContent("불러오는 중");
+
+      act(() => clearSession());
+      expect(screen.getByText("랜딩")).toBeInTheDocument();
+
+      act(() => setSession("access"));
+      expect(screen.getByText("계정 화면")).toBeInTheDocument();
+      expect(replace).not.toHaveBeenCalled();
+    });
+
+    it("AC-12: 로그인 상태면 내 이메일과 인증 여부를 보여 주고, 로그아웃하면 같은 주소에서 랜딩이 보인다", async () => {
       setSession("access");
       const api = stubApi({
         "/api/me": () =>
@@ -321,9 +336,7 @@ describe("인증 화면 (FEAT-006)", () => {
         "/api/auth/logout": () => json(204),
       });
       renderWithClient(
-        <RequireAuth>
-          <AccountPanel />
-        </RequireAuth>,
+        <AuthSwitch authenticated={<AccountPanel />} anonymous={<p>랜딩</p>} />,
       );
 
       expect(await screen.findByText("user@example.com")).toBeInTheDocument();
@@ -331,10 +344,11 @@ describe("인증 화면 (FEAT-006)", () => {
 
       await userEvent.click(screen.getByRole("button", { name: "로그아웃" }));
 
-      await vi.waitFor(() => expect(getAuthStatus()).toBe("anonymous"));
+      expect(await screen.findByText("랜딩")).toBeInTheDocument();
+      expect(getAuthStatus()).toBe("anonymous");
       expect(getAccessToken()).toBeNull();
       expect(api.count("/api/auth/logout")).toBe(1);
-      expect(replace).toHaveBeenCalledWith("/login");
+      expect(replace).not.toHaveBeenCalled();
     });
   });
 });
