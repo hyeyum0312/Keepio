@@ -1,6 +1,6 @@
 # FEAT-006 — 웹 로그인 화면과 토큰 처리
 
-- Status: Approved
+- Status: Implemented
 - Updated: 2026-11-10 (AC-12 비로그인 홈 = 랜딩)
 - Related: FEAT-003(API·Q-6), ADR-011(웹 토큰 저장), ADR-009(오류 문구), FRONTEND standards(Structure·Network/state), OPEN-QUESTIONS D-09(디자인)·D-12(배포)
 
@@ -13,23 +13,23 @@
 
 토큰 처리
 
-- [ ] AC-01 메모리 보관: Access Token은 JS 메모리에만 둔다. localStorage·sessionStorage·쿠키에 쓰지 않는다. Refresh Token은 서버의 HttpOnly 쿠키라 JS가 다루지 않는다.
-- [ ] AC-02 자동 첨부: API 요청에 Access Token이 있으면 `Authorization: Bearer`를 붙인다. 모든 요청은 `credentials: "include"`.
-- [ ] AC-03 401 처리: 보호된 요청이 `401 UNAUTHENTICATED`이면 refresh를 1번 호출하고 성공하면 원래 요청을 1번만 다시 보낸다. 재시도도 401이면 더 반복하지 않는다. 인증 API(`/api/auth/*`) 자체의 401에는 refresh를 시도하지 않는다.
-- [ ] AC-04 refresh 묶기: 동시에 여러 요청이 401을 받아도 refresh 요청은 1번만 나가고, 모두 그 결과를 기다린다.
-- [ ] AC-05 refresh 실패: refresh가 실패하면 토큰과 사용자 캐시를 비우고 비로그인 상태가 된다. 보호된 화면에 있었으면 `/login`으로 이동한다.
-- [ ] AC-06 새로고침 유지: 앱이 시작될 때 refresh를 1번 시도해 로그인 상태를 되살린다. 결과가 나오기 전에는 보호된 화면에 로딩만 보여 준다(로그인 화면으로 깜빡이지 않는다).
+- [x] AC-01 메모리 보관: Access Token은 JS 메모리에만 둔다. localStorage·sessionStorage·쿠키에 쓰지 않는다. Refresh Token은 서버의 HttpOnly 쿠키라 JS가 다루지 않는다.
+- [x] AC-02 자동 첨부: API 요청에 Access Token이 있으면 `Authorization: Bearer`를 붙인다. 모든 요청은 `credentials: "include"`.
+- [x] AC-03 401 처리: 보호된 요청이 `401 UNAUTHENTICATED`이면 refresh를 1번 호출하고 성공하면 원래 요청을 1번만 다시 보낸다. 재시도도 401이면 더 반복하지 않는다. 인증 API(`/api/auth/*`) 자체의 401에는 refresh를 시도하지 않는다.
+- [x] AC-04 refresh 묶기: 동시에 여러 요청이 401을 받아도 refresh 요청은 1번만 나가고, 모두 그 결과를 기다린다.
+- [x] AC-05 refresh 실패: refresh가 실패하면 토큰과 사용자 캐시를 비우고 비로그인 상태가 된다. 보호된 화면에 있었으면 `/login`으로 이동한다.
+- [x] AC-06 새로고침 유지: 앱이 시작될 때 refresh를 1번 시도해 로그인 상태를 되살린다. 결과가 나오기 전에는 보호된 화면에 로딩만 보여 준다(로그인 화면으로 깜빡이지 않는다).
 
 화면
 
-- [ ] AC-07 가입(`/signup`): 이메일·비밀번호로 가입하면 "인증 메일을 보냈어요" 안내를 보여 준다. 서버 오류는 `message`를 그대로 보여 준다.
-- [ ] AC-08 이메일 인증(`/verify-email?token=`): 주소의 토큰을 읽은 즉시 주소에서 지우고(뒤로 가기·기록에 남지 않게) 인증을 요청한다. 성공·실패를 보여 주고, 실패면 서버 문구와 재발송 입력을 보여 준다.
-- [ ] AC-09 로그인(`/login`): 성공하면 홈으로 이동한다. 실패하면 서버 문구를 보여 준다. 이미 로그인 상태면 홈으로 보낸다.
-- [ ] AC-10 비밀번호 찾기(`/forgot-password`): 이메일을 보내면 가입 여부와 무관하게 같은 안내("가입된 이메일이면 메일을 보냈어요")를 보여 준다.
-- [ ] AC-11 재설정(`/reset-password?token=`): 토큰을 읽은 즉시 주소에서 지운다. 새 비밀번호로 재설정하면 로그인 화면으로 안내한다. 오류(만료·약한 비밀번호)는 서버 문구를 보여 준다.
-- [ ] AC-12 홈·로그아웃: 홈(`/`)은 로그인 상태면 계정 화면(내 이메일·인증 여부 `/api/me`, 로그아웃), 비로그인이면 랜딩(제품 소개·시작하기·로그인, 02-DESIGN 정보 구조)을 같은 주소에서 보여 준다. 로그아웃하면 서버 세션을 끊고 토큰·캐시를 비우고 같은 주소에서 랜딩이 된다. (2026-11-10 변경: 비로그인 홈을 `/login` 리다이렉트 대신 랜딩으로)
-- [ ] AC-13 중복 제출 방지: 요청 중에는 제출 버튼을 비활성화한다.
-- [ ] AC-14 접근성: 모든 입력에 라벨, 오류는 `role="alert"`로 알리고 입력과 연결, 키보드만으로 모든 흐름 가능.
+- [x] AC-07 가입(`/signup`): 이메일·비밀번호로 가입하면 "인증 메일을 보냈어요" 안내를 보여 준다. 서버 오류는 `message`를 그대로 보여 준다.
+- [x] AC-08 이메일 인증(`/verify-email?token=`): 주소의 토큰을 읽은 즉시 주소에서 지우고(뒤로 가기·기록에 남지 않게) 인증을 요청한다. 성공·실패를 보여 주고, 실패면 서버 문구와 재발송 입력을 보여 준다.
+- [x] AC-09 로그인(`/login`): 성공하면 홈으로 이동한다. 실패하면 서버 문구를 보여 준다. 이미 로그인 상태면 홈으로 보낸다.
+- [x] AC-10 비밀번호 찾기(`/forgot-password`): 이메일을 보내면 가입 여부와 무관하게 같은 안내("가입된 이메일이면 메일을 보냈어요")를 보여 준다.
+- [x] AC-11 재설정(`/reset-password?token=`): 토큰을 읽은 즉시 주소에서 지운다. 새 비밀번호로 재설정하면 로그인 화면으로 안내한다. 오류(만료·약한 비밀번호)는 서버 문구를 보여 준다.
+- [x] AC-12 홈·로그아웃: 홈(`/`)은 로그인 상태면 계정 화면(내 이메일·인증 여부 `/api/me`, 로그아웃), 비로그인이면 랜딩(제품 소개·시작하기·로그인, 02-DESIGN 정보 구조)을 같은 주소에서 보여 준다. 로그아웃하면 서버 세션을 끊고 토큰·캐시를 비우고 같은 주소에서 랜딩이 된다. (2026-11-10 변경: 비로그인 홈을 `/login` 리다이렉트 대신 랜딩으로)
+- [x] AC-13 중복 제출 방지: 요청 중에는 제출 버튼을 비활성화한다.
+- [x] AC-14 접근성: 모든 입력에 라벨, 오류는 `role="alert"`로 알리고 입력과 연결, 키보드만으로 모든 흐름 가능.
 
 ## 데이터 계약
 
@@ -70,6 +70,13 @@
 
 ## 구현 결과 (검증 후)
 
-- 변경 파일/PR:
-- 실행 명령 및 실제 결과:
+- 변경 파일/PR: 브랜치 `feature/auth-web`. `apps/web/src/features/auth/**`(session-store·refresh-session·auth-fetch·useOneTimeUrlToken·useAuthStatus·화면 컴포넌트), `features/landing`, `app/{login,signup,verify-email,forgot-password,reset-password}`, `app/page.tsx`·`providers.tsx`, `shared/lib/network-error.ts`, `packages/api-client/src/api-fetch.ts`(fetch 주입 지점).
+- 실행 명령 및 실제 결과(2026-11-10, 로컬):
+  - web 단위·컴포넌트 25개 PASS(authFetch 8: 첨부·401 재시도 1회·무한 반복 없음·인증 API 제외·동시 5개 → refresh 1회·실패 시 초기화 / 화면: 서버 문구 alert·aria 연결·제출 중 비활성·StrictMode에서 인증 요청 1회·주소 토큰 제거·홈 로딩/랜딩/계정 전환·로그아웃 후 랜딩).
+  - `npm run verify` PASS(8/8), `npm run build` PASS(라우트 정적). 빌드에서 클라이언트 훅이 서버 컴포넌트 경로에 섞인 것을 발견해 분리.
+  - 실제 API에 웹 출처 CORS 사전 요청 확인(Allow-Origin·Credentials·authorization 헤더).
+  - 브라우저(Chrome, 사용자 수동): 비로그인 홈 → 가입 202·API 콘솔에 인증 링크 출력 확인. 이후 FEAT-004 브랜치에서 Google 로그인 → `/auth/callback` → refresh(다른 포트 API로 Refresh 쿠키 전송)·`/api/me`·홈·로그아웃·재로그인 정상(사용자 보고).
 - 남은 위험:
+  - 브라우저 수동 미확인: 새로고침 후 로그인 유지, 이메일 인증 링크 화면, 비밀번호 재설정 화면(컴포넌트 테스트로만 검증).
+  - 랜딩은 로그인 확인 후 그려져 검색 엔진에는 로딩 문구만 보인다(출시 전 재검토).
+  - 다른 탭 로그아웃은 즉시 반영되지 않는다(비범위).
