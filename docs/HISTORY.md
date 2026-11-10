@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(feature): FEAT-004 구현 완료 기록과 실제 Google 로그인 확인
+
+- Feature: FEAT-004
+- 목적: dev rebase 후 재검증 결과와 브라우저 확인을 기록하고 PR을 연다.
+- 변경: `auth-social.md` Implemented(AC 체크, 구현 결과·남은 위험), Feature 목록, QA 보고서.
+- 영향: 문서만.
+- 검증: dev rebase 후 api 단위 118·통합 70·web 31 PASS, `npm run verify` PASS(8/8), `npm run build` PASS.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | feat(auth): Google·Kakao 소셜 로그인과 계정 연결
 
 - Feature: FEAT-004

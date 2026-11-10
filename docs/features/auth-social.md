@@ -1,6 +1,6 @@
 # FEAT-004 — 소셜 로그인(Google·Kakao)과 계정 연결
 
-- Status: Approved
+- Status: Implemented
 - Updated: 2026-11-10
 - Related: ADR-011(로그인 수단·세션 구조), FEAT-003(세션 발급 `SessionService`), FEAT-006(웹 토큰 처리·`/auth` 화면), ADR-009(오류 문구, 이번에 예외 추가), spec 03 인증 및 보안, OPEN-QUESTIONS D-04(모바일)·D-12(배포)
 
@@ -26,25 +26,25 @@ Access Token은 주소에 넣지 않는다(방문 기록·로그 노출 방지).
 
 시작·콜백
 
-- [ ] AC-01 시작: `GET /api/auth/oauth/:provider/start`는 제공자 동의 화면으로 302. 주소에 `state`·`nonce`·`code_challenge`(S256)·`scope=openid email`(Google은 `profile` 제외)이 있고, 같은 값의 원본(state·nonce·code_verifier)은 서명된 HttpOnly 쿠키(`keepio_oauth`, Path=/api/auth/oauth, 10분)에만 있다.
-- [ ] AC-02 콜백 성공: 쿠키의 state와 주소의 state가 같고, code 교환과 ID 토큰 검증이 성공하면 세션을 발급(Refresh 쿠키)하고 `keepio_oauth` 쿠키를 지운 뒤 웹 `/auth/callback`으로 302.
-- [ ] AC-03 위조·만료 거부: state 불일치, 쿠키 없음·만료·서명 불일치, 다른 제공자의 쿠키, ID 토큰 검증 실패(nonce 불일치 포함)면 세션을 만들지 않고 웹 `/login?oauth=failed`로 302. 이유는 서버 로그에만(이메일 마스킹, 토큰·code 미기록).
-- [ ] AC-04 취소: 사용자가 동의를 거부하면(`error=access_denied`) 세션 없이 웹 `/login`으로 302(오류 표시 없음).
-- [ ] AC-05 제공자 설정: 키(`*_CLIENT_ID`·`*_CLIENT_SECRET`)가 없는 제공자의 start·callback은 `404 NOT_FOUND`. `GET /api/auth/oauth/providers`는 사용 가능한 제공자 목록(`["google"]` 등)을 준다(버튼 표시의 권위).
+- [x] AC-01 시작: `GET /api/auth/oauth/:provider/start`는 제공자 동의 화면으로 302. 주소에 `state`·`nonce`·`code_challenge`(S256)·`scope=openid email`(Google은 `profile` 제외)이 있고, 같은 값의 원본(state·nonce·code_verifier)은 서명된 HttpOnly 쿠키(`keepio_oauth`, Path=/api/auth/oauth, 10분)에만 있다.
+- [x] AC-02 콜백 성공: 쿠키의 state와 주소의 state가 같고, code 교환과 ID 토큰 검증이 성공하면 세션을 발급(Refresh 쿠키)하고 `keepio_oauth` 쿠키를 지운 뒤 웹 `/auth/callback`으로 302.
+- [x] AC-03 위조·만료 거부: state 불일치, 쿠키 없음·만료·서명 불일치, 다른 제공자의 쿠키, ID 토큰 검증 실패(nonce 불일치 포함)면 세션을 만들지 않고 웹 `/login?oauth=failed`로 302. 이유는 서버 로그에만(이메일 마스킹, 토큰·code 미기록).
+- [x] AC-04 취소: 사용자가 동의를 거부하면(`error=access_denied`) 세션 없이 웹 `/login`으로 302(오류 표시 없음).
+- [x] AC-05 제공자 설정: 키(`*_CLIENT_ID`·`*_CLIENT_SECRET`)가 없는 제공자의 start·callback은 `404 NOT_FOUND`. `GET /api/auth/oauth/providers`는 사용 가능한 제공자 목록(`["google"]` 등)을 준다(버튼 표시의 권위).
 
 계정 결정(한 트랜잭션)
 
-- [ ] AC-06 재로그인: (provider, 제공자 사용자 ID)로 이미 연결된 계정이 있으면 그 계정으로 로그인한다. 이메일이 바뀌어도 같은 계정이다.
-- [ ] AC-07 인증된 계정과 자동 연결: 제공자가 인증한 이메일(`email_verified=true`)이 **인증된** 기존 계정의 이메일과 같으면 그 계정에 연결하고 로그인한다. 기존 비밀번호·세션은 그대로.
-- [ ] AC-08 인증 안 된 계정 회수: 제공자가 인증한 이메일이 **인증 안 된** 기존 계정의 이메일과 같으면 연결하되, 그 계정의 비밀번호를 지우고 모든 Refresh Token을 폐기하고 이메일을 인증으로 기록한다(남의 이메일로 미리 가입한 사람이 정한 비밀번호·세션을 무효화).
-- [ ] AC-09 새 계정: 연결도 이메일 일치도 없으면 새 계정을 만든다. 제공자가 인증한 이메일이면 그 이메일을 인증 상태로 저장, 이메일이 없거나 인증 안 됐으면 이메일 없이 만든다.
-- [ ] AC-10 동시 콜백: 같은 제공자 계정으로 콜백이 동시에 여러 번 와도(두 번 클릭 등) 연결은 1개, 계정도 1개다(DB UNIQUE가 최종 권위).
+- [x] AC-06 재로그인: (provider, 제공자 사용자 ID)로 이미 연결된 계정이 있으면 그 계정으로 로그인한다. 이메일이 바뀌어도 같은 계정이다.
+- [x] AC-07 인증된 계정과 자동 연결: 제공자가 인증한 이메일(`email_verified=true`)이 **인증된** 기존 계정의 이메일과 같으면 그 계정에 연결하고 로그인한다. 기존 비밀번호·세션은 그대로.
+- [x] AC-08 인증 안 된 계정 회수: 제공자가 인증한 이메일이 **인증 안 된** 기존 계정의 이메일과 같으면 연결하되, 그 계정의 비밀번호를 지우고 모든 Refresh Token을 폐기하고 이메일을 인증으로 기록한다(남의 이메일로 미리 가입한 사람이 정한 비밀번호·세션을 무효화).
+- [x] AC-09 새 계정: 연결도 이메일 일치도 없으면 새 계정을 만든다. 제공자가 인증한 이메일이면 그 이메일을 인증 상태로 저장, 이메일이 없거나 인증 안 됐으면 이메일 없이 만든다.
+- [x] AC-10 동시 콜백: 같은 제공자 계정으로 콜백이 동시에 여러 번 와도(두 번 클릭 등) 연결은 1개, 계정도 1개다(DB UNIQUE가 최종 권위).
 
 웹
 
-- [ ] AC-11 버튼: 로그인·가입 화면에 사용 가능한 제공자 버튼만 보인다(`/providers`). 누르면 페이지 전체가 API start로 이동한다.
-- [ ] AC-12 콜백 화면(`/auth/callback`): refresh 1번으로 로그인 상태를 받아 홈으로 이동. 실패하면 `/login?oauth=failed`.
-- [ ] AC-13 실패 안내: `/login?oauth=failed`면 고정 문구 "소셜 로그인에 실패했어요. 다시 시도해 주세요."를 alert로 보여 주고, 읽은 뒤 주소에서 `oauth` 값을 지운다(ADR-009 예외, 아래).
+- [x] AC-11 버튼: 로그인·가입 화면에 사용 가능한 제공자 버튼만 보인다(`/providers`). 누르면 페이지 전체가 API start로 이동한다.
+- [x] AC-12 콜백 화면(`/auth/callback`): refresh 1번으로 로그인 상태를 받아 홈으로 이동. 실패하면 `/login?oauth=failed`.
+- [x] AC-13 실패 안내: `/login?oauth=failed`면 고정 문구 "소셜 로그인에 실패했어요. 다시 시도해 주세요."를 alert로 보여 주고, 읽은 뒤 주소에서 `oauth` 값을 지운다(ADR-009 예외, 아래).
 
 ## 데이터 계약
 
@@ -92,6 +92,15 @@ Access Token은 주소에 넣지 않는다(방문 기록·로그 노출 방지).
 
 ## 구현 결과 (검증 후)
 
-- 변경 파일/PR:
-- 실행 명령 및 실제 결과:
+- 변경 파일/PR: 브랜치 `feature/auth-social`. API `auth/oauth.{gateway,service,controller}.ts`, `auth/lib/oauth-flow-cookie.ts`, `auth/web-origin.ts`, `AuthRepository.resolveOAuthUser`, `config/env.ts`, 마이그레이션 `20261110100000_add_oauth_accounts`. 웹 `SocialLoginButtons`·`OAuthCallback`·`OAuthFailureAlert`, `app/auth/callback`, `shared/lib/network-error.ts`. `api-client` `apiUrl`. 의존성 `openid-client` 6.8.8, 루트 overrides `jose` 6.2.13.
+- 실행 명령 및 실제 결과(2026-11-10, 로컬, dev rebase 후 재실행):
+  - api 단위 118 PASS, `npm run test:integration` 70 PASS(소셜 15), web 31 PASS, `npm run verify` PASS(8/8), `npm run build` PASS.
+  - 동시 콜백 10개(도착 후 일괄) → 연결 1·계정 1(AC-10).
+  - 변이 검사: UNIQUE 충돌 재시도 제거 → AC-10 3/3 실패, AC-08 비밀번호 삭제 제거 → AC-08 실패, 복구 후 PASS.
+  - 회귀: 로그인 화면이 `/providers`를 먼저 호출하면서 기존 로그인 테스트의 요청 순서 가정이 깨진 것을 발견, 경로 기준으로 수정.
+  - 브라우저(Chrome, 사용자 수동): 실제 Google 계정으로 로그인 → 홈 → 로그아웃 → 재로그인 정상(사용자 보고).
 - 남은 위험:
+  - Kakao는 키 미발급으로 실제 로그인 미검증. `email_verified` 제공 여부도 미확인(없으면 Kakao는 항상 이메일 없는 새 계정).
+  - Google 앱은 "테스트" 상태라 등록한 테스트 사용자만 로그인 가능. 출시 전 앱 게시(검수 범위 확인) 필요.
+  - `openid-client`를 올릴 때 `jose` overrides 재검토.
+  - 모바일 앱은 시스템 브라우저로 진행해야 한다(D-04 PoC).
