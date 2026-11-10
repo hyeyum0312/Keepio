@@ -1,14 +1,16 @@
 import type { ExecutionContext } from "@nestjs/common";
 import { ApiException } from "../common/api-error.js";
-import type { AuthRepository } from "./auth.repository.js";
-import { DEV_USER_HEADER, UserGuard } from "./user.guard.js";
+import type { AccessTokenService } from "./access-token.service.js";
+import { UserGuard } from "./user.guard.js";
 
 const USER_ID = "0b8f3c1e-2a4d-4e6f-8a1b-3c5d7e9f1a2b";
-const BASE_ENV = { DATABASE_URL: "postgresql://u:p@localhost:5432/db" };
 
 function contextWith(headers: Record<string, string>) {
+  const lower = Object.fromEntries(
+    Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]),
+  );
   const req = {
-    header: (name: string) => headers[name],
+    header: (name: string) => lower[name.toLowerCase()],
   } as Record<string, unknown>;
   const context = {
     switchToHttp: () => ({ getRequest: () => req }),
@@ -16,49 +18,36 @@ function contextWith(headers: Record<string, string>) {
   return { context, req };
 }
 
-function guardIn(nodeEnv: string, userExists = true) {
-  const repo = { userExists: vi.fn().mockResolvedValue(userExists) };
-  vi.stubEnv("NODE_ENV", nodeEnv);
-  vi.stubEnv("DATABASE_URL", BASE_ENV.DATABASE_URL);
-  vi.stubEnv("JWT_SECRET", "a".repeat(32));
-  if (nodeEnv === "production") {
-    vi.stubEnv("WEB_ORIGIN", "https://keepio.example");
-    vi.stubEnv("RESEND_API_KEY", "re_test");
-    vi.stubEnv("MAIL_FROM", "no-reply@keepio.example");
-  }
-  const guard = new UserGuard(repo as unknown as AuthRepository);
-  return { guard, repo };
+function guardVerifying(result: string | null) {
+  const tokens = { verify: vi.fn().mockResolvedValue(result) };
+  const guard = new UserGuard(tokens as unknown as AccessTokenService);
+  return { guard, tokens };
 }
 
-describe("UserGuard (D-11 개발·테스트 전용)", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
-  it("운영 환경에서는 헤더가 있어도 DB를 조회하지 않고 거부한다", async () => {
-    const { guard, repo } = guardIn("production");
-    const { context } = contextWith({ [DEV_USER_HEADER]: USER_ID });
-
-    await expect(guard.canActivate(context)).rejects.toMatchObject({
-      code: "UNAUTHENTICATED",
-    });
-    expect(repo.userExists).not.toHaveBeenCalled();
-  });
-
-  it("개발 환경에서 존재하는 사용자 ID면 요청에 사용자를 싣는다", async () => {
-    const { guard } = guardIn("development");
-    const { context, req } = contextWith({ [DEV_USER_HEADER]: USER_ID });
+describe("UserGuard (FEAT-003)", () => {
+  it("AC-09: 유효한 Bearer 토큰이면 요청에 사용자를 싣는다", async () => {
+    const { guard, tokens } = guardVerifying(USER_ID);
+    const { context, req } = contextWith({ Authorization: "Bearer abc.def" });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
+    expect(tokens.verify).toHaveBeenCalledWith("abc.def");
     expect(req.user).toEqual({ id: USER_ID });
   });
 
+  it("AC-09: Bearer 스킴은 대소문자를 구분하지 않는다", async () => {
+    const { guard } = guardVerifying(USER_ID);
+    const { context } = contextWith({ authorization: "bearer abc.def" });
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+  });
+
   it.each([
-    ["헤더가 없으면", {}, true],
-    ["UUID 형식이 아니면", { [DEV_USER_HEADER]: "1 OR 1=1" }, true],
-    ["없는 사용자면", { [DEV_USER_HEADER]: USER_ID }, false],
-  ])("%s 401 UNAUTHENTICATED로 거부한다", async (_, headers, exists) => {
-    const { guard } = guardIn("test", exists);
+    ["헤더가 없으면", {}],
+    ["Bearer가 아니면", { authorization: "Basic dXNlcjpwYXNz" }],
+    ["토큰이 비어 있으면", { authorization: "Bearer " }],
+    ["AC-18: 개발용 사용자 ID 헤더만 있으면", { "x-dev-user-id": USER_ID }],
+  ])("%s 검증하지 않고 401 UNAUTHENTICATED", async (_, headers) => {
+    const { guard, tokens } = guardVerifying(USER_ID);
     const { context } = contextWith(headers);
 
     const error = await guard.canActivate(context).catch((e: unknown) => e);
@@ -66,6 +55,16 @@ describe("UserGuard (D-11 개발·테스트 전용)", () => {
     expect(error).toMatchObject({
       code: "UNAUTHENTICATED",
       message: "로그인이 필요해요.",
+    });
+    expect(tokens.verify).not.toHaveBeenCalled();
+  });
+
+  it("AC-09: 검증에 실패하면(서명·만료 등) 401 UNAUTHENTICATED", async () => {
+    const { guard } = guardVerifying(null);
+    const { context } = contextWith({ authorization: "Bearer forged" });
+
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      code: "UNAUTHENTICATED",
     });
   });
 });

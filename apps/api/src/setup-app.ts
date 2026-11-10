@@ -34,6 +34,8 @@ export function createOpenApiDocument(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle("keepio API")
     .setVersion("0.1.0")
+    // Access Token(FEAT-003). 보호된 API는 @ApiBearerAuth()로 표시한다
+    .addBearerAuth()
     .build();
   return SwaggerModule.createDocument(app, config, {
     extraModels: [ApiErrorResponse],

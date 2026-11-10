@@ -12,7 +12,7 @@ describe("token", () => {
   it("해시는 32바이트이고 같은 입력이면 같다(DB CHECK와 일치)", () => {
     const token = generateToken();
     expect(hashToken(token)).toHaveLength(32);
-    expect(hashToken(token).equals(hashToken(token))).toBe(true);
+    expect(hashToken(token)).toEqual(hashToken(token));
   });
 
   it.each([

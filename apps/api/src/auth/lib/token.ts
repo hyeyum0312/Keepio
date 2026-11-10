@@ -14,6 +14,9 @@ export function isWellFormedToken(token: string): boolean {
   return TOKEN_PATTERN.test(token);
 }
 
-export function hashToken(token: string): Buffer {
-  return createHash("sha256").update(token).digest();
+// Prisma Bytes 입력 타입(Uint8Array<ArrayBuffer>)에 맞춘다. Buffer는 공유 메모리 풀을 가리킬 수 있어 그대로 넘기지 않는다
+export type TokenHash = Uint8Array<ArrayBuffer>;
+
+export function hashToken(token: string): TokenHash {
+  return new Uint8Array(createHash("sha256").update(token).digest());
 }

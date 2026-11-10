@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(auth): JWT Guard로 교체하고 Refresh Token 회전·재사용 감지 세션 서비스 추가
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현 3단계. D-11 임시 Guard(개발용 헤더)를 실제 인증으로 바꾸고, 로그인 수단과 무관한 세션 발급·회전·폐기를 만든다.
+- 변경: `AccessTokenService`(HS256 고정, iss·aud·15분, sub는 UUID만). `UserGuard`는 Bearer JWT 서명만 검증(DB 조회 없음), `x-dev-user-id` 제거. `SessionService` — issue(새 묶음), rotate(조건부 `updateManyAndReturn` + 새 토큰 INSERT를 저장소 메서드 안 트랜잭션으로, 만료 시각 승계), 유예 10초 후 재사용 시 묶음 폐기, revoke(멱등). `AuthModule`에 `JwtModule`. OpenAPI bearer 보안 스키마와 북마크 `@ApiBearerAuth()`. BACKEND.md(트랜잭션은 저장소 메서드 안에서만, Guard·테스트 토큰 규칙), D-11 종료.
+- 영향: 북마크 API가 Access Token 없이는 401. 웹은 아직 토큰을 보내지 않는다(웹 화면·토큰 처리는 별도 작업). 생성 클라이언트 코드는 변경 없음(openapi.json만). `AppModule`을 띄우는 단위 테스트는 `JWT_SECRET`이 필요하다(health 테스트에 stub).
+- 검증: api 단위 93개 PASS. `npm run test:integration` PASS(26: bookmarks 14, session 10, health 2). AC-12 20개 동시 회전(도착 후 일괄 진행) 승자 1·묶음 미폐기. 변이 검사: 회전 조건 `usedAt: null` 제거 시 AC-12 3회 모두 실패, 복구 후 PASS. `npm run verify` PASS(8/8).
+- 주의/롤백: revert로 롤백(임시 Guard 복원). 데이터 영향 없음. 로그아웃 후 Access Token은 최대 15분 유효(Q-3 수용). AC-17은 현재 북마크 API가 저장뿐이라 저장 경로로만 검증했다.
+
 ## 2026-11-10 | feat(api): 인증 테이블 마이그레이션, 이메일·비밀번호·토큰 함수, mail 모듈
 
 - Feature: FEAT-003
