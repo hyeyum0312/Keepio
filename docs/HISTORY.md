@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(auth): 만료 토큰 정리 작업, argon2 OWASP 권장 설정, FEAT-003 완료
+
+- Feature: FEAT-003
+- 목적: FEAT-003 마지막 단계. 토큰 행이 계속 쌓이지 않게 정리하고, 작은 서버의 메모리 부족 장애를 막고, 검증 결과를 기록해 기능을 완료한다.
+- 변경: `AuthCleanupTask`(매일 03:00 KST, 만료 후 1일 지난 `refresh_tokens`·`email_tokens`를 1000행 단위로 반복 삭제, 실패는 로그만) + `ScheduleModule`. 저장소에 묶음 삭제 raw SQL(`DELETE … WHERE id IN (SELECT … LIMIT n)`, Prisma `deleteMany`는 개수 제한 불가). argon2id를 OWASP 권장 m=19MiB·t=2·p=1로(사용자 결정). Feature 문서 Implemented(AC 체크, `INVALID_ORIGIN` 승인, 구현 결과), Feature 목록, QA 보고서.
+- 영향: 비밀번호 해시 1회 메모리 64MiB → 19MiB(동시 4개 기준 약 256MiB → 76MiB). 기존 64MiB 해시도 그대로 검증된다(파라미터가 해시에 저장). 정리 작업은 하루 1회 DB 삭제 쿼리만 추가.
+- 검증: `npm run verify` PASS(8/8). api 단위 99개 PASS. `npm run test:integration` PASS(54, cleanup 2 포함 — 기준 시각 경계·묶음 반복 삭제). 빌드한 서버를 띄워 health·signup·콘솔 인증 링크·login·me·refresh 확인 후 테스트 계정 삭제.
+- 주의/롤백: revert로 롤백. 데이터 영향 없음(정리 작업은 만료 후 1일 지난 행만 지운다). 여러 인스턴스에서 동시에 돌아도 결과는 같다.
+
 ## 2026-11-10 | feat(auth): 가입·이메일 인증·로그인·refresh·로그아웃·비밀번호 재설정 API와 요청 제한
 
 - Feature: FEAT-003

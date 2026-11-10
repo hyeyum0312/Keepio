@@ -19,9 +19,9 @@ describe("isValidPassword", () => {
 });
 
 describe("hashPassword / verifyPassword", () => {
-  it("AC-01: argon2id 해시를 만들고 원문을 담지 않는다", async () => {
+  it("AC-01: argon2id(OWASP 권장 m=19MiB·t=2·p=1) 해시를 만들고 원문을 담지 않는다", async () => {
     const hash = await hashPassword("correct horse battery");
-    expect(hash).toMatch(/^\$argon2id\$/);
+    expect(hash).toMatch(/^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
     expect(hash).not.toContain("correct horse battery");
     await expect(verifyPassword(hash, "correct horse battery")).resolves.toBe(
       true,

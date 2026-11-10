@@ -10,6 +10,7 @@ import {
   JWT_AUDIENCE,
   JWT_ISSUER,
 } from "./access-token.service.js";
+import { AuthCleanupTask } from "./auth-cleanup.task.js";
 import { AUTH_THROTTLERS } from "./auth-throttler.guard.js";
 import { AuthController } from "./auth.controller.js";
 import { AuthRepository } from "./auth.repository.js";
@@ -42,6 +43,7 @@ import { UserGuard } from "./user.guard.js";
   ],
   controllers: [AuthController, MeController],
   providers: [
+    AuthCleanupTask,
     AuthRepository,
     AuthService,
     AccessTokenService,

@@ -11,10 +11,18 @@ export function isValidPassword(password: string): boolean {
   return length >= MIN_PASSWORD_LENGTH && length <= MAX_PASSWORD_LENGTH;
 }
 
-// argon2id, 라이브러리 기본 파라미터(m=64MiB, t=3, p=4). OWASP 최소 권장(m=19MiB, t=2)보다 강하다.
+// argon2id, OWASP Password Storage Cheat Sheet 권장 설정(m=19MiB, t=2, p=1).
+// 라이브러리 기본값(64MiB)은 동시 해시 4개(libuv 스레드)에 약 256MiB라 작은 서버에서 메모리 부족 장애가 난다(2026-11-10 결정).
 // 파라미터는 해시 문자열에 함께 저장되므로 나중에 올려도 기존 해시는 검증된다
+export const ARGON2_OPTIONS = {
+  type: argon2.argon2id,
+  memoryCost: 19 * 1024,
+  timeCost: 2,
+  parallelism: 1,
+} as const;
+
 export function hashPassword(password: string): Promise<string> {
-  return argon2.hash(password, { type: argon2.argon2id });
+  return argon2.hash(password, ARGON2_OPTIONS);
 }
 
 export async function verifyPassword(

@@ -193,6 +193,28 @@ export class AuthRepository {
     });
   }
 
+  // 만료 행 정리(Q-7). 한 번에 batchSize개까지만 지워 긴 잠금을 피한다. Prisma deleteMany는 개수 제한이 없어 SQL로 쓴다.
+  // 같은 묶음의 토큰은 만료 시각이 같아 묶음 단위로 함께 지워진다(재사용 감지는 만료 전 묶음에만 필요)
+  async deleteExpiredRefreshTokens(
+    before: Date,
+    batchSize: number,
+  ): Promise<number> {
+    return this.prisma.$executeRaw`
+      DELETE FROM refresh_tokens WHERE id IN (
+        SELECT id FROM refresh_tokens WHERE expires_at < ${before} LIMIT ${batchSize}
+      )`;
+  }
+
+  async deleteExpiredEmailTokens(
+    before: Date,
+    batchSize: number,
+  ): Promise<number> {
+    return this.prisma.$executeRaw`
+      DELETE FROM email_tokens WHERE id IN (
+        SELECT id FROM email_tokens WHERE expires_at < ${before} LIMIT ${batchSize}
+      )`;
+  }
+
   async revokeFamily(familyId: string, now: Date): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { familyId, revokedAt: null },
