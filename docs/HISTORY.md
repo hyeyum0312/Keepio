@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(api): 인증 테이블 마이그레이션, 이메일·비밀번호·토큰 함수, mail 모듈
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현 2단계. 세션·가입 로직이 기댈 테이블과 순수 함수, 메일 발송 추상화를 먼저 만든다.
+- 변경: 마이그레이션 `add_auth` — `users.email`(NULL 허용, 부분 UNIQUE)·`email_verified_at`, `password_credentials`, `refresh_tokens`(family·만료 인덱스), `email_tokens`, enum `email_token_purpose`. SQL CHECK: 이메일은 소문자·trim·3~254자, 토큰 해시 32바이트. 인증 데이터는 사용자 삭제 시 CASCADE. `auth/lib` — 이메일 정규화, 비밀번호 정책(8~128자, 코드 포인트 기준)·argon2id 해시·더미 검증, 256비트 토큰 생성·SHA-256 해시·형식 검사. `common/mask-email`. `mail` 모듈 — `MailSender` 추상 클래스, 운영 Resend(5초 AbortSignal), 개발 콘솔 출력, 테스트 메모리 기록.
+- 영향: DB 테이블 3개·enum 1개·`users` 컬럼 2개 추가. 기존 `users` 행은 email NULL. 아직 API에서 쓰지 않는다. `migrate dev`가 비대화형 환경에서 실행되지 않아 마이그레이션은 `migrate diff --from-config-datasource`(최신 상태 개발 DB 기준)로 만들고 CHECK·롤백 블록을 덧붙였다.
+- 검증: `npm run db:deploy`·`db:migrate:test` 적용 PASS. 적용 후 `migrate diff` 결과 빈 마이그레이션(CHECK·부분 인덱스 유지) 확인. api 단위(lib·mail·common) 39개 PASS. `npm run verify` PASS(8/8). `npm run test:integration` PASS.
+- 주의/롤백: 코드는 revert. DB는 마이그레이션 끝 롤백 블록(테이블 3개·enum drop, `users` 컬럼·인덱스·CHECK drop, `_prisma_migrations` 행 삭제). 운영 데이터 없음.
+
 ## 2026-11-10 | chore(api): 인증 의존성 추가와 JWT·메일·프록시 환경 변수 검증
 
 - Feature: FEAT-003
