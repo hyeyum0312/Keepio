@@ -4,24 +4,52 @@
  * keepio API
  * OpenAPI spec version: 0.1.0
  */
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
 } from "@tanstack/react-query";
 
 import type {
   ApiErrorResponse,
-  BookmarkDeletedErrorResponse,
+  BookmarkConflictErrorResponse,
+  BookmarkListResponse,
   BookmarkResponse,
+  BookmarksControllerListParams,
   SaveBookmarkDto,
 } from "../model";
 
 import { apiFetch } from "../../api-fetch";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K,
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === "queryKey") continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
 
 export type bookmarksControllerSaveResponse200 = {
   data: BookmarkResponse;
@@ -44,7 +72,7 @@ export type bookmarksControllerSaveResponse401 = {
 };
 
 export type bookmarksControllerSaveResponse409 = {
-  data: BookmarkDeletedErrorResponse;
+  data: BookmarkConflictErrorResponse;
   status: 409;
 };
 
@@ -111,7 +139,7 @@ export const getBookmarksControllerSaveMutationKey = () =>
   ["bookmarksControllerSave"] as const;
 
 export const getBookmarksControllerSaveMutationOptions = <
-  TError = ApiErrorResponse | BookmarkDeletedErrorResponse,
+  TError = ApiErrorResponse | BookmarkConflictErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -153,13 +181,13 @@ export type BookmarksControllerSaveMutationResult = NonNullable<
 >;
 export type BookmarksControllerSaveMutationBody = SaveBookmarkDto;
 export type BookmarksControllerSaveMutationError =
-  ApiErrorResponse | BookmarkDeletedErrorResponse;
+  ApiErrorResponse | BookmarkConflictErrorResponse;
 export type BookmarksControllerSaveMutationVariables = {
   data: SaveBookmarkDto;
 };
 
 export const useBookmarksControllerSave = <
-  TError = ApiErrorResponse | BookmarkDeletedErrorResponse,
+  TError = ApiErrorResponse | BookmarkConflictErrorResponse,
   TContext = unknown,
 >(
   options?: {
@@ -180,6 +208,458 @@ export const useBookmarksControllerSave = <
 > => {
   return useMutation(
     getBookmarksControllerSaveMutationOptions(options),
+    queryClient,
+  );
+};
+export type bookmarksControllerListResponse200 = {
+  data: BookmarkListResponse;
+  status: 200;
+};
+
+export type bookmarksControllerListResponse400 = {
+  data: ApiErrorResponse;
+  status: 400;
+};
+
+export type bookmarksControllerListResponse401 = {
+  data: ApiErrorResponse;
+  status: 401;
+};
+
+export type bookmarksControllerListResponseSuccess =
+  bookmarksControllerListResponse200 & {
+    headers: Headers;
+  };
+export type bookmarksControllerListResponseError = (
+  bookmarksControllerListResponse400 | bookmarksControllerListResponse401
+) & {
+  headers: Headers;
+};
+
+export type bookmarksControllerListResponse =
+  bookmarksControllerListResponseSuccess | bookmarksControllerListResponseError;
+
+export const getBookmarksControllerListUrl = (
+  params?: BookmarksControllerListParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/bookmarks?${stringifiedParams}`
+    : `/api/bookmarks`;
+};
+
+export const bookmarksControllerList = async (
+  params?: BookmarksControllerListParams,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<bookmarksControllerListResponse> => {
+  return apiFetch<bookmarksControllerListResponse>(
+    getBookmarksControllerListUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getBookmarksControllerListQueryKey = (
+  params?: BookmarksControllerListParams,
+) => {
+  return [`/api/bookmarks`, ...(params ? [params] : [])] as const;
+};
+
+export const getBookmarksControllerListQueryOptions = <
+  TData = Awaited<ReturnType<typeof bookmarksControllerList>>,
+  TError = ApiErrorResponse,
+>(
+  params?: BookmarksControllerListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof bookmarksControllerList>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getBookmarksControllerListQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof bookmarksControllerList>>
+  > = ({ signal }) =>
+    bookmarksControllerList(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof bookmarksControllerList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type BookmarksControllerListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof bookmarksControllerList>>
+>;
+export type BookmarksControllerListQueryError = ApiErrorResponse;
+
+export function useBookmarksControllerList<
+  TData = Awaited<ReturnType<typeof bookmarksControllerList>>,
+  TError = ApiErrorResponse,
+>(
+  params: undefined | BookmarksControllerListParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof bookmarksControllerList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof bookmarksControllerList>>,
+          TError,
+          Awaited<ReturnType<typeof bookmarksControllerList>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useBookmarksControllerList<
+  TData = Awaited<ReturnType<typeof bookmarksControllerList>>,
+  TError = ApiErrorResponse,
+>(
+  params?: BookmarksControllerListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof bookmarksControllerList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof bookmarksControllerList>>,
+          TError,
+          Awaited<ReturnType<typeof bookmarksControllerList>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useBookmarksControllerList<
+  TData = Awaited<ReturnType<typeof bookmarksControllerList>>,
+  TError = ApiErrorResponse,
+>(
+  params?: BookmarksControllerListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof bookmarksControllerList>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useBookmarksControllerList<
+  TData = Awaited<ReturnType<typeof bookmarksControllerList>>,
+  TError = ApiErrorResponse,
+>(
+  params?: BookmarksControllerListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof bookmarksControllerList>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getBookmarksControllerListQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type bookmarksControllerRemoveResponse204 = {
+  data: void;
+  status: 204;
+};
+
+export type bookmarksControllerRemoveResponse401 = {
+  data: ApiErrorResponse;
+  status: 401;
+};
+
+export type bookmarksControllerRemoveResponse404 = {
+  data: ApiErrorResponse;
+  status: 404;
+};
+
+export type bookmarksControllerRemoveResponseSuccess =
+  bookmarksControllerRemoveResponse204 & {
+    headers: Headers;
+  };
+export type bookmarksControllerRemoveResponseError = (
+  bookmarksControllerRemoveResponse401 | bookmarksControllerRemoveResponse404
+) & {
+  headers: Headers;
+};
+
+export type bookmarksControllerRemoveResponse =
+  | bookmarksControllerRemoveResponseSuccess
+  | bookmarksControllerRemoveResponseError;
+
+export const getBookmarksControllerRemoveUrl = (id: string) => {
+  return `/api/bookmarks/${id}`;
+};
+
+export const bookmarksControllerRemove = async (
+  id: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<bookmarksControllerRemoveResponse> => {
+  return apiFetch<bookmarksControllerRemoveResponse>(
+    getBookmarksControllerRemoveUrl(id),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getBookmarksControllerRemoveMutationKey = () =>
+  ["bookmarksControllerRemove"] as const;
+
+export const getBookmarksControllerRemoveMutationOptions = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bookmarksControllerRemove>>,
+    TError,
+    BookmarksControllerRemoveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof apiFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bookmarksControllerRemove>>,
+  TError,
+  BookmarksControllerRemoveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getBookmarksControllerRemoveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bookmarksControllerRemove>>,
+    BookmarksControllerRemoveMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return bookmarksControllerRemove(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BookmarksControllerRemoveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bookmarksControllerRemove>>
+>;
+
+export type BookmarksControllerRemoveMutationError = ApiErrorResponse;
+export type BookmarksControllerRemoveMutationVariables = { id: string };
+
+export const useBookmarksControllerRemove = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof bookmarksControllerRemove>>,
+      TError,
+      BookmarksControllerRemoveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof bookmarksControllerRemove>>,
+  TError,
+  BookmarksControllerRemoveMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getBookmarksControllerRemoveMutationOptions(options),
+    queryClient,
+  );
+};
+export type bookmarksControllerRestoreResponse200 = {
+  data: BookmarkResponse;
+  status: 200;
+};
+
+export type bookmarksControllerRestoreResponse401 = {
+  data: ApiErrorResponse;
+  status: 401;
+};
+
+export type bookmarksControllerRestoreResponse404 = {
+  data: ApiErrorResponse;
+  status: 404;
+};
+
+export type bookmarksControllerRestoreResponse409 = {
+  data: BookmarkConflictErrorResponse;
+  status: 409;
+};
+
+export type bookmarksControllerRestoreResponseSuccess =
+  bookmarksControllerRestoreResponse200 & {
+    headers: Headers;
+  };
+export type bookmarksControllerRestoreResponseError = (
+  | bookmarksControllerRestoreResponse401
+  | bookmarksControllerRestoreResponse404
+  | bookmarksControllerRestoreResponse409
+) & {
+  headers: Headers;
+};
+
+export type bookmarksControllerRestoreResponse =
+  | bookmarksControllerRestoreResponseSuccess
+  | bookmarksControllerRestoreResponseError;
+
+export const getBookmarksControllerRestoreUrl = (id: string) => {
+  return `/api/bookmarks/${id}/restore`;
+};
+
+export const bookmarksControllerRestore = async (
+  id: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<bookmarksControllerRestoreResponse> => {
+  return apiFetch<bookmarksControllerRestoreResponse>(
+    getBookmarksControllerRestoreUrl(id),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getBookmarksControllerRestoreMutationKey = () =>
+  ["bookmarksControllerRestore"] as const;
+
+export const getBookmarksControllerRestoreMutationOptions = <
+  TError = ApiErrorResponse | BookmarkConflictErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bookmarksControllerRestore>>,
+    TError,
+    BookmarksControllerRestoreMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof apiFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bookmarksControllerRestore>>,
+  TError,
+  BookmarksControllerRestoreMutationVariables,
+  TContext
+> => {
+  const mutationKey = getBookmarksControllerRestoreMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bookmarksControllerRestore>>,
+    BookmarksControllerRestoreMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return bookmarksControllerRestore(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BookmarksControllerRestoreMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bookmarksControllerRestore>>
+>;
+
+export type BookmarksControllerRestoreMutationError =
+  ApiErrorResponse | BookmarkConflictErrorResponse;
+export type BookmarksControllerRestoreMutationVariables = { id: string };
+
+export const useBookmarksControllerRestore = <
+  TError = ApiErrorResponse | BookmarkConflictErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof bookmarksControllerRestore>>,
+      TError,
+      BookmarksControllerRestoreMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof bookmarksControllerRestore>>,
+  TError,
+  BookmarksControllerRestoreMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getBookmarksControllerRestoreMutationOptions(options),
     queryClient,
   );
 };

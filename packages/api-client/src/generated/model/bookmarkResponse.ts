@@ -11,4 +11,6 @@ export interface BookmarkResponse {
   url: string;
   normalizedUrl: string;
   createdAt: string;
+  /** @nullable */
+  deletedAt: string | null;
 }

@@ -7,8 +7,11 @@
 
 export * from "./accessTokenResponse";
 export * from "./apiErrorResponse";
-export * from "./bookmarkDeletedErrorResponse";
+export * from "./bookmarkConflictErrorResponse";
+export * from "./bookmarkListResponse";
 export * from "./bookmarkResponse";
+export * from "./bookmarksControllerListParams";
+export * from "./bookmarksControllerListStatus";
 export * from "./credentialsDto";
 export * from "./emailDto";
 export * from "./healthResponse";
