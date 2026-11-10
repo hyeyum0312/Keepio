@@ -14,3 +14,4 @@
 | -------- | ----------------------------------------------------- | ----------- |
 | FEAT-001 | [링크 저장: URL 정규화와 중복 방지](bookmark-save.md) | Draft       |
 | FEAT-003 | [이메일/비밀번호 인증과 세션](auth-email-password.md) | Implemented |
+| FEAT-006 | [웹 로그인 화면과 토큰 처리](auth-web.md)             | Implemented |

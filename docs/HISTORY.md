@@ -5,6 +5,42 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(feature): FEAT-006 구현 완료 기록과 브라우저 확인 결과
+
+- Feature: FEAT-006
+- 목적: 구현·검증 결과를 기록하고 PR을 연다.
+- 변경: `auth-web.md` Implemented(AC 체크, 구현 결과·남은 위험), Feature 목록, QA 보고서(브라우저 수동 확인 범위와 미확인 항목 명시).
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행(직전 커밋에서 PASS).
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-10 | feat(web): 비로그인 홈을 랜딩으로, 로그인 홈은 계정 화면
+
+- Feature: FEAT-006
+- 목적: 사용자 요청 — 로그인 상태면 홈, 아니면 랜딩. 02-DESIGN 정보 구조("로그인 전: 랜딩")와도 맞춘다.
+- 변경: `AuthSwitch`(같은 주소에서 확인 중 로딩 / 로그인 / 비로그인 화면 선택), `features/landing`(제품명·태그라인·한 줄 설명·사용 흐름·시작하기/로그인, 최소 UI). `/`는 `AuthSwitch(AccountPanel | Landing)`. 로그아웃하면 같은 주소에서 랜딩. `RequireAuth`(비로그인 시 `/login`)는 이후 보호 화면용으로 유지. FEAT-006 AC-12 갱신.
+- 영향: 비로그인 사용자는 `/`에서 `/login`으로 이동하지 않고 랜딩을 본다. 랜딩은 로그인 확인(refresh 1회) 뒤에 그려져 검색 엔진에는 로딩 문구만 보인다(출시 전 재검토).
+- 검증: web 25개 PASS(홈 화면 전환·로그아웃 후 랜딩·랜딩 링크 추가). `npm run verify` PASS(8/8). `npm run build` PASS.
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-10 | feat(web): 로그인·가입·이메일 인증·비밀번호 재설정 화면과 토큰 처리
+
+- Feature: FEAT-006
+- 목적: FEAT-003 이후 북마크 API가 Access Token 없이 401이라 웹이 실제로 로그인하고 토큰을 다뤄야 한다.
+- 변경: `features/auth` — Access Token 메모리 저장소(`session-store`, 상태 checking/authenticated/anonymous), `refreshSession`(진행 중 Promise 공유로 동시 refresh 1회), `authFetch`(토큰 첨부, 401 UNAUTHENTICATED면 refresh 1회 후 원 요청 1회 재시도, `/api/auth/*`·다른 401 코드 제외), `useOneTimeUrlToken`(메일 링크 토큰을 읽고 즉시 `history.replaceState`로 제거), 화면(로그인·가입·인증·비밀번호 찾기·재설정·계정/로그아웃·RequireAuth·AuthBootstrap, 기능 위주 최소 UI). 라우트 5개 + 홈. `api-client`의 `apiFetch`에 fetch 주입 지점(`configureApiClient({ fetch })`), `providers`가 `authFetch`·`AuthBootstrap` 연결. `shared/lib/network-error`(ADR-009 서버 무응답 고정 문구).
+- 영향: 모든 API 호출이 `authFetch`를 거친다(토큰이 없으면 이전과 같은 요청). 앱 시작 시 refresh 1회. 오류 문구는 서버 message 그대로.
+- 검증: web 단위·컴포넌트 23개 PASS(authFetch 8: 첨부·재시도 1회·무한 반복 없음·인증 API 제외·동시 5개에 refresh 1회·실패 시 초기화 / 화면 13: 서버 문구 alert·aria 연결·제출 중 비활성·StrictMode에서 인증 요청 1회·주소 토큰 제거·보호 화면 로딩/리다이렉트·로그아웃). `npm run verify` PASS(8/8). `npm run build` PASS(라우트 7개 정적). 실제 API에 웹 출처 CORS 사전 요청 확인(Allow-Origin·Credentials·authorization 헤더). 빌드에서 `useSyncExternalStore`가 서버 컴포넌트 경로에 섞인 것을 발견해 `"use client"` 훅 파일로 분리.
+- 주의/롤백: revert로 롤백. 실제 브라우저 흐름(쿠키·새로고침 유지)은 미검증 — 수동 확인 후 Feature 문서 Implemented. 다른 탭 로그아웃은 즉시 반영되지 않는다(비범위).
+
+## 2026-11-10 | docs(feature): FEAT-006 웹 로그인 화면과 토큰 처리 명세
+
+- Feature: FEAT-006
+- 목적: FEAT-003 이후 북마크 API가 Access Token 없이 401이라 웹에 로그인 화면과 토큰 처리가 필요하다(FEAT-003 Q-6 후속).
+- 변경: `auth-web.md` Approved — Access Token 메모리 보관, 401 시 refresh 1회 + 원 요청 1회 재시도, 동시 refresh 묶기, 앱 시작 시 refresh로 새로고침 유지, 메일 링크 토큰 즉시 주소 제거, 가입·인증·로그인·비밀번호 찾기·재설정·홈/로그아웃 화면(기능 위주 최소 UI). 번호는 FEAT-004·005가 ADR-011에서 소셜·패스키로 예약되어 006. Feature 목록에 추가.
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | fix(auth): 메일을 백그라운드로 보내 응답 시간으로 가입 여부가 드러나지 않게
 
 - Feature: FEAT-003
