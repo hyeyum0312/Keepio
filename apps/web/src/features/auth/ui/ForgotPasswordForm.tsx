@@ -3,7 +3,7 @@
 import { useAuthControllerRequestPasswordReset } from "@keepio/api-client";
 import Link from "next/link";
 import { useState } from "react";
-import { submit } from "../lib/server-message";
+import { submit } from "@/shared/lib/server-message";
 import {
   AuthLayout,
   fieldValue,
@@ -11,7 +11,7 @@ import {
   Notice,
   SubmitButton,
   TextField,
-} from "./FormParts";
+} from "@/shared/ui/FormParts";
 
 // FEAT-006 AC-10. 가입 여부와 무관하게 같은 안내(FEAT-003 AC-14)
 export function ForgotPasswordForm() {

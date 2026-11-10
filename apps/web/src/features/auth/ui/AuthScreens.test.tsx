@@ -9,7 +9,7 @@ import {
   resetSessionForTest,
   setSession,
 } from "../model/session-store";
-import { AccountPanel } from "./AccountPanel";
+import { AccountHeader, displayName } from "./AccountHeader";
 import { AuthSwitch } from "./AuthSwitch";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { LoginForm } from "./LoginForm";
@@ -332,7 +332,7 @@ describe("인증 화면 (FEAT-006)", () => {
       expect(replace).not.toHaveBeenCalled();
     });
 
-    it("AC-12: 로그인 상태면 내 이메일과 인증 여부를 보여 주고, 로그아웃하면 같은 주소에서 랜딩이 보인다", async () => {
+    it("AC-12: 로그인 상태면 my-아이디와 인증 전 안내를 보여 주고, 로그아웃하면 같은 주소에서 랜딩이 보인다", async () => {
       setSession("access");
       const api = stubApi({
         "/api/me": () =>
@@ -344,11 +344,16 @@ describe("인증 화면 (FEAT-006)", () => {
         "/api/auth/logout": () => json(204),
       });
       renderWithClient(
-        <AuthSwitch authenticated={<AccountPanel />} anonymous={<p>랜딩</p>} />,
+        <AuthSwitch
+          authenticated={<AccountHeader />}
+          anonymous={<p>랜딩</p>}
+        />,
       );
 
-      expect(await screen.findByText("user@example.com")).toBeInTheDocument();
-      expect(screen.getByText("인증 전이에요")).toBeInTheDocument();
+      expect(await screen.findByText("my-user")).toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "이메일 인증 전이에요",
+      );
 
       await userEvent.click(screen.getByRole("button", { name: "로그아웃" }));
 
@@ -358,5 +363,16 @@ describe("인증 화면 (FEAT-006)", () => {
       expect(api.count("/api/auth/logout")).toBe(1);
       expect(replace).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("displayName", () => {
+  it("AC-12: 이메일이 있으면 @ 앞부분, 없으면 계정 ID 앞 8자리에 my-를 붙인다", () => {
+    expect(displayName({ id: "u1", email: "dev.hyen@gmail.com" })).toBe(
+      "my-dev.hyen",
+    );
+    expect(
+      displayName({ id: "0b8f3c1e-2a4d-4e6f-8a1b-3c5d7e9f1a2b", email: null }),
+    ).toBe("my-0b8f3c1e");
   });
 });

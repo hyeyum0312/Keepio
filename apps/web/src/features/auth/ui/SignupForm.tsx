@@ -3,7 +3,7 @@
 import { useAuthControllerSignup } from "@keepio/api-client";
 import Link from "next/link";
 import { useState } from "react";
-import { submit } from "../lib/server-message";
+import { submit } from "@/shared/lib/server-message";
 import {
   AuthLayout,
   fieldValue,
@@ -11,7 +11,7 @@ import {
   Notice,
   SubmitButton,
   TextField,
-} from "./FormParts";
+} from "@/shared/ui/FormParts";
 import { SocialLoginButtons } from "./SocialLoginButtons";
 
 // FEAT-006 AC-07. 서버는 이미 가입된 이메일에도 같은 202를 준다(FEAT-003 AC-03)

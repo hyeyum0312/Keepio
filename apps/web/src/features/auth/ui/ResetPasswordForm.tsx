@@ -3,7 +3,7 @@
 import { useAuthControllerConfirmPasswordReset } from "@keepio/api-client";
 import Link from "next/link";
 import { useState } from "react";
-import { submit } from "../lib/server-message";
+import { submit } from "@/shared/lib/server-message";
 import { useOneTimeUrlToken } from "../model/useOneTimeUrlToken";
 import {
   AuthLayout,
@@ -12,7 +12,7 @@ import {
   Notice,
   SubmitButton,
   TextField,
-} from "./FormParts";
+} from "@/shared/ui/FormParts";
 
 // FEAT-006 AC-11. 토큰이 없거나 잘못됐으면 서버가 INVALID_TOKEN 문구를 준다(프론트가 문구를 만들지 않는다)
 export function ResetPasswordForm() {

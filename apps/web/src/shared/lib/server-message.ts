@@ -11,12 +11,12 @@ export function serverMessage(res: { status: number; data: unknown }): string {
 export async function submit<R extends { status: number; data: unknown }>(
   request: () => Promise<R>,
   isSuccess: (res: R) => boolean,
-): Promise<{ ok: true; res: R } | { ok: false; message: string }> {
+): Promise<{ ok: true; res: R } | { ok: false; message: string; res?: R }> {
   try {
     const res = await request();
     return isSuccess(res)
       ? { ok: true, res }
-      : { ok: false, message: serverMessage(res) };
+      : { ok: false, message: serverMessage(res), res };
   } catch {
     return { ok: false, message: NETWORK_ERROR_MESSAGE };
   }

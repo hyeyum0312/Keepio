@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStatus } from "../model/useAuthStatus";
-import { Notice } from "./FormParts";
+import { Notice } from "@/shared/ui/FormParts";
 
 // FEAT-006 AC-05·AC-06·AC-12. 확인 중에는 로딩만(로그인 화면으로 깜빡이지 않게), 비로그인이면 /login.
 // 토큰이 메모리에만 있어 서버(Next)는 로그인 여부를 모른다. 실제 권한 검사는 API가 한다

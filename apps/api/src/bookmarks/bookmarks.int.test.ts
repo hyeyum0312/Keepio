@@ -69,6 +69,8 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       url: URL_A,
       normalizedUrl: URL_A,
       createdAt: expect.any(String),
+      // FEAT-002에서 추가된 필드(활성은 null)
+      deletedAt: null,
     });
     expect(await countBookmarks(userId)).toBe(1);
   });
