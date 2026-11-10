@@ -25,6 +25,7 @@ model User {
   passwordCredential PasswordCredential?
   refreshTokens      RefreshToken[]
   emailTokens        EmailToken[]
+  oauthAccounts      OAuthAccount[]
 
   // 동시 가입의 최종 권위(FEAT-003 AC-04)
   @@unique([email], map: "users_email_key", where: raw("email IS NOT NULL"))
@@ -99,4 +100,27 @@ model Bookmark {
   // 삭제된 행 포함 조회(AC-07 복구 안내)와 사용자별 목록
   @@index([userId, normalizedUrl])
   @@map("bookmarks")
+}
+
+enum OAuthProvider {
+  google
+  kakao
+
+  @@map("oauth_provider")
+}
+
+// 소셜 계정 연결(FEAT-004). 제공자의 이메일·이름·사진·토큰은 저장하지 않는다(로그인에 불필요)
+model OAuthAccount {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  provider  OAuthProvider
+  // 제공자 안에서 사용자를 영구히 가리키는 ID(ID 토큰 sub). 이메일은 바뀔 수 있어 키로 쓰지 않는다
+  subject   String
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 동시 콜백의 최종 권위(FEAT-004 AC-10)
+  @@unique([provider, subject], map: "oauth_accounts_provider_subject_key")
+  @@index([userId])
+  @@map("oauth_accounts")
 }

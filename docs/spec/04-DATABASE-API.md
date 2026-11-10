@@ -17,6 +17,7 @@
 | password_credentials | user_id, password_hash                                                                                      |
 | refresh_tokens       | id, user_id, family_id, token_hash, expires_at, used_at, revoked_at                                         |
 | email_tokens         | id, user_id, purpose, token_hash, expires_at, used_at                                                       |
+| oauth_accounts       | id, user_id, provider, subject (UNIQUE provider+subject)                                                    |
 | bookmarks            | id, user_id, original_url, normalized_url, title, description, thumbnail, classification_status, deleted_at |
 | categories           | id, user_id, name, normalized_name                                                                          |
 | category_aliases     | id, category_id, alias                                                                                      |
@@ -57,33 +58,36 @@
 
 ## API 목록
 
-| Method       | Path                            | 기능                   |
-| ------------ | ------------------------------- | ---------------------- |
-| POST         | /api/auth/signup                | 이메일 가입            |
-| POST         | /api/auth/email-verification    | 이메일 인증(+/resend)  |
-| POST         | /api/auth/login                 | 로그인                 |
-| POST         | /api/auth/refresh               | 토큰 회전              |
-| POST         | /api/auth/logout                | 로그아웃               |
-| POST         | /api/auth/password-reset        | 재설정 요청(+/confirm) |
-| GET          | /api/me                         | 현재 사용자            |
-| POST         | /api/bookmarks                  | 링크 저장 및 중복 반환 |
-| GET          | /api/bookmarks                  | 검색·필터·페이지네이션 |
-| PATCH        | /api/bookmarks/:id              | 링크 수정              |
-| DELETE       | /api/bookmarks/:id              | Soft Delete            |
-| POST         | /api/bookmarks/:id/restore      | 복구                   |
-| POST         | /api/bookmarks/bulk             | 일괄 분류/연결         |
-| POST         | /api/bookmarks/:id/classify     | AI 분류 요청           |
-| GET/POST     | /api/categories                 | 카테고리 조회/생성     |
-| PATCH/DELETE | /api/categories/:id             | 수정/삭제              |
-| GET/POST     | /api/buckets                    | 버킷 조회/생성         |
-| PUT          | /api/buckets/:id/items          | 버킷 구성/순서         |
-| GET          | /api/templates                  | 템플릿 조회            |
-| GET/POST     | /api/publications               | 발행물 조회/초안 생성  |
-| PATCH        | /api/publications/:id           | 초안 수정              |
-| POST         | /api/publications/:id/publish   | 발행/수정 발행         |
-| POST         | /api/publications/:id/unpublish | 발행 취소              |
-| GET          | /p/:slug                        | 공개 페이지            |
-| GET          | /api/usage                      | 사용량 조회            |
+| Method       | Path                               | 기능                    |
+| ------------ | ---------------------------------- | ----------------------- |
+| POST         | /api/auth/signup                   | 이메일 가입             |
+| POST         | /api/auth/email-verification       | 이메일 인증(+/resend)   |
+| POST         | /api/auth/login                    | 로그인                  |
+| POST         | /api/auth/refresh                  | 토큰 회전               |
+| POST         | /api/auth/logout                   | 로그아웃                |
+| POST         | /api/auth/password-reset           | 재설정 요청(+/confirm)  |
+| GET          | /api/me                            | 현재 사용자             |
+| GET          | /api/auth/oauth/providers          | 사용 가능한 소셜 제공자 |
+| GET          | /api/auth/oauth/:provider/start    | 소셜 로그인 시작(302)   |
+| GET          | /api/auth/oauth/:provider/callback | 소셜 로그인 콜백(302)   |
+| POST         | /api/bookmarks                     | 링크 저장 및 중복 반환  |
+| GET          | /api/bookmarks                     | 검색·필터·페이지네이션  |
+| PATCH        | /api/bookmarks/:id                 | 링크 수정               |
+| DELETE       | /api/bookmarks/:id                 | Soft Delete             |
+| POST         | /api/bookmarks/:id/restore         | 복구                    |
+| POST         | /api/bookmarks/bulk                | 일괄 분류/연결          |
+| POST         | /api/bookmarks/:id/classify        | AI 분류 요청            |
+| GET/POST     | /api/categories                    | 카테고리 조회/생성      |
+| PATCH/DELETE | /api/categories/:id                | 수정/삭제               |
+| GET/POST     | /api/buckets                       | 버킷 조회/생성          |
+| PUT          | /api/buckets/:id/items             | 버킷 구성/순서          |
+| GET          | /api/templates                     | 템플릿 조회             |
+| GET/POST     | /api/publications                  | 발행물 조회/초안 생성   |
+| PATCH        | /api/publications/:id              | 초안 수정               |
+| POST         | /api/publications/:id/publish      | 발행/수정 발행          |
+| POST         | /api/publications/:id/unpublish    | 발행 취소               |
+| GET          | /p/:slug                           | 공개 페이지             |
+| GET          | /api/usage                         | 사용량 조회             |
 
 ## 저장 응답 예시
 

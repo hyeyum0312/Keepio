@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import type { EmailTokenPurpose, Prisma } from "../generated/prisma/client.js";
+import type { OAuthProviderName } from "../config/env.js";
+import { type EmailTokenPurpose, Prisma } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import type { TokenHash } from "./lib/token.js";
+import type { OAuthIdentity } from "./oauth.gateway.js";
 
 export type RefreshTokenState = {
   familyId: string;
@@ -149,6 +151,25 @@ export class AuthRepository {
     });
   }
 
+  // FEAT-004 AC-06~10. 제공자 계정으로 로그인할 사용자를 정한다(찾기 → 이메일로 연결 → 새로 만들기, 한 트랜잭션).
+  // 동시 콜백이면 (provider, subject)·email UNIQUE에서 진 쪽이 롤백되고, 한 번 더 시도하면 이긴 쪽 연결을 찾는다
+  async resolveOAuthUser(
+    provider: OAuthProviderName,
+    identity: OAuthIdentity,
+    now: Date,
+  ): Promise<string> {
+    try {
+      return await this.prisma.$transaction((tx) =>
+        resolveOAuthUserInTx(tx, provider, identity, now),
+      );
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error;
+      return this.prisma.$transaction((tx) =>
+        resolveOAuthUserInTx(tx, provider, identity, now),
+      );
+    }
+  }
+
   async insertRefreshToken(data: {
     userId: string;
     familyId: string;
@@ -236,4 +257,65 @@ async function consumeEmailToken(
     select: { userId: true },
   });
   return token?.userId ?? null;
+}
+
+// identity.email은 정규화된 값이어야 한다(호출한 쪽이 normalizeEmail 적용). 인증된 이메일일 때만 넘어온다고 가정하지 않는다
+async function resolveOAuthUserInTx(
+  tx: Prisma.TransactionClient,
+  provider: OAuthProviderName,
+  identity: OAuthIdentity,
+  now: Date,
+): Promise<string> {
+  const linked = await tx.oAuthAccount.findUnique({
+    where: { provider_subject: { provider, subject: identity.subject } },
+    select: { userId: true },
+  });
+  if (linked) return linked.userId; // AC-06
+
+  let userId: string;
+  if (identity.email && identity.emailVerified) {
+    const existing = await tx.user.findUnique({
+      where: { email: identity.email },
+      select: { id: true, emailVerifiedAt: true },
+    });
+    if (existing) {
+      userId = existing.id; // AC-07
+      if (!existing.emailVerifiedAt) {
+        // AC-08: 남의 이메일로 미리 가입했을 수 있다. 그 사람이 정한 비밀번호·세션을 무효화한다
+        await tx.passwordCredential.deleteMany({ where: { userId } });
+        await tx.refreshToken.updateMany({
+          where: { userId, revokedAt: null },
+          data: { revokedAt: now },
+        });
+        await tx.user.update({
+          where: { id: userId },
+          data: { emailVerifiedAt: now },
+          select: { id: true },
+        });
+      }
+    } else {
+      userId = (
+        await tx.user.create({
+          data: { email: identity.email, emailVerifiedAt: now },
+          select: { id: true },
+        })
+      ).id; // AC-09
+    }
+  } else {
+    // AC-09: 인증되지 않은 이메일은 저장하지 않는다(다른 계정의 이메일을 선점하지 못하게)
+    userId = (await tx.user.create({ data: {}, select: { id: true } })).id;
+  }
+
+  await tx.oAuthAccount.create({
+    data: { userId, provider, subject: identity.subject },
+    select: { id: true },
+  });
+  return userId;
+}
+
+function isUniqueViolation(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  );
 }

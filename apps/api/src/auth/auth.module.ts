@@ -16,6 +16,9 @@ import { AuthController } from "./auth.controller.js";
 import { AuthRepository } from "./auth.repository.js";
 import { AuthService } from "./auth.service.js";
 import { MeController } from "./me.controller.js";
+import { OAuthController } from "./oauth.controller.js";
+import { OAuthGateway, OpenIdOAuthGateway } from "./oauth.gateway.js";
+import { OAuthService } from "./oauth.service.js";
 import { SessionService } from "./session.service.js";
 import { UserGuard } from "./user.guard.js";
 
@@ -41,11 +44,17 @@ import { UserGuard } from "./user.guard.js";
       }),
     }),
   ],
-  controllers: [AuthController, MeController],
+  controllers: [AuthController, MeController, OAuthController],
   providers: [
     AuthCleanupTask,
     AuthRepository,
     AuthService,
+    OAuthService,
+    // 제공자 키는 시작 시 loadEnv가 검증한다. 테스트는 가짜로 교체한다
+    {
+      provide: OAuthGateway,
+      useFactory: () => new OpenIdOAuthGateway(loadEnv().oauth),
+    },
     AccessTokenService,
     SessionService,
     UserGuard,

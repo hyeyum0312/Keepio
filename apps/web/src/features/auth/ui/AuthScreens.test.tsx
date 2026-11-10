@@ -46,7 +46,12 @@ function stubApi(routes: Record<string, Route>) {
         path,
         body: init.body ? JSON.parse(String(init.body)) : undefined,
       });
-      const route = routes[path];
+      // 로그인·가입 화면의 소셜 버튼 목록(FEAT-004). 테스트가 따로 정하지 않으면 빈 목록
+      const route =
+        routes[path] ??
+        (path === "/api/auth/oauth/providers"
+          ? () => json(200, { providers: [] })
+          : undefined);
       if (!route) throw new Error(`unexpected request ${path}`);
       return route(init);
     }),
@@ -54,6 +59,7 @@ function stubApi(routes: Record<string, Route>) {
   return {
     requests,
     count: (path: string) => requests.filter((r) => r.path === path).length,
+    bodyOf: (path: string) => requests.find((r) => r.path === path)?.body,
   };
 }
 
@@ -97,7 +103,7 @@ describe("인증 화면 (FEAT-006)", () => {
 
       await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
       expect(getAccessToken()).toBe("access");
-      expect(api.requests[0].body).toEqual({
+      expect(api.bodyOf("/api/auth/login")).toEqual({
         email: "user@example.com",
         password: "correct horse",
       });
@@ -233,7 +239,9 @@ describe("인증 화면 (FEAT-006)", () => {
       ).toBeInTheDocument();
       expect(window.location.search).toBe("");
       expect(api.count("/api/auth/email-verification")).toBe(1);
-      expect(api.requests[0].body).toEqual({ token: TOKEN });
+      expect(api.bodyOf("/api/auth/email-verification")).toEqual({
+        token: TOKEN,
+      });
     });
 
     it("AC-08: 실패하면 서버 문구와 재발송 입력을 보여 준다", async () => {
@@ -277,7 +285,7 @@ describe("인증 화면 (FEAT-006)", () => {
       expect(await screen.findByRole("status")).toHaveTextContent(
         "다시 로그인해 주세요",
       );
-      expect(api.requests[0].body).toEqual({
+      expect(api.bodyOf("/api/auth/password-reset/confirm")).toEqual({
         token: TOKEN,
         newPassword: "brand new password",
       });
