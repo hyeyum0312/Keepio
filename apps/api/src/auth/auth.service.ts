@@ -1,6 +1,5 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { ApiException } from "../common/api-error.js";
-import { loadEnv } from "../config/env.js";
 import { MailDispatcher } from "../mail/mail.dispatcher.js";
 import {
   alreadyRegisteredMail,
@@ -19,17 +18,13 @@ import {
 } from "./lib/password.js";
 import { generateToken, hashToken, isWellFormedToken } from "./lib/token.js";
 import { type Session, SessionService } from "./session.service.js";
-
-// 운영은 loadEnv가 WEB_ORIGIN을 필수로 검증한다. 개발·테스트에서 비어 있을 때만 쓴다(SETUP 포트)
-const LOCAL_WEB_ORIGIN = "http://localhost:7710";
+import { webOrigin } from "./web-origin.js";
 
 export type Me = { id: string; email: string | null; emailVerified: boolean };
 
 // 이메일/비밀번호 흐름(FEAT-003). 세션 발급은 SessionService에 맡긴다
 @Injectable()
 export class AuthService {
-  private webOrigin?: string;
-
   constructor(
     private readonly repo: AuthRepository,
     private readonly sessions: SessionService,
@@ -53,8 +48,8 @@ export class AuthService {
     });
     this.mail.enqueue(
       userId
-        ? verifyEmailMail(normalized.email, this.origin(), token)
-        : alreadyRegisteredMail(normalized.email, this.origin()),
+        ? verifyEmailMail(normalized.email, webOrigin(), token)
+        : alreadyRegisteredMail(normalized.email, webOrigin()),
     );
   }
 
@@ -80,7 +75,7 @@ export class AuthService {
       tokenHash: hashToken(token),
       expiresAt: new Date(Date.now() + VERIFY_EMAIL_TTL_MS),
     });
-    this.mail.enqueue(verifyEmailMail(normalized.email, this.origin(), token));
+    this.mail.enqueue(verifyEmailMail(normalized.email, webOrigin(), token));
   }
 
   // AC-07·AC-08. 실패 이유(형식·없음·비밀번호 없음·불일치)를 응답과 응답 시간으로 구분할 수 없게 한다
@@ -113,9 +108,7 @@ export class AuthService {
       tokenHash: hashToken(token),
       expiresAt: new Date(Date.now() + RESET_PASSWORD_TTL_MS),
     });
-    this.mail.enqueue(
-      resetPasswordMail(normalized.email, this.origin(), token),
-    );
+    this.mail.enqueue(resetPasswordMail(normalized.email, webOrigin(), token));
   }
 
   // AC-15. 비밀번호 정책을 먼저 본다(토큰을 쓰고 나서 거부하면 사용자가 메일을 다시 받아야 한다)
@@ -143,11 +136,6 @@ export class AuthService {
       email: user.email,
       emailVerified: user.emailVerifiedAt !== null,
     };
-  }
-
-  private origin() {
-    this.webOrigin ??= loadEnv().webOrigin ?? LOCAL_WEB_ORIGIN;
-    return this.webOrigin;
   }
 }
 

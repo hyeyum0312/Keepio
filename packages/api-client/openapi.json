@@ -384,6 +384,117 @@
         "tags": ["Me"]
       }
     },
+    "/api/auth/oauth/providers": {
+      "get": {
+        "operationId": "OAuthController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthProvidersResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["OAuth"]
+      }
+    },
+    "/api/auth/oauth/{provider}/start": {
+      "get": {
+        "operationId": "OAuthController_start",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "제공자 동의 화면으로 이동"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["OAuth"]
+      }
+    },
+    "/api/auth/oauth/{provider}/callback": {
+      "get": {
+        "operationId": "OAuthController_callback",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "성공 /auth/callback, 취소 /login, 실패 /login?oauth=failed (웹 주소)"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["OAuth"]
+      }
+    },
     "/api/bookmarks": {
       "post": {
         "operationId": "BookmarksController_save",
@@ -590,6 +701,19 @@
           }
         },
         "required": ["id", "email", "emailVerified"]
+      },
+      "OAuthProvidersResponse": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["google", "kakao"]
+            }
+          }
+        },
+        "required": ["providers"]
       },
       "SaveBookmarkDto": {
         "type": "object",

@@ -2,6 +2,23 @@
 
 AI는 실행 시각, 커밋 SHA, 명령, 통과/실패, 미실행 사유, 잔여 위험을 이 파일에 기록한다. 성공을 추정해서 작성하지 않는다. 최신 기록을 위에 둔다.
 
+## 2026-11-10 | FEAT-004 소셜 로그인 (브랜치 `feature/auth-social`, dev rebase 후)
+
+| 항목                           | 명령·방법                  | 결과                                          |
+| ------------------------------ | -------------------------- | --------------------------------------------- |
+| 전체 게이트                    | `npm run verify`           | PASS 8/8                                      |
+| api 단위                       | `npx vitest run`(apps/api) | PASS 118                                      |
+| 통합(실제 DB, 가짜 제공자)     | `npm run test:integration` | PASS 70 (소셜 15)                             |
+| web                            | `npx vitest run`(apps/web) | PASS 31                                       |
+| 운영 빌드                      | `npm run build`            | PASS                                          |
+| 동시 콜백                      | AC-10, 10개 도착 후 일괄   | 연결 1, 계정 1                                |
+| 변이: UNIQUE 충돌 재시도 제거  | AC-10 3회                  | 3/3 실패 → 복구 후 PASS                       |
+| 변이: AC-08 비밀번호 삭제 제거 | AC-08                      | 실패 → 복구 후 PASS                           |
+| Google 콘솔 설정               | 수동 authorize URL         | 동의 후 등록된 콜백으로 복귀                  |
+| 실제 Google 로그인             | 브라우저(Chrome, 수동)     | 로그인·홈·로그아웃·재로그인 정상(사용자 보고) |
+
+미실행·제한: Kakao 실제 로그인(키 미발급), Kakao `email_verified` 제공 여부 확인.
+
 ## 2026-11-10 | FEAT-006 웹 로그인 화면과 토큰 처리 (브랜치 `feature/auth-web`)
 
 | 항목                   | 명령·방법                                                        | 결과                                                                        |

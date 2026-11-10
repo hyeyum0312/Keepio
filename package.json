@@ -37,7 +37,8 @@
     "multer": "2.5.0",
     "@scalar/json-magic@0.15.7": {
       "undici": "7.30.1"
-    }
+    },
+    "jose": "6.2.13"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

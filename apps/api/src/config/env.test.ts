@@ -25,6 +25,8 @@ describe("loadEnv", () => {
       resendApiKey: undefined,
       mailFrom: undefined,
       trustProxyHops: 0,
+      oauth: {},
+      apiOrigin: "http://localhost:7711",
     });
   });
 
@@ -98,4 +100,44 @@ describe("loadEnv", () => {
       );
     },
   );
+
+  it("FEAT-004: ID·Secret이 모두 있는 소셜 제공자만 켠다", () => {
+    const env = loadEnv({
+      ...VALID,
+      GOOGLE_CLIENT_ID: "gid",
+      GOOGLE_CLIENT_SECRET: "gsecret",
+    });
+    expect(env.oauth).toEqual({
+      google: { clientId: "gid", clientSecret: "gsecret" },
+    });
+  });
+
+  it.each(["GOOGLE_CLIENT_ID", "KAKAO_CLIENT_SECRET"])(
+    "FEAT-004: %s 하나만 있으면 거부하고 값은 메시지에 넣지 않는다",
+    (name) => {
+      expect(() => loadEnv({ ...VALID, [name]: "only-one-value" })).toThrow(
+        expect.objectContaining({
+          message: expect.stringMatching(/must be set together/),
+        }),
+      );
+      expect(() => loadEnv({ ...VALID, [name]: "only-one-value" })).toThrow(
+        expect.objectContaining({
+          message: expect.not.stringContaining("only-one-value"),
+        }),
+      );
+    },
+  );
+
+  it("FEAT-004: 운영에서 소셜 로그인을 켜면 API_ORIGIN이 필수다", () => {
+    const withGoogle = {
+      ...PRODUCTION,
+      GOOGLE_CLIENT_ID: "gid",
+      GOOGLE_CLIENT_SECRET: "gsecret",
+    };
+    expect(() => loadEnv(withGoogle)).toThrow(/API_ORIGIN is required/);
+    expect(
+      loadEnv({ ...withGoogle, API_ORIGIN: "https://api.keepio.example/" })
+        .apiOrigin,
+    ).toBe("https://api.keepio.example");
+  });
 });

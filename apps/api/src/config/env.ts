@@ -4,6 +4,9 @@ const DEFAULT_DB_POOL_MAX = 10;
 const MAX_DB_POOL = 100;
 const MIN_JWT_SECRET_BYTES = 32;
 const MAX_TRUST_PROXY_HOPS = 10;
+export const OAUTH_PROVIDERS = ["google", "kakao"] as const;
+export type OAuthProviderName = (typeof OAUTH_PROVIDERS)[number];
+export type OAuthCredentials = { clientId: string; clientSecret: string };
 
 export type Env = {
   nodeEnv: (typeof NODE_ENVS)[number];
@@ -17,6 +20,10 @@ export type Env = {
   mailFrom?: string;
   // 앞단 프록시 개수. X-Forwarded-For를 이만큼만 믿는다(0이면 믿지 않음)
   trustProxyHops: number;
+  // 소셜 로그인(FEAT-004). ID·Secret이 둘 다 있는 제공자만 켜진다
+  oauth: Partial<Record<OAuthProviderName, OAuthCredentials>>;
+  // 제공자에 넘기는 콜백 주소의 기준. 개발·테스트는 비어 있으면 http://localhost:PORT
+  apiOrigin?: string;
 };
 
 // 시작 시 한 번 검증하고 실패하면 바로 종료한다. 메시지에 값은 넣지 않는다(비밀값 노출 방지)
@@ -87,6 +94,32 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     );
   }
 
+  const oauth: Env["oauth"] = {};
+  for (const provider of OAUTH_PROVIDERS) {
+    const prefix = provider.toUpperCase();
+    const clientId = source[`${prefix}_CLIENT_ID`] || undefined;
+    const clientSecret = source[`${prefix}_CLIENT_SECRET`] || undefined;
+    if (clientId && clientSecret) oauth[provider] = { clientId, clientSecret };
+    else if (clientId || clientSecret) {
+      problems.push(
+        `${prefix}_CLIENT_ID and ${prefix}_CLIENT_SECRET must be set together`,
+      );
+    }
+  }
+
+  let apiOrigin = source.API_ORIGIN || undefined;
+  if (apiOrigin && !isUrlWithProtocol(apiOrigin, ["http:", "https:"])) {
+    problems.push("API_ORIGIN must be an http(s) URL");
+  }
+  if (!apiOrigin && !isProduction && port !== undefined) {
+    apiOrigin = `http://localhost:${port}`;
+  }
+  if (isProduction && !apiOrigin && Object.keys(oauth).length > 0) {
+    problems.push(
+      "API_ORIGIN is required in production when social login is enabled",
+    );
+  }
+
   if (problems.length > 0) {
     throw new Error(`Invalid environment:\n- ${problems.join("\n- ")}`);
   }
@@ -100,6 +133,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     resendApiKey,
     mailFrom,
     trustProxyHops: trustProxyHops!,
+    oauth,
+    apiOrigin: apiOrigin?.replace(/\/$/, ""),
   };
 }
 

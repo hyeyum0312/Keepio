@@ -12,6 +12,7 @@ import {
   SubmitButton,
   TextField,
 } from "./FormParts";
+import { SocialLoginButtons } from "./SocialLoginButtons";
 
 // FEAT-006 AC-07. 서버는 이미 가입된 이메일에도 같은 202를 준다(FEAT-003 AC-03)
 export function SignupForm() {
@@ -72,6 +73,7 @@ export function SignupForm() {
         <FormError message={error} />
         <SubmitButton pending={signup.isPending}>가입하기</SubmitButton>
       </form>
+      <SocialLoginButtons />
       <Link href="/login" className="text-sm">
         이미 계정이 있어요
       </Link>

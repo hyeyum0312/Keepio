@@ -116,17 +116,20 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 
 ## 6. 환경 변수 (`.env`)
 
-| 변수                | 의미                                                                                    | 로컬 기본값                      |
-| ------------------- | --------------------------------------------------------------------------------------- | -------------------------------- |
-| `DATABASE_URL`      | 개발 DB 주소                                                                            | `...@localhost:7712/keepio`      |
-| `DATABASE_URL_TEST` | 통합 테스트 DB 주소(개발 DB와 분리)                                                     | `.../keepio_test`                |
-| `DB_POOL_MAX`       | DB 커넥션 수 상한                                                                       | `10`                             |
-| `PORT`              | api 포트                                                                                | `7711`                           |
-| `WEB_ORIGIN`        | CORS 허용 web 주소(없으면 CORS 끔). 메일 링크·쿠키 요청 Origin 검사에도 쓴다. 운영 필수 | `http://localhost:7710`          |
-| `JWT_SECRET`        | Access Token 서명 키(32바이트 이상). 모든 환경 필수, 기본값 없음                        | `openssl rand -base64 48`로 생성 |
-| `RESEND_API_KEY`    | 메일 발송 키. 운영 필수. 개발은 링크를 콘솔에 출력                                      | (비움)                           |
-| `MAIL_FROM`         | 발신 주소. 운영 필수                                                                    | (비움)                           |
-| `TRUST_PROXY_HOPS`  | 믿을 앞단 프록시 수(요청 제한의 IP 판별). 프록시 뒤에서만 1 이상                        | `0`                              |
+| 변수                                      | 의미                                                                                    | 로컬 기본값                          |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------ |
+| `DATABASE_URL`                            | 개발 DB 주소                                                                            | `...@localhost:7712/keepio`          |
+| `DATABASE_URL_TEST`                       | 통합 테스트 DB 주소(개발 DB와 분리)                                                     | `.../keepio_test`                    |
+| `DB_POOL_MAX`                             | DB 커넥션 수 상한                                                                       | `10`                                 |
+| `PORT`                                    | api 포트                                                                                | `7711`                               |
+| `WEB_ORIGIN`                              | CORS 허용 web 주소(없으면 CORS 끔). 메일 링크·쿠키 요청 Origin 검사에도 쓴다. 운영 필수 | `http://localhost:7710`              |
+| `JWT_SECRET`                              | Access Token 서명 키(32바이트 이상). 모든 환경 필수, 기본값 없음                        | `openssl rand -base64 48`로 생성     |
+| `RESEND_API_KEY`                          | 메일 발송 키. 운영 필수. 개발은 링크를 콘솔에 출력                                      | (비움)                               |
+| `MAIL_FROM`                               | 발신 주소. 운영 필수                                                                    | (비움)                               |
+| `TRUST_PROXY_HOPS`                        | 믿을 앞단 프록시 수(요청 제한의 IP 판별). 프록시 뒤에서만 1 이상                        | `0`                                  |
+| `GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET` | Google 로그인(웹 애플리케이션 클라이언트). 둘 다 있어야 켜짐                            | (비움)                               |
+| `KAKAO_CLIENT_ID`·`KAKAO_CLIENT_SECRET`   | Kakao 로그인(REST API 키·Client Secret, OIDC 활성화). 둘 다 있어야 켜짐                 | (비움)                               |
+| `API_ORIGIN`                              | 소셜 로그인 콜백 주소의 기준. 운영에서 소셜 로그인을 켜면 필수                          | `http://localhost:7711`(비우면 자동) |
 
 `.env.example`의 비밀번호는 로컬 컨테이너 전용이다. 실제 비밀값은 `.env`에도 커밋하지 않고, 운영은 배포 환경의 환경 변수로 넣는다.
 

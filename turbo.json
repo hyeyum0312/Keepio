@@ -9,7 +9,12 @@
     "RESEND_API_KEY",
     "MAIL_FROM",
     "TRUST_PROXY_HOPS",
-    "WEB_ORIGIN"
+    "WEB_ORIGIN",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "KAKAO_CLIENT_ID",
+    "KAKAO_CLIENT_SECRET",
+    "API_ORIGIN"
   ],
   "tasks": {
     "build": {

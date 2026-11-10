@@ -12,6 +12,11 @@ export function configureApiClient(options: {
   if (options.fetch) fetchImpl = options.fetch;
 }
 
+// 페이지 이동이 필요한 API(소셜 로그인 시작 등)의 전체 주소를 만든다(FEAT-004)
+export function apiUrl(path: string): string {
+  return `${baseUrl}${path}`;
+}
+
 export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetchImpl(`${baseUrl}${url}`, {
     credentials: "include",

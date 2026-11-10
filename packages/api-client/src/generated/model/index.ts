@@ -15,6 +15,8 @@ export * from "./healthResponse";
 export * from "./healthResponseDb";
 export * from "./healthResponseStatus";
 export * from "./meResponse";
+export * from "./oAuthProvidersResponse";
+export * from "./oAuthProvidersResponseProvidersItem";
 export * from "./resetPasswordDto";
 export * from "./saveBookmarkDto";
 export * from "./tokenDto";
