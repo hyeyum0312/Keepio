@@ -2,6 +2,19 @@
 
 AI는 실행 시각, 커밋 SHA, 명령, 통과/실패, 미실행 사유, 잔여 위험을 이 파일에 기록한다. 성공을 추정해서 작성하지 않는다. 최신 기록을 위에 둔다.
 
+## 2026-11-10 | FEAT-006 웹 로그인 화면과 토큰 처리 (브랜치 `feature/auth-web`)
+
+| 항목                   | 명령·방법                                                        | 결과                                                                        |
+| ---------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 전체 게이트            | `npm run verify`                                                 | PASS 8/8                                                                    |
+| web 단위·컴포넌트      | `npx vitest run`(apps/web)                                       | PASS 25                                                                     |
+| 운영 빌드              | `npm run build`                                                  | PASS(라우트 정적)                                                           |
+| CORS 사전 요청         | 실제 API, Origin `localhost:7710`                                | Allow-Origin·Credentials·authorization 허용                                 |
+| 브라우저(Chrome, 수동) | 가입                                                             | 202, API 콘솔에 인증 링크                                                   |
+| 브라우저(Chrome, 수동) | Google 로그인(FEAT-004 브랜치) → 콜백 → 홈 → 로그아웃 → 재로그인 | 정상(사용자 보고). 다른 포트 API로 Refresh 쿠키 전송·refresh·`/api/me` 동작 |
+
+미확인: 새로고침 후 로그인 유지, 이메일 인증 링크 화면, 비밀번호 재설정 화면(브라우저 수동). 컴포넌트 테스트로만 검증.
+
 ## 2026-11-10 | FEAT-003 이메일/비밀번호 인증 (브랜치 `feature/auth-email-password`)
 
 환경: macOS 로컬, Node 24, PostgreSQL 16(docker compose), `.env`의 `JWT_SECRET`.
