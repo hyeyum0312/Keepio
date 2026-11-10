@@ -1,4 +1,4 @@
-// 기능 위주 최소 UI(FEAT-006, D-09 전). 디자인 시스템이 생기면 이 파일의 마크업·클래스만 바꾼다
+// 기능 위주 최소 UI(FEAT-006, D-09 전). auth·bookmarks가 함께 써서 shared로 옮김(FEAT-002). 디자인 시스템이 생기면 이 파일의 마크업·클래스만 바꾼다
 
 export const FORM_ERROR_ID = "form-error";
 
@@ -25,6 +25,7 @@ export function TextField({
   autoComplete,
   minLength,
   hasError,
+  errorId = FORM_ERROR_ID,
 }: {
   label: string;
   name: string;
@@ -32,6 +33,8 @@ export function TextField({
   autoComplete?: string;
   minLength?: number;
   hasError: boolean;
+  // 한 화면에 폼이 여럿이면 오류 영역 id를 나눈다
+  errorId?: string;
 }) {
   const id = `field-${name}`;
   return (
@@ -47,17 +50,23 @@ export function TextField({
         autoComplete={autoComplete}
         minLength={minLength}
         aria-invalid={hasError || undefined}
-        aria-describedby={hasError ? FORM_ERROR_ID : undefined}
+        aria-describedby={hasError ? errorId : undefined}
         className="rounded border px-3 py-2"
       />
     </div>
   );
 }
 
-export function FormError({ message }: { message: string | null }) {
+export function FormError({
+  message,
+  id = FORM_ERROR_ID,
+}: {
+  message: string | null;
+  id?: string;
+}) {
   if (!message) return null;
   return (
-    <p id={FORM_ERROR_ID} role="alert" className="text-sm">
+    <p id={id} role="alert" className="text-sm">
       {message}
     </p>
   );

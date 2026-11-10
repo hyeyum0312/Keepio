@@ -4,7 +4,7 @@ import { useAuthControllerLogin } from "@keepio/api-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { submit } from "../lib/server-message";
+import { submit } from "@/shared/lib/server-message";
 import { setSession } from "../model/session-store";
 import { useAuthStatus } from "../model/useAuthStatus";
 import {
@@ -13,7 +13,7 @@ import {
   FormError,
   SubmitButton,
   TextField,
-} from "./FormParts";
+} from "@/shared/ui/FormParts";
 import { OAuthFailureAlert } from "./OAuthFailureAlert";
 import { SocialLoginButtons } from "./SocialLoginButtons";
 

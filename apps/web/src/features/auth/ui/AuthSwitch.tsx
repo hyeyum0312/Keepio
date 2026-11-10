@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthStatus } from "../model/useAuthStatus";
-import { Notice } from "./FormParts";
+import { Notice } from "@/shared/ui/FormParts";
 
 // FEAT-006 AC-06·AC-12. 같은 주소에서 로그인 여부로 화면을 고른다(예: 홈 = 계정 화면 / 랜딩).
 // 확인 중에는 로딩만(어느 쪽도 잠깐 보였다 바뀌지 않게). 토큰이 메모리에만 있어 브라우저에서만 판단한다

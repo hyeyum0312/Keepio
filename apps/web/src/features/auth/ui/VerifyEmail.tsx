@@ -6,7 +6,7 @@ import {
 } from "@keepio/api-client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { submit } from "../lib/server-message";
+import { submit } from "@/shared/lib/server-message";
 import { useOneTimeUrlToken } from "../model/useOneTimeUrlToken";
 import {
   AuthLayout,
@@ -15,7 +15,7 @@ import {
   Notice,
   SubmitButton,
   TextField,
-} from "./FormParts";
+} from "@/shared/ui/FormParts";
 
 type Result =
   | { state: "pending" }

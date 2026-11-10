@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(bookmarks): 링크 목록·삭제·휴지통 복구 API와 홈 화면(my-아이디 헤더 + 북마크)
+
+- Feature: FEAT-002, FEAT-006(AC-12)
+- 목적: 저장한 링크를 보고 지우고 되돌린다. 홈은 사용자 요청대로 상단 my-아이디·로그아웃, 그 아래 북마크.
+- 변경: API — `GET /api/bookmarks`(status active|deleted, limit 기본 20·최대 50, 키셋 커서 `(시각, id)`), `DELETE /api/bookmarks/:id`(멱등 204), `POST /api/bookmarks/:id/restore`(멱등 200, 같은 링크가 활성이면 409 `BOOKMARK_ALREADY_SAVED` + 활성 ID — 부분 UNIQUE가 판정), 다른 사용자·없는·형식 오류 ID는 404 `BOOKMARK_NOT_FOUND`. 응답에 `deletedAt`, 409 응답 모델 이름 `BookmarkConflictErrorResponse`. 활성 목록 부분 인덱스 `(user_id, created_at DESC, id DESC) WHERE deleted_at IS NULL`. FEAT-001의 "저장 충돌 직후 승자 삭제" 분기가 이제 도달 가능해 500 대신 409 `BOOKMARK_DELETED`. 웹 — `features/bookmarks`(저장 폼·409 복구 버튼·목록·더 보기·삭제·휴지통 복구, `useInfiniteQuery`, 성공 시 목록 키만 무효화), `AccountHeader`(my-아이디·로그아웃·인증 전 안내, `AccountPanel` 대체), 홈 구성. 두 번째 사용처가 생긴 폼 부품·서버 문구 헬퍼를 `shared`로 이동(오류 영역 id 지정 가능, 실패 시 응답 반환).
+- 영향: 북마크 응답에 필드 추가(호환). 인덱스 1개(북마크당 항목 1개). 홈 진입 시 `/api/me`·활성 목록 1회.
+- 검증: api 단위 125 PASS(커서 6 포함). `npm run test:integration` PASS(88, 목록·삭제·복구 18 — 정렬·동시각 id 순·페이지 사이 저장 중복/누락 없음·검증 400·멱등·동시 복구 10개 → 활성 1·교차 사용자 404·FEAT-001 409 연계·토큰 없음 401). 변이 검사: 삭제 소유자 조건 제거 → AC-07 실패, 키셋 조건 제거 → AC-02 실패, 복구 UNIQUE 처리 제거 → AC-06 2건 실패, 복구 후 PASS. web 40 PASS(북마크 8, 홈 헤더). `npm run verify` PASS(8/8), `npm run build` PASS. 브라우저 수동 확인 전.
+- 주의/롤백: 코드는 revert. DB는 마이그레이션 끝 롤백 블록(`DROP INDEX`, 데이터 영향 없음). 삭제된 행은 보관 기간 결정(D-07) 전까지 남는다.
+
 ## 2026-11-10 | docs(feature): FEAT-002 링크 목록·삭제·복구 명세 확정, FEAT-001 상태 정정
 
 - Feature: FEAT-002, FEAT-001

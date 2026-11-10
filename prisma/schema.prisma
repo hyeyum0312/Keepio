@@ -99,6 +99,8 @@ model Bookmark {
   @@unique([userId, normalizedUrl], map: "bookmarks_active_user_url_key", where: raw("deleted_at IS NULL"))
   // 삭제된 행 포함 조회(AC-07 복구 안내)와 사용자별 목록
   @@index([userId, normalizedUrl])
+  // 활성 목록(최근 저장 순, 키셋 페이지, FEAT-002 AC-01·02). 휴지통 인덱스는 빈도 측정 후
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)], map: "bookmarks_active_list_idx", where: raw("deleted_at IS NULL"))
   @@map("bookmarks")
 }
 
