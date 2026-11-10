@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(feature): Feature 목록의 FEAT-003 상태를 Implemented로
+
+- Feature: FEAT-003
+- 목적: 직전 커밋에서 목록 표 갱신이 빠졌다(표 정렬로 치환 패턴이 맞지 않음).
+- 변경: `docs/features/README.md` FEAT-003 Status Approved → Implemented.
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | feat(auth): 만료 토큰 정리 작업, argon2 OWASP 권장 설정, FEAT-003 완료
 
 - Feature: FEAT-003
