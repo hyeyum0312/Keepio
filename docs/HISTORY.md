@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(feature): FEAT-002 구현 완료 기록과 브라우저 확인
+
+- Feature: FEAT-002
+- 목적: 구현·검증 결과를 기록하고 PR을 연다.
+- 변경: `bookmark-list-delete.md` Implemented(AC 체크, 구현 결과·남은 위험), Feature 목록, QA 보고서.
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행(직전 커밋에서 PASS).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | feat(bookmarks): 링크 목록·삭제·휴지통 복구 API와 홈 화면(my-아이디 헤더 + 북마크)
 
 - Feature: FEAT-002, FEAT-006(AC-12)
