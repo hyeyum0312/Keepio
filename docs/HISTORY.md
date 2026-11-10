@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(feature): FEAT-006 웹 로그인 화면과 토큰 처리 명세
+
+- Feature: FEAT-006
+- 목적: FEAT-003 이후 북마크 API가 Access Token 없이 401이라 웹에 로그인 화면과 토큰 처리가 필요하다(FEAT-003 Q-6 후속).
+- 변경: `auth-web.md` Approved — Access Token 메모리 보관, 401 시 refresh 1회 + 원 요청 1회 재시도, 동시 refresh 묶기, 앱 시작 시 refresh로 새로고침 유지, 메일 링크 토큰 즉시 주소 제거, 가입·인증·로그인·비밀번호 찾기·재설정·홈/로그아웃 화면(기능 위주 최소 UI). 번호는 FEAT-004·005가 ADR-011에서 소셜·패스키로 예약되어 006. Feature 목록에 추가.
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | fix(auth): 메일을 백그라운드로 보내 응답 시간으로 가입 여부가 드러나지 않게
 
 - Feature: FEAT-003
