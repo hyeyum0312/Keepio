@@ -1,0 +1,29 @@
+# ADR-011: 로그인 수단과 세션 구조 (D-04)
+
+- Status: accepted (2026-11-10)
+- Context / problem:
+  - D-04(로그인 제공자/토큰 저장)가 미정이라 개발·테스트 전용 임시 Guard(D-11)로 사용자를 식별해 왔다. 운영에서 쓸 실제 인증이 필요하다.
+  - 사용자는 이메일/비밀번호, 소셜 로그인, 패스키(WebAuthn)를 모두 제공하기를 원한다(2026-11-10).
+  - spec 03은 이미 "JWT + 안전한 Refresh Token 회전"을 정했고, BACKEND standards는 검증된 인증 라이브러리 사용을 요구한다. 포트폴리오 목표상 토큰 회전·재사용 감지·계정 연결 설계를 직접 보여주는 것이 가치가 있다. 수익 전이므로 고정 비용은 최소화한다.
+- Options:
+  - (a) 관리형 인증 서비스(Auth0, Clerk 등): 구현이 가장 적다. 사용자 수에 따라 과금되고, 핵심 설계가 외부에 있어 포트폴리오 가치가 낮다.
+  - (b) 올인원 라이브러리(Better Auth 등): 세 수단을 설정 위주로 붙인다. 기본이 DB 세션·쿠키라 spec 03의 JWT 구조와 어긋나고 핵심 로직이 라이브러리 안에 있다.
+  - (c) 서버 세션(DB/Redis 세션 ID 쿠키): 즉시 폐기가 쉽다. 요청마다 세션 조회가 필요하고, 모바일 WebView·네이티브 공유 확장에서 쿠키 공유가 까다롭다.
+  - (d) 직접 조립: 짧은 수명 JWT Access Token + DB에 해시로 저장하는 불투명 Refresh Token 회전, 검증된 저수준 라이브러리(argon2, @nestjs/jwt, @simplewebauthn/server)만 사용.
+- Decision: (d) (사용자 결정, 2026-11-10).
+  - 로그인 수단: 이메일/비밀번호(FEAT-003) → 소셜 Google·Kakao(FEAT-004) → 패스키(FEAT-005). 수단만 다르고 로그인 이후 세션 발급은 공통 모듈 하나가 맡는다.
+  - Apple 로그인은 iOS 앱 출시 시점에 추가한다(Apple Developer 연 $99, 앱에 타사 소셜 로그인이 있으면 App Store 심사상 필요). Naver는 제외.
+  - 이메일 인증과 비밀번호 재설정을 포함한다(계정 복구 수단은 필수 요소). 메일 발송 서비스 1개를 추가한다.
+  - 패스키는 로그인한 계정에 추가 등록하는 방식만 지원한다. 패스키만으로 가입하는 흐름은 하지 않는다.
+  - 웹 토큰 저장: Access Token은 메모리, Refresh Token은 `HttpOnly; Secure; SameSite=Lax` 쿠키. 모바일 앱 저장소는 Phase 0 PoC 후 결정한다(D-04의 남은 부분).
+  - 메일 발송: Resend(무료 구간 내 운영 목표, 현재 한도는 계정 생성 시 확인). 요청 제한으로 발송량 상한을 둔다.
+  - 라이브러리: 비밀번호 argon2id(`argon2`), JWT `@nestjs/jwt`, 요청 제한 `@nestjs/throttler`, 만료 행 정리 `@nestjs/schedule`, WebAuthn `@simplewebauthn/server`(FEAT-005). OAuth 클라이언트 라이브러리는 FEAT-004에서 고른다.
+- Consequences / side effects:
+  - Access Token은 서명만 확인하므로 요청당 DB 조회가 없다. 대신 로그아웃·비밀번호 재설정 후에도 기존 Access Token이 최대 수명(15분 제안)까지 유효하다.
+  - Refresh 쿠키가 전송되려면 웹과 API가 같은 사이트여야 한다. 호스팅(D-12) 결정 시 Next.js rewrite 프록시나 같은 상위 도메인을 전제로 한다.
+  - 토큰 회전·재사용 감지·만료 행 정리를 직접 구현·테스트해야 한다. 이 부분이 포트폴리오 사례가 된다.
+  - 메일 발송 서비스가 외부 의존성으로 추가된다(무료 구간 내 운영 목표, 요청 제한으로 상한).
+  - 패스키가 앱 WebView 안에서 동작하는지는 확인되지 않은 가정이다. Phase 0 PoC에서 검증한다.
+- Verification: FEAT-003·004·005 수용 기준의 통합 테스트, `npm run verify`.
+- Rollback / migration: 기능별 PR을 revert. 인증 테이블은 기능별 마이그레이션의 down으로 제거. 운영 데이터 없음.
+- 함께 갱신: `docs/OPEN-QUESTIONS.md` D-04, `docs/spec/03-BACKEND-ARCHITECTURE.md` 기술 스택·인증 및 보안, `docs/spec/04-DATABASE-API.md` 주요 테이블·API 목록. `docs/standards/BACKEND.md`의 임시 Guard 문장(D-11)은 FEAT-003 구현 PR에서 코드와 함께 고친다.

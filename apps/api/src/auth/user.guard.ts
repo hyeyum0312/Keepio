@@ -6,34 +6,25 @@ import {
 } from "@nestjs/common";
 import type { Request } from "express";
 import { ApiException } from "../common/api-error.js";
-import { type Env, loadEnv } from "../config/env.js";
-import { AuthRepository } from "./auth.repository.js";
-
-export const DEV_USER_HEADER = "x-dev-user-id";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { AccessTokenService } from "./access-token.service.js";
 
 export type AuthUser = { id: string };
 export type AuthenticatedRequest = Request & { user: AuthUser };
 
-// 현재 사용자를 정한다. 인증(D-04) 전까지는 개발·테스트 전용으로 헤더의 사용자 ID를 믿고(D-11),
-// 운영에서는 항상 거부한다(fail-closed). 인증 기능이 이 클래스 내부만 교체한다
+const BEARER = /^Bearer ([^\s]+)$/i;
+
+// 현재 사용자를 Access Token(JWT)으로 정한다(FEAT-003 AC-09). D-11의 개발용 헤더는 더 이상 받지 않는다(AC-18).
+// DB를 조회하지 않는다. 컨트롤러는 @CurrentUser()로만 사용자를 받는다
 @Injectable()
 export class UserGuard implements CanActivate {
-  private nodeEnv?: Env["nodeEnv"];
-
-  constructor(private readonly auth: AuthRepository) {}
+  constructor(private readonly tokens: AccessTokenService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 시작 시 검증은 main.ts가 한다. 생성자에서 읽으면 DB 설정 없이 모듈을 띄우는 단위 테스트까지 막힌다
-    this.nodeEnv ??= loadEnv().nodeEnv;
-    if (this.nodeEnv === "production") throw unauthenticated();
-
     const req = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const id = req.header(DEV_USER_HEADER);
-    if (!id || !UUID.test(id) || !(await this.auth.userExists(id))) {
-      throw unauthenticated();
-    }
-    req.user = { id };
+    const token = BEARER.exec(req.header("authorization") ?? "")?.[1];
+    const userId = token ? await this.tokens.verify(token) : null;
+    if (!userId) throw unauthenticated();
+    req.user = { id: userId };
     return true;
   }
 }

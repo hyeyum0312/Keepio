@@ -5,10 +5,16 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./accessTokenResponse";
 export * from "./apiErrorResponse";
 export * from "./bookmarkDeletedErrorResponse";
 export * from "./bookmarkResponse";
+export * from "./credentialsDto";
+export * from "./emailDto";
 export * from "./healthResponse";
 export * from "./healthResponseDb";
 export * from "./healthResponseStatus";
+export * from "./meResponse";
+export * from "./resetPasswordDto";
 export * from "./saveBookmarkDto";
+export * from "./tokenDto";

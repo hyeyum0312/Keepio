@@ -18,7 +18,10 @@ async function bootstrap() {
     // 운영은 수집기가 읽는 JSON 한 줄 로그, 로컬은 사람이 읽는 형식
     logger: new ConsoleLogger({ json: env.nodeEnv === "production" }),
   });
-  setupApp(app, { webOrigin: env.webOrigin });
+  setupApp(app, {
+    webOrigin: env.webOrigin,
+    trustProxyHops: env.trustProxyHops,
+  });
   app.enableShutdownHooks();
   await app.listen(env.port);
 }
