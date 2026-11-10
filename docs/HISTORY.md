@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(auth): 가입·이메일 인증·로그인·refresh·로그아웃·비밀번호 재설정 API와 요청 제한
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현 4단계. 이메일/비밀번호 인증의 공개 API를 연다.
+- 변경: `AuthController`(signup·email-verification(+resend)·login·refresh·logout·password-reset(+confirm)), `MeController`(`GET /api/me`). `AuthService` — 가입은 항상 해시 1회·메일 1통(새 가입이면 인증, 기존이면 "이미 가입" 안내), 로그인은 없는 계정에도 더미 검증, 재설정은 토큰 사용·비밀번호 교체·이메일 인증·전체 Refresh 폐기를 한 트랜잭션. `AuthRepository` — 가입 `INSERT … ON CONFLICT (email) WHERE email IS NOT NULL DO NOTHING`(raw), 메일 토큰 조건부 사용 처리. 메일 본문(`auth-mail.ts`), 발송 실패는 마스킹 로그만. Refresh 쿠키(`keepio_refresh`, HttpOnly·Secure·SameSite=Lax·Path=/api/auth), refresh·logout의 Origin 검사(403 `INVALID_ORIGIN`, 명세에 추가·승인 대기). 요청 제한 `AuthThrottlerGuard`(IP 분당 10, 로그인 이메일 15분 5, 메일 이메일 시간당 3을 라우트 합산, 429 `TOO_MANY_ATTEMPTS`), refresh·logout은 제외. `setupApp`에 cookie-parser·`trust proxy`(TRUST_PROXY_HOPS). OpenAPI·클라이언트 재생성.
+- 영향: 새 공개 API 9개. 메일 발송은 운영에서만 실제 호출(개발 콘솔, 테스트 메모리). 요청 제한은 메모리라 재시작 시 초기화되고 서버를 늘리면 인스턴스별로 센다. 같은 NAT(사무실 등) 뒤 사용자는 IP 제한(분당 10회 로그인)을 함께 쓴다.
+- 검증: api 단위 PASS. `npm run test:integration` PASS(52: auth 26, session 10, bookmarks 14, health 2). AC-04 가입 10개 동시(도착 후 일괄) 계정 1개. 변이 검사: 가입 `ON CONFLICT` 제거 시 AC-04 3회 모두 실패, 복구 후 PASS. `npm run verify` PASS(8/8).
+- 주의/롤백: revert로 롤백. 데이터는 이 커밋에서 스키마 변경 없음. argon2 기본 파라미터(64MiB)라 동시 해시 수(libuv 스레드 4)만큼 메모리를 쓴다(최대 약 256MiB).
+
 ## 2026-11-10 | feat(auth): JWT Guard로 교체하고 Refresh Token 회전·재사용 감지 세션 서비스 추가
 
 - Feature: FEAT-003

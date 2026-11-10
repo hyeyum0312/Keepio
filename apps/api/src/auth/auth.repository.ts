@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import type { EmailTokenPurpose, Prisma } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import type { TokenHash } from "./lib/token.js";
 
@@ -18,6 +19,135 @@ export type RotatedRefreshToken = {
 @Injectable()
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  // 비밀번호로 로그인할 수 있는 계정만 준다. 소셜·패스키 전용 계정(비밀번호 없음)은 null
+  async findPasswordLogin(
+    email: string,
+  ): Promise<{ userId: string; passwordHash: string } | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        passwordCredential: { select: { passwordHash: true } },
+      },
+    });
+    if (!user?.passwordCredential) return null;
+    return {
+      userId: user.id,
+      passwordHash: user.passwordCredential.passwordHash,
+    };
+  }
+
+  // 이미 같은 이메일이 있으면 아무것도 만들지 않고 null(AC-03). 동시 가입의 승자는 부분 UNIQUE 인덱스가 정한다(AC-04).
+  // ON CONFLICT … WHERE는 Prisma API로 표현되지 않아 SQL로 쓴다. 사용자·비밀번호·인증 토큰은 함께 생기거나 함께 안 생긴다
+  createPasswordUser(data: {
+    email: string;
+    passwordHash: string;
+    verifyTokenHash: TokenHash;
+    verifyExpiresAt: Date;
+  }): Promise<string | null> {
+    return this.prisma.$transaction(async (tx) => {
+      const [user] = await tx.$queryRaw<{ id: string }[]>`
+        INSERT INTO users (email) VALUES (${data.email})
+        ON CONFLICT (email) WHERE email IS NOT NULL DO NOTHING
+        RETURNING id`;
+      if (!user) return null;
+      await tx.passwordCredential.create({
+        data: { userId: user.id, passwordHash: data.passwordHash },
+        select: { userId: true },
+      });
+      await tx.emailToken.create({
+        data: {
+          userId: user.id,
+          purpose: "verify_email",
+          tokenHash: data.verifyTokenHash,
+          expiresAt: data.verifyExpiresAt,
+        },
+        select: { id: true },
+      });
+      return user.id;
+    });
+  }
+
+  findUserByEmail(
+    email: string,
+  ): Promise<{ id: string; emailVerifiedAt: Date | null } | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true, emailVerifiedAt: true },
+    });
+  }
+
+  findMe(id: string): Promise<{
+    id: string;
+    email: string | null;
+    emailVerifiedAt: Date | null;
+  } | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, emailVerifiedAt: true },
+    });
+  }
+
+  async insertEmailToken(data: {
+    userId: string;
+    purpose: EmailTokenPurpose;
+    tokenHash: TokenHash;
+    expiresAt: Date;
+  }): Promise<void> {
+    await this.prisma.emailToken.create({ data, select: { id: true } });
+  }
+
+  // AC-05. 토큰 사용 표시와 인증 기록을 함께. 조건부 UPDATE라 같은 토큰을 동시에 써도 한 번만 성공한다
+  verifyEmail(tokenHash: TokenHash, now: Date): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const userId = await consumeEmailToken(
+        tx,
+        tokenHash,
+        "verify_email",
+        now,
+      );
+      if (!userId) return false;
+      await tx.user.updateMany({
+        where: { id: userId, emailVerifiedAt: null },
+        data: { emailVerifiedAt: now },
+      });
+      return true;
+    });
+  }
+
+  // AC-15. 토큰 사용, 비밀번호 교체, 이메일 인증 기록, 모든 Refresh Token 폐기를 한 번에
+  resetPassword(
+    tokenHash: TokenHash,
+    passwordHash: string,
+    now: Date,
+  ): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const userId = await consumeEmailToken(
+        tx,
+        tokenHash,
+        "reset_password",
+        now,
+      );
+      if (!userId) return false;
+      // 비밀번호가 없던 계정(이후 소셜 전용)도 메일 소유를 증명했으므로 비밀번호를 만든다
+      await tx.passwordCredential.upsert({
+        where: { userId },
+        create: { userId, passwordHash },
+        update: { passwordHash },
+        select: { userId: true },
+      });
+      await tx.user.updateMany({
+        where: { id: userId, emailVerifiedAt: null },
+        data: { emailVerifiedAt: now },
+      });
+      await tx.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: now },
+      });
+      return true;
+    });
+  }
 
   async insertRefreshToken(data: {
     userId: string;
@@ -69,4 +199,19 @@ export class AuthRepository {
       data: { revokedAt: now },
     });
   }
+}
+
+// 사용 전·만료 전·같은 목적의 토큰만 사용 처리하고 그 사용자 ID를 준다
+async function consumeEmailToken(
+  tx: Prisma.TransactionClient,
+  tokenHash: TokenHash,
+  purpose: EmailTokenPurpose,
+  now: Date,
+): Promise<string | null> {
+  const [token] = await tx.emailToken.updateManyAndReturn({
+    where: { tokenHash, purpose, usedAt: null, expiresAt: { gt: now } },
+    data: { usedAt: now },
+    select: { userId: true },
+  });
+  return token?.userId ?? null;
 }
