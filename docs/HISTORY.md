@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(auth): FEAT-004 소셜 로그인 명세와 리디렉션 실패 문구 예외 (ADR-012)
+
+- Feature: FEAT-004
+- 목적: Google·Kakao 로그인을 붙이기 전에 흐름·계정 연결 정책·실패 안내를 확정한다(사용자 결정: 인증 안 된 기존 계정은 연결하되 비밀번호·세션 무효화, 실패 문구는 shared 고정 문구).
+- 변경: `auth-social.md` Approved(AC 13개 — 서버 처리 Authorization Code + PKCE + OIDC, `/providers`·start·callback, 계정 결정 4가지, 동시 콜백, 웹 버튼·콜백 화면·실패 안내, `oauth_accounts`, `openid-client` 6.8.8). ADR-012(리디렉션 흐름 실패는 주소에 고정 값만, 웹 shared 고정 문구). FRONTEND 오류 규칙, spec 03 소셜 로그인, spec 04 테이블·API. Feature 목록.
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | docs(feature): FEAT-006 구현 완료 기록과 브라우저 확인 결과
 
 - Feature: FEAT-006
