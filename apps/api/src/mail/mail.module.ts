@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { Resend } from "resend";
 import { loadEnv } from "../config/env.js";
 import { ConsoleMailSender } from "./console-mail.sender.js";
+import { MailDispatcher } from "./mail.dispatcher.js";
 import { MailSender } from "./mail.sender.js";
 import { MemoryMailSender } from "./memory-mail.sender.js";
 import { ResendMailSender } from "./resend-mail.sender.js";
@@ -18,7 +19,11 @@ export function createMailSender(): MailSender {
 }
 
 @Module({
-  providers: [{ provide: MailSender, useFactory: createMailSender }],
-  exports: [MailSender],
+  providers: [
+    { provide: MailSender, useFactory: createMailSender },
+    MailDispatcher,
+  ],
+  // 기능 코드는 MailDispatcher로만 보낸다(요청이 발송을 기다리지 않게). MailSender는 테스트 교체용
+  exports: [MailDispatcher, MailSender],
 })
 export class MailModule {}

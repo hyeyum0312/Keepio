@@ -1,9 +1,7 @@
-import { HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { ApiException } from "../common/api-error.js";
-import { maskEmail } from "../common/mask-email.js";
 import { loadEnv } from "../config/env.js";
-import type { MailMessage } from "../mail/mail.sender.js";
-import { MailSender } from "../mail/mail.sender.js";
+import { MailDispatcher } from "../mail/mail.dispatcher.js";
 import {
   alreadyRegisteredMail,
   RESET_PASSWORD_TTL_MS,
@@ -27,8 +25,6 @@ const LOCAL_WEB_ORIGIN = "http://localhost:7710";
 
 export type Me = { id: string; email: string | null; emailVerified: boolean };
 
-const logger = new Logger("Auth");
-
 // 이메일/비밀번호 흐름(FEAT-003). 세션 발급은 SessionService에 맡긴다
 @Injectable()
 export class AuthService {
@@ -37,10 +33,11 @@ export class AuthService {
   constructor(
     private readonly repo: AuthRepository,
     private readonly sessions: SessionService,
-    private readonly mail: MailSender,
+    private readonly mail: MailDispatcher,
   ) {}
 
-  // AC-01~04. 새 가입이든 이미 있는 이메일이든 같은 응답·같은 일(해시 1회, 메일 1통)을 한다
+  // AC-01~04. 새 가입이든 이미 있는 이메일이든 같은 응답·같은 일(해시 1회, 메일 1통 예약)을 한다.
+  // 메일은 MailDispatcher가 백그라운드로 보낸다. 발송 시간·실패가 응답에 드러나지 않는다
   async signup(email: string, password: string): Promise<void> {
     const normalized = normalizeEmail(email);
     if (!normalized.ok) throw invalidEmail();
@@ -54,7 +51,7 @@ export class AuthService {
       verifyTokenHash: hashToken(token),
       verifyExpiresAt: new Date(Date.now() + VERIFY_EMAIL_TTL_MS),
     });
-    await this.send(
+    this.mail.enqueue(
       userId
         ? verifyEmailMail(normalized.email, this.origin(), token)
         : alreadyRegisteredMail(normalized.email, this.origin()),
@@ -83,7 +80,7 @@ export class AuthService {
       tokenHash: hashToken(token),
       expiresAt: new Date(Date.now() + VERIFY_EMAIL_TTL_MS),
     });
-    await this.send(verifyEmailMail(normalized.email, this.origin(), token));
+    this.mail.enqueue(verifyEmailMail(normalized.email, this.origin(), token));
   }
 
   // AC-07·AC-08. 실패 이유(형식·없음·비밀번호 없음·불일치)를 응답과 응답 시간으로 구분할 수 없게 한다
@@ -116,7 +113,9 @@ export class AuthService {
       tokenHash: hashToken(token),
       expiresAt: new Date(Date.now() + RESET_PASSWORD_TTL_MS),
     });
-    await this.send(resetPasswordMail(normalized.email, this.origin(), token));
+    this.mail.enqueue(
+      resetPasswordMail(normalized.email, this.origin(), token),
+    );
   }
 
   // AC-15. 비밀번호 정책을 먼저 본다(토큰을 쓰고 나서 거부하면 사용자가 메일을 다시 받아야 한다)
@@ -144,18 +143,6 @@ export class AuthService {
       email: user.email,
       emailVerified: user.emailVerifiedAt !== null,
     };
-  }
-
-  // 발송 실패는 응답을 바꾸지 않는다(가입은 유지, 사용자가 재발송). 주소는 가려서 남긴다
-  private async send(message: MailMessage) {
-    try {
-      await this.mail.send(message);
-    } catch (error) {
-      logger.error(
-        `mail send failed: to=${maskEmail(message.to)} subject=${message.subject}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-    }
   }
 
   private origin() {

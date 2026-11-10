@@ -3,6 +3,7 @@ import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { AppModule } from "../app.module.js";
+import { MailDispatcher } from "../mail/mail.dispatcher.js";
 import { MailSender } from "../mail/mail.sender.js";
 import { MemoryMailSender } from "../mail/memory-mail.sender.js";
 import { PrismaService } from "../prisma/prisma.service.js";
@@ -19,6 +20,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let mail: MemoryMailSender;
+  let dispatcher: MailDispatcher;
   let baseUrl: string;
   const createdEmails: string[] = [];
   let ipSeq = 0;
@@ -37,6 +39,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
     baseUrl = await app.getUrl();
     prisma = app.get(PrismaService);
     mail = app.get(MailSender);
+    dispatcher = app.get(MailDispatcher);
   });
 
   afterAll(async () => {
@@ -75,9 +78,14 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
     return { post, me };
   }
 
-  function tokenIn(to: string, subjectPart: string) {
-    const message = mail
-      .to(to)
+  // 메일은 백그라운드로 나가므로 큐가 빈 뒤에 본다
+  async function mailTo(to: string) {
+    await dispatcher.drain();
+    return mail.to(to);
+  }
+
+  async function tokenIn(to: string, subjectPart: string) {
+    const message = (await mailTo(to))
       .reverse()
       .find((m) => m.subject.includes(subjectPart));
     const token = /token=([A-Za-z0-9_-]{43})/.exec(message?.text ?? "")?.[1];
@@ -122,7 +130,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       expect(user.emailVerifiedAt).toBeNull();
       expect(user.passwordCredential?.passwordHash).toMatch(/^\$argon2id\$/);
       expect(user.passwordCredential?.passwordHash).not.toContain(PASSWORD);
-      expect(tokenIn(email, "인증")).toHaveLength(43);
+      expect(await tokenIn(email, "인증")).toHaveLength(43);
     });
 
     it("AC-02: 이메일은 정규화해서 저장한다", async () => {
@@ -180,7 +188,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       expect(again.status).toBe(202);
       expect(again.body).toEqual({});
       expect(await prisma.user.count({ where: { email } })).toBe(1);
-      expect(mail.to(email).at(-1)?.subject).toContain("이미 가입된");
+      expect((await mailTo(email)).at(-1)?.subject).toContain("이미 가입된");
       // 기존 비밀번호가 그대로다
       const login = await client().post("/api/auth/login", {
         email,
@@ -230,7 +238,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       expect(before.body.emailVerified).toBe(false);
 
       const res = await c.post("/api/auth/email-verification", {
-        token: tokenIn(email, "인증"),
+        token: await tokenIn(email, "인증"),
       });
 
       expect(res.status).toBe(204);
@@ -246,7 +254,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       const email = newEmail();
       const c = client();
       await c.post("/api/auth/signup", { email, password: PASSWORD });
-      const token = tokenIn(email, "인증");
+      const token = await tokenIn(email, "인증");
       await c.post("/api/auth/email-verification", { token });
 
       const again = await c.post("/api/auth/email-verification", { token });
@@ -268,7 +276,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       });
 
       const expired = await c.post("/api/auth/email-verification", {
-        token: tokenIn(email, "인증"),
+        token: await tokenIn(email, "인증"),
       });
       const malformed = await c.post("/api/auth/email-verification", {
         token: "abc",
@@ -292,8 +300,8 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       });
 
       expect([known.status, missing.status]).toEqual([202, 202]);
-      expect(mail.to(email)).toHaveLength(2);
-      expect(mail.to(unknown)).toHaveLength(0);
+      expect(await mailTo(email)).toHaveLength(2);
+      expect(await mailTo(unknown)).toHaveLength(0);
     });
   });
 
@@ -422,8 +430,8 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       });
 
       expect([known.status, missing.status]).toEqual([202, 202]);
-      expect(mail.to(email).at(-1)?.subject).toContain("재설정");
-      expect(mail.to(unknown)).toHaveLength(0);
+      expect((await mailTo(email)).at(-1)?.subject).toContain("재설정");
+      expect(await mailTo(unknown)).toHaveLength(0);
     });
 
     it("AC-15: 재설정하면 새 비밀번호로만 로그인되고, 기존 세션이 모두 끊기고, 이메일이 인증된다", async () => {
@@ -431,7 +439,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       await c.post("/api/auth/password-reset", { email });
 
       const res = await c.post("/api/auth/password-reset/confirm", {
-        token: tokenIn(email, "재설정"),
+        token: await tokenIn(email, "재설정"),
         newPassword: "brand new password",
       });
 
@@ -460,7 +468,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
     it("AC-15: 새 비밀번호가 정책에 맞지 않으면 400 WEAK_PASSWORD이고 토큰은 그대로 쓸 수 있다", async () => {
       const { email, c } = await signupAndLogin();
       await c.post("/api/auth/password-reset", { email });
-      const token = tokenIn(email, "재설정");
+      const token = await tokenIn(email, "재설정");
 
       const weak = await c.post("/api/auth/password-reset/confirm", {
         token,
@@ -478,7 +486,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
     it("AC-15: 재설정 토큰은 한 번만 쓸 수 있고, 인증 토큰으로는 재설정할 수 없다", async () => {
       const { email, c } = await signupAndLogin();
       await c.post("/api/auth/password-reset", { email });
-      const resetToken = tokenIn(email, "재설정");
+      const resetToken = await tokenIn(email, "재설정");
       await c.post("/api/auth/password-reset/confirm", {
         token: resetToken,
         newPassword: "brand new password",
@@ -489,12 +497,43 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
         newPassword: "another new password",
       });
       const wrongPurpose = await c.post("/api/auth/password-reset/confirm", {
-        token: tokenIn(email, "인증"),
+        token: await tokenIn(email, "인증"),
         newPassword: "another new password",
       });
 
       expect(reused.body.code).toBe("INVALID_TOKEN");
       expect(wrongPurpose.body.code).toBe("INVALID_TOKEN");
+    });
+  });
+
+  describe("응답 시간으로 가입 여부가 드러나지 않음(AC-03·AC-14)", () => {
+    it("메일 발송이 끝나지 않아도 재설정·재발송·가입은 바로 202로 응답한다", async () => {
+      const { email } = await signupAndLogin();
+      await dispatcher.drain();
+      // 발송이 멈춰 있는 상태를 만든다. 응답이 발송을 기다리면 이 테스트는 시간 초과로 실패한다
+      let release!: () => void;
+      const stuck = new Promise<void>((resolve) => (release = resolve));
+      const send = vi.spyOn(mail, "send").mockImplementation(() => stuck);
+      const c = client();
+
+      try {
+        // 가입은 새 이메일로(같은 이메일 메일 제한 3통: 가입·재설정·재발송)
+        const responses = [
+          await c.post("/api/auth/password-reset", { email }),
+          await c.post("/api/auth/email-verification/resend", { email }),
+          await c.post("/api/auth/signup", {
+            email: newEmail(),
+            password: PASSWORD,
+          }),
+        ];
+
+        expect(responses.map((r) => r.status)).toEqual([202, 202, 202]);
+        expect(send).toHaveBeenCalled();
+      } finally {
+        // 실패해도 멈춘 발송을 풀어 다음 테스트의 drain이 끝나게 한다
+        release();
+        await dispatcher.drain();
+      }
     });
   });
 
@@ -547,7 +586,7 @@ describe("인증 API (실제 PostgreSQL, FEAT-003)", () => {
       ];
 
       expect(statuses).toEqual([202, 202, 202, 429]);
-      expect(mail.to(email)).toHaveLength(3);
+      expect(await mailTo(email)).toHaveLength(3);
     });
 
     it("refresh는 요청 제한을 받지 않는다(여러 탭의 정상 갱신)", async () => {

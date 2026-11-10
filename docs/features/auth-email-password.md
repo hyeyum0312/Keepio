@@ -100,7 +100,7 @@
   - 배포 제약(D-12): Refresh 쿠키가 `SameSite=Lax`라서 웹과 API가 **같은 사이트**여야 전송된다. 서로 다른 도메인에 배포하면 동작하지 않는다. Next.js rewrite로 `/api`를 API로 프록시하거나 같은 상위 도메인의 서브도메인을 써야 한다.
   - 비용:
     - DB: `refresh_tokens`는 활성 사용자당 갱신마다 1행(15분 Access 기준 사용 중 시간당 최대 4행). 만료된 행은 하루 1회 정리(Q-7). `email_tokens`는 가입·재설정당 1행.
-    - 외부 호출: 메일 발송(가입·재발송·재설정당 1통). Resend 무료 구간 내 운영 목표(ADR-011, 현재 한도는 계정 생성 시 확인). 요청 제한이 메일 폭탄·비용 폭주를 막는다.
+    - 외부 호출: 메일 발송(가입·재발송·재설정당 1통). 요청은 발송을 기다리지 않는다(메모리 발송 큐: 동시 4통, 대기 1000통 상한, 종료 시 최대 10초 대기). 발송 시간·실패가 응답 시간에 드러나면 재설정·재발송으로 가입 여부를 알 수 있기 때문이다. 비정상 종료 시 대기 중 메일은 유실될 수 있고(사용자 재발송), 유실 없는 발송이 필요해지면 Outbox로 옮긴다. Resend 무료 구간 내 운영 목표(ADR-011, 현재 한도는 계정 생성 시 확인). 요청 제한이 메일 폭탄·비용 폭주를 막는다.
     - 로그: 인증 실패 로그 증가분 소량.
 - 롤백 및 데이터 호환성: 마이그레이션 down은 새 테이블 drop과 `users`의 추가 컬럼 drop. 롤백 시 임시 Guard 코드도 함께 되돌려야 API를 쓸 수 있다(같은 PR이므로 revert 한 번).
 
@@ -130,8 +130,8 @@
 
 - 변경 파일/PR: 브랜치 `feature/auth-email-password`(커밋 6개, PR 미생성). `prisma/migrations/20261110000000_add_auth`, `apps/api/src/auth/**`(controller·service·session·access-token·repository·guard·throttler·cleanup·lib·dto), `apps/api/src/mail/**`, `common/mask-email.ts`, `config/env.ts`, `setup-app.ts`, `app.module.ts`, `packages/api-client`(재생성).
 - 실행 명령 및 실제 결과(2026-11-10, 로컬):
-  - `npm run verify` PASS(8/8). api 단위 99개 PASS.
-  - `npm run test:integration` PASS(54: auth 26, session 10, cleanup 2, bookmarks 14, health 2).
+  - `npm run verify` PASS(8/8). api 단위 105개 PASS(메일 발송 큐 6개 포함).
+  - `npm run test:integration` PASS(55: auth 27, session 10, cleanup 2, bookmarks 14, health 2). 메일 발송이 멈춰 있어도 재설정·재발송·가입이 202로 바로 응답하는 회귀 테스트 포함.
   - 동시성: 가입 10개 동시 → 계정 1개(AC-04), Refresh 20개 동시 → 회전 1회·묶음 미폐기(AC-12). 둘 다 요청이 모두 저장소에 도착한 뒤 함께 진행시켜 경합을 강제.
   - 변이 검사: 가입 `ON CONFLICT` 제거 → AC-04 3/3 실패, 회전 조건 `usedAt: null` 제거 → AC-12 3/3 실패. 복구 후 PASS.
   - 실제 서버(`node dist/main.js`, 포트 7799): `/health` up, signup 202 → 콘솔에 인증 링크 1건, login 200, `/api/me` 200(emailVerified false), refresh 200. 확인 후 테스트 계정 삭제.
@@ -140,4 +140,5 @@
   - 요청 제한은 메모리 저장: 재시작 시 초기화, 인스턴스별 카운트. 같은 IP(NAT) 뒤 사용자들은 IP 제한을 함께 쓴다(출시 전 재검토).
   - 로그아웃·재설정 후 Access Token은 최대 15분 유효(Q-3 수용).
   - Refresh 쿠키는 웹·API 같은 사이트 배포가 전제(D-12). Safari의 localhost Secure 쿠키 동작은 웹 작업에서 확인 필요.
+  - 재설정·재발송은 가입된 이메일일 때만 토큰 INSERT 1회가 더 있어 응답 시간 차이가 수 ms 남는다(메일 발송 대기 차이 수백 ms는 제거). 통계적 측정까지 막으려면 이후 재검토.
   - 실제 Resend 발송은 운영 키가 없어 미검증(단위 테스트로 요청 형태·타임아웃 신호·오류 처리만 확인).

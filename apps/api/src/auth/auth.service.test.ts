@@ -1,5 +1,5 @@
 import type { AuthRepository } from "./auth.repository.js";
-import { MemoryMailSender } from "../mail/memory-mail.sender.js";
+import type { MailDispatcher } from "../mail/mail.dispatcher.js";
 import { AuthService } from "./auth.service.js";
 import { hashPassword, verifyDummyPassword } from "./lib/password.js";
 import type { Session, SessionService } from "./session.service.js";
@@ -46,7 +46,7 @@ describe("AuthService.login", () => {
     const service = new AuthService(
       repo as unknown as AuthRepository,
       sessions as unknown as SessionService,
-      new MemoryMailSender(),
+      { enqueue: vi.fn() } as unknown as MailDispatcher,
     );
     return { service, repo, sessions };
   }

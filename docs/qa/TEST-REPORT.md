@@ -6,16 +6,18 @@ AI는 실행 시각, 커밋 SHA, 명령, 통과/실패, 미실행 사유, 잔여
 
 환경: macOS 로컬, Node 24, PostgreSQL 16(docker compose), `.env`의 `JWT_SECRET`.
 
-| 항목                           | 명령                                  | 결과                                                                      |
-| ------------------------------ | ------------------------------------- | ------------------------------------------------------------------------- |
-| 전체 게이트                    | `npm run verify`                      | PASS 8/8                                                                  |
-| api 단위                       | `npx vitest run`(apps/api)            | PASS 99                                                                   |
-| 통합(실제 DB)                  | `npm run test:integration`            | PASS 54 (auth 26, session 10, cleanup 2, bookmarks 14, health 2)          |
-| 동시 가입                      | AC-04, 10개 도착 후 일괄              | 계정 1개                                                                  |
-| 동시 Refresh                   | AC-12, 20개 도착 후 일괄              | 회전 1회, 묶음 미폐기                                                     |
-| 변이: 가입 `ON CONFLICT` 제거  | AC-04 3회                             | 3/3 실패 → 복구 후 PASS                                                   |
-| 변이: 회전 `usedAt: null` 제거 | AC-12 3회                             | 3/3 실패 → 복구 후 PASS                                                   |
-| 실제 서버 스모크               | `node dist/main.js`(PORT 7799) + curl | health up, signup 202, 콘솔 인증 링크 1건, login 200, me 200, refresh 200 |
+| 항목                           | 명령                                                 | 결과                                                                                |
+| ------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 전체 게이트                    | `npm run verify`                                     | PASS 8/8                                                                            |
+| api 단위                       | `npx vitest run`(apps/api)                           | PASS 105 (메일 발송 큐 6 포함)                                                      |
+| 통합(실제 DB)                  | `npm run test:integration`                           | PASS 55 (auth 27, session 10, cleanup 2, bookmarks 14, health 2)                    |
+| 동시 가입                      | AC-04, 10개 도착 후 일괄                             | 계정 1개                                                                            |
+| 동시 Refresh                   | AC-12, 20개 도착 후 일괄                             | 회전 1회, 묶음 미폐기                                                               |
+| 변이: 가입 `ON CONFLICT` 제거  | AC-04 3회                                            | 3/3 실패 → 복구 후 PASS                                                             |
+| 변이: 회전 `usedAt: null` 제거 | AC-12 3회                                            | 3/3 실패 → 복구 후 PASS                                                             |
+| 실제 서버 스모크               | `node dist/main.js`(PORT 7799) + curl                | health up, signup 202, 콘솔 인증 링크 1건, login 200, me 200, refresh 200           |
+| 메일 백그라운드 발송           | 발송을 멈춘 상태에서 재설정·재발송·가입(통합 테스트) | 모두 즉시 202                                                                       |
+| 실제 서버 종료 처리            | signup 직후 SIGTERM                                  | 콘솔 메일 출력 후 정상 종료, 오류 로그 없음. signup 0.09s, 없는 이메일 재설정 0.01s |
 
 미실행·제한:
 
