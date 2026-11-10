@@ -4,7 +4,12 @@
     "DATABASE_URL",
     "DATABASE_URL_TEST",
     "DB_POOL_MAX",
-    "PRISMA_TARGET"
+    "PRISMA_TARGET",
+    "JWT_SECRET",
+    "RESEND_API_KEY",
+    "MAIL_FROM",
+    "TRUST_PROXY_HOPS",
+    "WEB_ORIGIN"
   ],
   "tasks": {
     "build": {

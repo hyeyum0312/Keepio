@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | chore(api): 인증 의존성 추가와 JWT·메일·프록시 환경 변수 검증
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현의 첫 단계. 의존성과 시작 시 환경 변수 검증(AC-19)을 먼저 넣어 이후 커밋이 기댈 설정을 확정한다.
+- 변경: api 의존성 `argon2`·`@nestjs/jwt`·`@nestjs/throttler`·`@nestjs/schedule`·`cookie-parser`·`resend`(+`@types/cookie-parser`), 정확한 버전 고정. `loadEnv`에 `JWT_SECRET`(모든 환경 필수, 32바이트 이상, 기본값 없음), 운영 필수 `WEB_ORIGIN`·`RESEND_API_KEY`·`MAIL_FROM`, `TRUST_PROXY_HOPS`(0~10, 기본 0). CI job env에 테스트 전용 `JWT_SECRET`, turbo `globalPassThroughEnv`에 새 변수. `.env.example`·SETUP 환경 변수 표.
+- 영향: 로컬 `.env`에 `JWT_SECRET`이 없으면 api 시작·통합 테스트·openapi 생성이 실패한다(`openssl rand -base64 48`로 추가). 아직 코드에서 새 의존성을 쓰지 않는다. `argon2`는 install script가 npm 정책으로 막혔지만 패키지의 prebuild(darwin-arm64·linux-x64 포함)로 해시·검증 동작을 확인했다.
+- 검증: `JWT_SECRET=<임시값> npm run verify` PASS(8/8). `JWT_SECRET=<임시값> npm run test:integration` PASS. api 단위 env·guard 20개 PASS.
+- 주의/롤백: revert로 롤백. 데이터 영향 없음.
+
 ## 2026-11-10 | docs(auth): FEAT-003 이메일/비밀번호 인증 명세와 로그인 방식 결정 (ADR-011)
 
 - Feature: FEAT-003

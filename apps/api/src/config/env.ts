@@ -2,6 +2,8 @@ const NODE_ENVS = ["development", "test", "production"] as const;
 const DEFAULT_PORT = 7711;
 const DEFAULT_DB_POOL_MAX = 10;
 const MAX_DB_POOL = 100;
+const MIN_JWT_SECRET_BYTES = 32;
+const MAX_TRUST_PROXY_HOPS = 10;
 
 export type Env = {
   nodeEnv: (typeof NODE_ENVS)[number];
@@ -9,6 +11,12 @@ export type Env = {
   databaseUrl: string;
   dbPoolMax: number;
   webOrigin?: string;
+  jwtSecret: string;
+  // 운영에서만 필수. 개발·테스트는 실제 메일을 보내지 않는다(FEAT-003)
+  resendApiKey?: string;
+  mailFrom?: string;
+  // 앞단 프록시 개수. X-Forwarded-For를 이만큼만 믿는다(0이면 믿지 않음)
+  trustProxyHops: number;
 };
 
 // 시작 시 한 번 검증하고 실패하면 바로 종료한다. 메시지에 값은 넣지 않는다(비밀값 노출 방지)
@@ -43,6 +51,42 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     problems.push("WEB_ORIGIN must be an http(s) URL");
   }
 
+  const isProduction = nodeEnv === "production";
+  // 메일 링크와 쿠키 요청의 Origin 검사에 쓴다
+  if (isProduction && !webOrigin) {
+    problems.push("WEB_ORIGIN is required in production");
+  }
+
+  // 기본값을 두지 않는다. 코드의 기본값이 운영까지 따라가는 사고를 막는다
+  const jwtSecret = source.JWT_SECRET ?? "";
+  if (Buffer.byteLength(jwtSecret, "utf8") < MIN_JWT_SECRET_BYTES) {
+    problems.push(`JWT_SECRET must be at least ${MIN_JWT_SECRET_BYTES} bytes`);
+  }
+
+  const resendApiKey = source.RESEND_API_KEY || undefined;
+  if (isProduction && !resendApiKey) {
+    problems.push("RESEND_API_KEY is required in production");
+  }
+
+  const mailFrom = source.MAIL_FROM || undefined;
+  if (mailFrom && !mailFrom.includes("@")) {
+    problems.push("MAIL_FROM must contain an email address");
+  } else if (isProduction && !mailFrom) {
+    problems.push("MAIL_FROM is required in production");
+  }
+
+  const trustProxyHops = parseIntInRange(
+    source.TRUST_PROXY_HOPS,
+    0,
+    0,
+    MAX_TRUST_PROXY_HOPS,
+  );
+  if (trustProxyHops === undefined) {
+    problems.push(
+      `TRUST_PROXY_HOPS must be an integer 0-${MAX_TRUST_PROXY_HOPS}`,
+    );
+  }
+
   if (problems.length > 0) {
     throw new Error(`Invalid environment:\n- ${problems.join("\n- ")}`);
   }
@@ -52,6 +96,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     databaseUrl,
     dbPoolMax: dbPoolMax!,
     webOrigin,
+    jwtSecret,
+    resendApiKey,
+    mailFrom,
+    trustProxyHops: trustProxyHops!,
   };
 }
 

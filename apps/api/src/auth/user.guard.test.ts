@@ -20,6 +20,12 @@ function guardIn(nodeEnv: string, userExists = true) {
   const repo = { userExists: vi.fn().mockResolvedValue(userExists) };
   vi.stubEnv("NODE_ENV", nodeEnv);
   vi.stubEnv("DATABASE_URL", BASE_ENV.DATABASE_URL);
+  vi.stubEnv("JWT_SECRET", "a".repeat(32));
+  if (nodeEnv === "production") {
+    vi.stubEnv("WEB_ORIGIN", "https://keepio.example");
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("MAIL_FROM", "no-reply@keepio.example");
+  }
   const guard = new UserGuard(repo as unknown as AuthRepository);
   return { guard, repo };
 }
