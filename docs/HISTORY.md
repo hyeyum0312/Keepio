@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(feature): FEAT-002 링크 목록·삭제·복구 명세 확정, FEAT-001 상태 정정
+
+- Feature: FEAT-002, FEAT-001
+- 목적: 인증 작업 전에 보관해 둔 FEAT-002 Draft를 되살려 현재 구조(실제 JWT 인증)에 맞추고 남은 결정을 확정한다.
+- 변경: `bookmark-list-delete.md` Approved — 휴지통 목록 포함, 페이지 기본 20·최대 50, 오류 문구 2개, 최소 웹 화면 포함(저장·목록·더 보기·삭제·휴지통 복구, AC-09~13 추가), 인증 참조를 D-11에서 FEAT-003으로, AC-07에서 FEAT-003 AC-17 검증 마무리. Feature 목록에 FEAT-002, FEAT-001 Draft → Implemented 정정(구현 PR #23 이후 갱신 누락).
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-10 | docs(feature): FEAT-004 구현 완료 기록과 실제 Google 로그인 확인
 
 - Feature: FEAT-004
