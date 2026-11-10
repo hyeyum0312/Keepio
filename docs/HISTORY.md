@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | docs(auth): FEAT-003 이메일/비밀번호 인증 명세와 로그인 방식 결정 (ADR-011)
+
+- Feature: FEAT-003
+- 목적: 사용자가 이메일/비밀번호·소셜·패스키 로그인을 모두 원해 D-04(로그인 제공자/토큰 저장)를 확정하고, 공통 세션 기반이 되는 첫 기능을 명세한다.
+- 변경: `auth-email-password.md` Approved(AC 19개, API 9개, 오류 문구, 테이블 3개 추가, 결정 Q-1~Q-7). ADR-011 accepted(직접 조립: JWT Access 15분 + 해시 저장·회전 Refresh 쿠키, Google·Kakao·패스키 순서, Apple은 iOS 출시 시, 메일 Resend). OPEN-QUESTIONS D-04 결정(모바일 저장소만 PoC 후). spec 03 인증 및 보안, spec 04 테이블·API 목록. Feature 목록에 FEAT-003.
+- 영향: 문서만. 이후 FEAT-003 구현이 이 명세를 기준으로 한다. 쿠키 전송을 위해 웹·API 같은 사이트 배포가 전제가 된다(D-12 호스팅 결정 시 반영).
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백. FEAT-002 Draft는 별도 브랜치에 있어 번호 FEAT-002를 비워 둔다.
+
 ## 2026-10-30 | feat(bookmarks): 링크 저장 API — URL 정규화와 동시 저장 중복 방지
 
 - Feature: FEAT-001

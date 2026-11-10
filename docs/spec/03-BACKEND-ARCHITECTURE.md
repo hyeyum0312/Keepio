@@ -6,17 +6,17 @@
 
 ## 추천 스택
 
-| 영역             | 기술                                              |
-| ---------------- | ------------------------------------------------- |
-| Runtime/Language | Node.js LTS / TypeScript                          |
-| API              | NestJS, REST, OpenAPI                             |
-| DB/ORM           | PostgreSQL / Prisma                               |
-| Queue            | Redis + BullMQ (비동기 작업 단계에서 도입)        |
-| 인증             | NestJS 인증 모듈, JWT + 안전한 Refresh Token 회전 |
-| Validation       | DTO + class-validator                             |
-| 테스트           | Vitest(+SWC), Supertest, DB 통합 테스트           |
-| 인프라           | Docker, GitHub Actions, 관리형 DB/스토리지        |
-| 웹/모바일        | Next.js / Expo + React Native WebView             |
+| 영역             | 기술                                                        |
+| ---------------- | ----------------------------------------------------------- |
+| Runtime/Language | Node.js LTS / TypeScript                                    |
+| API              | NestJS, REST, OpenAPI                                       |
+| DB/ORM           | PostgreSQL / Prisma                                         |
+| Queue            | Redis + BullMQ (비동기 작업 단계에서 도입)                  |
+| 인증             | NestJS 인증 모듈, JWT + 안전한 Refresh Token 회전 (ADR-011) |
+| Validation       | DTO + class-validator                                       |
+| 테스트           | Vitest(+SWC), Supertest, DB 통합 테스트                     |
+| 인프라           | Docker, GitHub Actions, 관리형 DB/스토리지                  |
+| 웹/모바일        | Next.js / Expo + React Native WebView                       |
 
 ## 시스템 구조
 
@@ -64,8 +64,12 @@ Public Web Page ───┘           │
 
 ## 인증 및 보안
 
-- 비밀번호 저장 시 검증된 해시 알고리즘/라이브러리 사용.
-- Refresh Token은 안전하게 보관·회전·폐기하고 탈취 재사용 대응 정책 정의.
+- 로그인 수단: 이메일/비밀번호, 소셜(Google·Kakao, Apple은 iOS 출시 시), 패스키(로그인한 계정에 추가 등록). 수단과 무관하게 세션 발급은 Auth 모듈 하나가 맡는다(ADR-011).
+- 비밀번호는 argon2id 해시로 저장. 이메일 인증·비밀번호 재설정 토큰은 1회용이며 해시로 저장.
+- Access Token: JWT 15분, 서명만 검증(요청당 DB 조회 없음). 웹은 메모리에 보관. 로그아웃 후에도 만료까지 유효한 점은 수용하고, 민감한 API에는 사용자별 세션 버전 검사를 추가한다.
+- Refresh Token: 무작위 값을 해시로 저장, `HttpOnly; Secure; SameSite=Lax` 쿠키, 14일 절대 만료, 사용할 때마다 회전. 유예 시간 이후 재사용되면 같은 로그인의 토큰 묶음 전체를 폐기한다. 만료 행은 하루 1회 정리.
+- 쿠키 전송을 위해 웹과 API는 같은 사이트로 배포한다(Next.js 프록시 또는 같은 상위 도메인). 모바일 앱 토큰 저장소는 Phase 0 PoC 후 결정.
+- 로그인·가입·메일 발송은 IP·이메일별 요청 제한. 응답과 응답 시간으로 가입 여부를 노출하지 않는다.
 - WebView ↔ 네이티브 인증 브리지 및 OS별 저장소 동작을 PoC로 검증.
 - 객체 스토리지 접근 정책, 공개/비공개 파일 구분.
 - 외부 URL은 사설·루프백·링크로컬 주소, DNS 재바인딩, 리다이렉트, 응답 크기·타임아웃 제한 처리.
