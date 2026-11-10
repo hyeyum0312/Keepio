@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(web): 로그인·가입·이메일 인증·비밀번호 재설정 화면과 토큰 처리
+
+- Feature: FEAT-006
+- 목적: FEAT-003 이후 북마크 API가 Access Token 없이 401이라 웹이 실제로 로그인하고 토큰을 다뤄야 한다.
+- 변경: `features/auth` — Access Token 메모리 저장소(`session-store`, 상태 checking/authenticated/anonymous), `refreshSession`(진행 중 Promise 공유로 동시 refresh 1회), `authFetch`(토큰 첨부, 401 UNAUTHENTICATED면 refresh 1회 후 원 요청 1회 재시도, `/api/auth/*`·다른 401 코드 제외), `useOneTimeUrlToken`(메일 링크 토큰을 읽고 즉시 `history.replaceState`로 제거), 화면(로그인·가입·인증·비밀번호 찾기·재설정·계정/로그아웃·RequireAuth·AuthBootstrap, 기능 위주 최소 UI). 라우트 5개 + 홈. `api-client`의 `apiFetch`에 fetch 주입 지점(`configureApiClient({ fetch })`), `providers`가 `authFetch`·`AuthBootstrap` 연결. `shared/lib/network-error`(ADR-009 서버 무응답 고정 문구).
+- 영향: 모든 API 호출이 `authFetch`를 거친다(토큰이 없으면 이전과 같은 요청). 앱 시작 시 refresh 1회. 오류 문구는 서버 message 그대로.
+- 검증: web 단위·컴포넌트 23개 PASS(authFetch 8: 첨부·재시도 1회·무한 반복 없음·인증 API 제외·동시 5개에 refresh 1회·실패 시 초기화 / 화면 13: 서버 문구 alert·aria 연결·제출 중 비활성·StrictMode에서 인증 요청 1회·주소 토큰 제거·보호 화면 로딩/리다이렉트·로그아웃). `npm run verify` PASS(8/8). `npm run build` PASS(라우트 7개 정적). 실제 API에 웹 출처 CORS 사전 요청 확인(Allow-Origin·Credentials·authorization 헤더). 빌드에서 `useSyncExternalStore`가 서버 컴포넌트 경로에 섞인 것을 발견해 `"use client"` 훅 파일로 분리.
+- 주의/롤백: revert로 롤백. 실제 브라우저 흐름(쿠키·새로고침 유지)은 미검증 — 수동 확인 후 Feature 문서 Implemented. 다른 탭 로그아웃은 즉시 반영되지 않는다(비범위).
+
 ## 2026-11-10 | docs(feature): FEAT-006 웹 로그인 화면과 토큰 처리 명세
 
 - Feature: FEAT-006
