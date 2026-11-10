@@ -5,6 +5,7 @@ export { AuthBootstrap } from "./ui/AuthBootstrap";
 export { AuthSwitch } from "./ui/AuthSwitch";
 export { ForgotPasswordForm } from "./ui/ForgotPasswordForm";
 export { LoginForm } from "./ui/LoginForm";
+export { OAuthCallback } from "./ui/OAuthCallback";
 export { RequireAuth } from "./ui/RequireAuth";
 export { ResetPasswordForm } from "./ui/ResetPasswordForm";
 export { SignupForm } from "./ui/SignupForm";

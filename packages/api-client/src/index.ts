@@ -1,3 +1,3 @@
-export { configureApiClient } from "./api-fetch";
+export { apiUrl, configureApiClient } from "./api-fetch";
 export * from "./generated";
 export * from "./generated/model";

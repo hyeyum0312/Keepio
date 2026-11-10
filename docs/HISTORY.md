@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | feat(auth): Google·Kakao 소셜 로그인과 계정 연결
+
+- Feature: FEAT-004
+- 목적: 비밀번호 없이 Google·Kakao로 가입·로그인하고, 같은 이메일의 기존 계정과 안전하게 이어지게 한다.
+- 변경: API — `OAuthGateway`(제공자 통신 추상화) + `OpenIdOAuthGateway`(`openid-client` 6.8.8: discovery·PKCE S256·ID 토큰 검증, timeout 5초), `OAuthService`·`OAuthController`(`/providers`, `/:provider/start`, `/:provider/callback` — 성공 `/auth/callback`, 취소 `/login`, 실패 `/login?oauth=failed`), state·nonce·PKCE verifier를 담는 HMAC 서명 HttpOnly 쿠키(10분, JWT_SECRET에서 용도 분리 키), `AuthRepository.resolveOAuthUser`(한 트랜잭션: 연결 찾기 → 인증된 이메일로 연결(인증 안 된 기존 계정이면 비밀번호 삭제·세션 폐기·인증 기록) → 새 계정, UNIQUE 충돌 시 1회 재시도). `oauth_accounts` 마이그레이션(UNIQUE provider+subject, subject 길이 CHECK). 환경 변수 `GOOGLE_*`·`KAKAO_*`(둘 다 있어야 켜짐)·`API_ORIGIN`. 웹 — 로그인·가입 화면 소셜 버튼(서버 목록 기준), `/auth/callback`(refresh 1회 후 홈), `/login?oauth=failed` 고정 문구(ADR-012, 주소 문구 미사용). `api-client`에 `apiUrl`. `webOrigin` 헬퍼로 AuthService와 공유. 의존성: `openid-client` 6.8.8, `jose`는 루트 overrides로 6.2.13 고정(6.2.15+는 공개 14일 전).
+- 영향: 새 테이블 1개(소셜 계정당 1행), 로그인 1회당 제공자 token 호출 1회(+ 첫 로그인 discovery·JWKS). 로그인·가입 화면이 진입 시 `/providers` 1회 호출. 인증 안 된 기존 계정과 연결되면 그 계정의 비밀번호가 사라진다(의도, AC-08).
+- 검증: api 단위 118 PASS(흐름 쿠키 9, 환경 변수 소셜 3 포함). `npm run test:integration` PASS(70, 소셜 15 — 시작 쿠키·state·nonce·PKCE 위조·제공자 혼용·취소·계정 결정 4가지·동시 콜백 10개 → 연결 1·계정 1). 변이 검사: UNIQUE 충돌 재시도 제거 → AC-10 3/3 실패, AC-08 비밀번호 삭제 제거 → AC-08 실패, 복구 후 PASS. web 31 PASS(버튼·콜백·실패 문구, 기존 로그인 테스트가 요청 순서를 가정하던 것을 경로 기준으로 수정). `npm run verify` PASS(8/8). `npm run build` PASS(`/auth/callback` 포함). 실제 Google 로그인은 미검증(다음 단계 수동).
+- 주의/롤백: 코드는 revert. DB는 마이그레이션 끝 롤백 블록(`oauth_accounts`·enum drop — 소셜 전용 계정은 로그인 수단을 잃는다). `openid-client`를 올릴 때 `jose` overrides를 함께 재검토. Kakao의 `email_verified` 제공 여부는 실제 키로 확인 전(없으면 Kakao는 항상 이메일 없는 새 계정).
+
 ## 2026-11-10 | docs(auth): FEAT-004 소셜 로그인 명세와 리디렉션 실패 문구 예외 (ADR-012)
 
 - Feature: FEAT-004

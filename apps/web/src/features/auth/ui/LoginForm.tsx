@@ -14,6 +14,8 @@ import {
   SubmitButton,
   TextField,
 } from "./FormParts";
+import { OAuthFailureAlert } from "./OAuthFailureAlert";
+import { SocialLoginButtons } from "./SocialLoginButtons";
 
 // FEAT-006 AC-09
 export function LoginForm() {
@@ -50,6 +52,7 @@ export function LoginForm() {
 
   return (
     <AuthLayout title="로그인">
+      <OAuthFailureAlert />
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <TextField
           label="이메일"
@@ -68,6 +71,7 @@ export function LoginForm() {
         <FormError message={error} />
         <SubmitButton pending={login.isPending}>로그인</SubmitButton>
       </form>
+      <SocialLoginButtons />
       <nav className="flex justify-between text-sm">
         <Link href="/signup">가입하기</Link>
         <Link href="/forgot-password">비밀번호를 잊었어요</Link>

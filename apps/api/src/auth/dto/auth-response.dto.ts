@@ -19,3 +19,9 @@ export class MeResponse {
   @ApiProperty()
   emailVerified!: boolean;
 }
+
+// FEAT-004 AC-05: 버튼 표시의 권위(키가 설정된 제공자만)
+export class OAuthProvidersResponse {
+  @ApiProperty({ enum: ["google", "kakao"], isArray: true })
+  providers!: ("google" | "kakao")[];
+}
