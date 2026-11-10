@@ -116,13 +116,17 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 
 ## 6. 환경 변수 (`.env`)
 
-| 변수                | 의미                                | 로컬 기본값                 |
-| ------------------- | ----------------------------------- | --------------------------- |
-| `DATABASE_URL`      | 개발 DB 주소                        | `...@localhost:7712/keepio` |
-| `DATABASE_URL_TEST` | 통합 테스트 DB 주소(개발 DB와 분리) | `.../keepio_test`           |
-| `DB_POOL_MAX`       | DB 커넥션 수 상한                   | `10`                        |
-| `PORT`              | api 포트                            | `7711`                      |
-| `WEB_ORIGIN`        | CORS 허용 web 주소(없으면 CORS 끔)  | `http://localhost:7710`     |
+| 변수                | 의미                                                                                    | 로컬 기본값                      |
+| ------------------- | --------------------------------------------------------------------------------------- | -------------------------------- |
+| `DATABASE_URL`      | 개발 DB 주소                                                                            | `...@localhost:7712/keepio`      |
+| `DATABASE_URL_TEST` | 통합 테스트 DB 주소(개발 DB와 분리)                                                     | `.../keepio_test`                |
+| `DB_POOL_MAX`       | DB 커넥션 수 상한                                                                       | `10`                             |
+| `PORT`              | api 포트                                                                                | `7711`                           |
+| `WEB_ORIGIN`        | CORS 허용 web 주소(없으면 CORS 끔). 메일 링크·쿠키 요청 Origin 검사에도 쓴다. 운영 필수 | `http://localhost:7710`          |
+| `JWT_SECRET`        | Access Token 서명 키(32바이트 이상). 모든 환경 필수, 기본값 없음                        | `openssl rand -base64 48`로 생성 |
+| `RESEND_API_KEY`    | 메일 발송 키. 운영 필수. 개발은 링크를 콘솔에 출력                                      | (비움)                           |
+| `MAIL_FROM`         | 발신 주소. 운영 필수                                                                    | (비움)                           |
+| `TRUST_PROXY_HOPS`  | 믿을 앞단 프록시 수(요청 제한의 IP 판별). 프록시 뒤에서만 1 이상                        | `0`                              |
 
 `.env.example`의 비밀번호는 로컬 컨테이너 전용이다. 실제 비밀값은 `.env`에도 커밋하지 않고, 운영은 배포 환경의 환경 변수로 넣는다.
 
@@ -145,7 +149,7 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 
 - 통합 테스트 전에 테스트 DB에 마이그레이션을 적용한다: `npm run db:migrate:test`.
 - `dev`·`stg`·`prod`로 PR을 열면 `.github/workflows/ci.yml`이 깨끗한 환경에서 PR 경로·HISTORY 검사 → `npm ci → verify → db:migrate:test → test:integration → build`를 바뀐 패키지 범위로 실행한다. CI가 최종 기준이고, 통과해야 merge된다. 브랜치·PR 규칙: `docs/standards/BRANCHING.md`.
-- turbo는 선언하지 않은 환경 변수를 작업에 넘기지 않는다. DB 관련 새 환경 변수를 만들면 `turbo.json`의 `globalPassThroughEnv`에도 추가한다.
+- turbo는 선언하지 않은 환경 변수를 작업에 넘기지 않는다. api가 읽는 새 환경 변수를 만들면 `turbo.json`의 `globalPassThroughEnv`에도 추가한다.
 
 ## 9. 문제 해결
 

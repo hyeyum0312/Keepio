@@ -13,7 +13,10 @@
 
 | 테이블               | 주요 필드                                                                                                   |
 | -------------------- | ----------------------------------------------------------------------------------------------------------- |
-| users                | id, email, plan_id                                                                                          |
+| users                | id, email(NULL 허용, 부분 UNIQUE), email_verified_at, plan_id                                               |
+| password_credentials | user_id, password_hash                                                                                      |
+| refresh_tokens       | id, user_id, family_id, token_hash, expires_at, used_at, revoked_at                                         |
+| email_tokens         | id, user_id, purpose, token_hash, expires_at, used_at                                                       |
 | bookmarks            | id, user_id, original_url, normalized_url, title, description, thumbnail, classification_status, deleted_at |
 | categories           | id, user_id, name, normalized_name                                                                          |
 | category_aliases     | id, category_id, alias                                                                                      |
@@ -56,6 +59,13 @@
 
 | Method       | Path                            | 기능                   |
 | ------------ | ------------------------------- | ---------------------- |
+| POST         | /api/auth/signup                | 이메일 가입            |
+| POST         | /api/auth/email-verification    | 이메일 인증(+/resend)  |
+| POST         | /api/auth/login                 | 로그인                 |
+| POST         | /api/auth/refresh               | 토큰 회전              |
+| POST         | /api/auth/logout                | 로그아웃               |
+| POST         | /api/auth/password-reset        | 재설정 요청(+/confirm) |
+| GET          | /api/me                         | 현재 사용자            |
 | POST         | /api/bookmarks                  | 링크 저장 및 중복 반환 |
 | GET          | /api/bookmarks                  | 검색·필터·페이지네이션 |
 | PATCH        | /api/bookmarks/:id              | 링크 수정              |

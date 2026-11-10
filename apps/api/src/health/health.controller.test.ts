@@ -15,6 +15,9 @@ describe("GET /health", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    // AppModule 시작 시 JwtModule이 환경 변수를 검증한다. 단위 테스트는 .env를 읽지 않는다
+    vi.stubEnv("DATABASE_URL", "postgresql://u:p@localhost:5432/db");
+    vi.stubEnv("JWT_SECRET", "a".repeat(32));
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
       .useValue(fakePrisma)
@@ -26,6 +29,7 @@ describe("GET /health", () => {
 
   afterAll(async () => {
     await app.close();
+    vi.unstubAllEnvs();
   });
 
   it("DB에 연결되면 200과 db up을 반환한다", async () => {

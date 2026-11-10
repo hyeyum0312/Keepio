@@ -37,6 +37,8 @@ jobs:
       DATABASE_URL_TEST: postgresql://keepio:test_only@localhost:5432/keepio_test
       # web 운영 빌드는 API 주소가 없으면 실패한다(검증용 값)
       NEXT_PUBLIC_API_BASE_URL: http://localhost:7711
+      # api는 모든 환경에서 JWT_SECRET이 필수다(FEAT-003). 테스트 전용 값이며 비밀이 아니다
+      JWT_SECRET: ci-only-jwt-secret-not-used-anywhere-else
     steps:
       - uses: actions/checkout@v7
         with:

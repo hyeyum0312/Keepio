@@ -2,6 +2,29 @@
 
 AI는 실행 시각, 커밋 SHA, 명령, 통과/실패, 미실행 사유, 잔여 위험을 이 파일에 기록한다. 성공을 추정해서 작성하지 않는다. 최신 기록을 위에 둔다.
 
+## 2026-11-10 | FEAT-003 이메일/비밀번호 인증 (브랜치 `feature/auth-email-password`)
+
+환경: macOS 로컬, Node 24, PostgreSQL 16(docker compose), `.env`의 `JWT_SECRET`.
+
+| 항목                           | 명령                                                 | 결과                                                                                |
+| ------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 전체 게이트                    | `npm run verify`                                     | PASS 8/8                                                                            |
+| api 단위                       | `npx vitest run`(apps/api)                           | PASS 105 (메일 발송 큐 6 포함)                                                      |
+| 통합(실제 DB)                  | `npm run test:integration`                           | PASS 55 (auth 27, session 10, cleanup 2, bookmarks 14, health 2)                    |
+| 동시 가입                      | AC-04, 10개 도착 후 일괄                             | 계정 1개                                                                            |
+| 동시 Refresh                   | AC-12, 20개 도착 후 일괄                             | 회전 1회, 묶음 미폐기                                                               |
+| 변이: 가입 `ON CONFLICT` 제거  | AC-04 3회                                            | 3/3 실패 → 복구 후 PASS                                                             |
+| 변이: 회전 `usedAt: null` 제거 | AC-12 3회                                            | 3/3 실패 → 복구 후 PASS                                                             |
+| 실제 서버 스모크               | `node dist/main.js`(PORT 7799) + curl                | health up, signup 202, 콘솔 인증 링크 1건, login 200, me 200, refresh 200           |
+| 메일 백그라운드 발송           | 발송을 멈춘 상태에서 재설정·재발송·가입(통합 테스트) | 모두 즉시 202                                                                       |
+| 실제 서버 종료 처리            | signup 직후 SIGTERM                                  | 콘솔 메일 출력 후 정상 종료, 오류 로그 없음. signup 0.09s, 없는 이메일 재설정 0.01s |
+
+미실행·제한:
+
+- 실제 Resend 발송: 운영 키 없음. `ResendMailSender`는 단위 테스트(요청 형태·AbortSignal·오류 시 주소 비노출)만.
+- 웹 화면·E2E: 범위 밖(Q-6).
+- CI 실행: push 전이라 미실행.
+
 ## 2026-10-30 | 세팅 게이트 검증 (기준 dev `a004a6a`)
 
 목적: 기능 구현 전에 각 게이트가 실제 위반을 막는지 확인한다. 위반은 버릴 브랜치·scratch worktree에서만 넣었고 push하지 않았다. 찾은 공백(G1~G7)은 같은 PR에서 고치고, 고친 뒤 같은 케이스로 다시 확인했다.

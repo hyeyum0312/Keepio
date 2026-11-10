@@ -5,6 +5,78 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-10 | fix(auth): 메일을 백그라운드로 보내 응답 시간으로 가입 여부가 드러나지 않게
+
+- Feature: FEAT-003
+- 목적: 비밀번호 재설정 요청·인증 메일 재발송이 가입된 이메일일 때만 메일 발송을 기다려 응답이 수백 ms 느렸다. 응답 본문은 같아도 시간으로 가입 여부를 알 수 있었다(AC-03·AC-14 취지 위반, 리뷰 중 발견).
+- 변경: `MailDispatcher`(메모리 큐, 동시 발송 4, 대기 1000 상한 초과 시 버리고 마스킹 로그, 실패는 로그만, 종료 시 최대 10초 drain). `AuthService`는 `enqueue`만 하고 기다리지 않는다. `MailModule`이 `MailDispatcher`를 내보낸다. 통합 테스트는 큐를 비운 뒤 메일을 확인하고, 발송이 멈춘 상태에서도 202가 바로 오는 회귀 테스트 추가.
+- 영향: 가입·재발송·재설정 응답이 메일 발송 시간과 무관해졌다. 비정상 종료 시 대기 중 메일이 유실될 수 있다(사용자 재발송, Outbox 도입 시 이전). 재설정·재발송의 남은 차이는 가입된 이메일의 토큰 INSERT 1회(수 ms).
+- 검증: api 단위 105개 PASS(발송 큐 6). `npm run test:integration` PASS(55). 실제 서버: signup 202(0.09s), 없는 이메일 재설정 202(0.01s), SIGTERM 시 콘솔 메일 출력 후 정상 종료·오류 없음, 테스트 계정 삭제. `npm run verify` PASS(8/8).
+- 주의/롤백: revert로 롤백(동기 발송으로 돌아가며 시간 차 노출이 다시 생긴다). 데이터 영향 없음.
+
+## 2026-11-10 | docs(feature): Feature 목록의 FEAT-003 상태를 Implemented로
+
+- Feature: FEAT-003
+- 목적: 직전 커밋에서 목록 표 갱신이 빠졌다(표 정렬로 치환 패턴이 맞지 않음).
+- 변경: `docs/features/README.md` FEAT-003 Status Approved → Implemented.
+- 영향: 문서만.
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-10 | feat(auth): 만료 토큰 정리 작업, argon2 OWASP 권장 설정, FEAT-003 완료
+
+- Feature: FEAT-003
+- 목적: FEAT-003 마지막 단계. 토큰 행이 계속 쌓이지 않게 정리하고, 작은 서버의 메모리 부족 장애를 막고, 검증 결과를 기록해 기능을 완료한다.
+- 변경: `AuthCleanupTask`(매일 03:00 KST, 만료 후 1일 지난 `refresh_tokens`·`email_tokens`를 1000행 단위로 반복 삭제, 실패는 로그만) + `ScheduleModule`. 저장소에 묶음 삭제 raw SQL(`DELETE … WHERE id IN (SELECT … LIMIT n)`, Prisma `deleteMany`는 개수 제한 불가). argon2id를 OWASP 권장 m=19MiB·t=2·p=1로(사용자 결정). Feature 문서 Implemented(AC 체크, `INVALID_ORIGIN` 승인, 구현 결과), Feature 목록, QA 보고서.
+- 영향: 비밀번호 해시 1회 메모리 64MiB → 19MiB(동시 4개 기준 약 256MiB → 76MiB). 기존 64MiB 해시도 그대로 검증된다(파라미터가 해시에 저장). 정리 작업은 하루 1회 DB 삭제 쿼리만 추가.
+- 검증: `npm run verify` PASS(8/8). api 단위 99개 PASS. `npm run test:integration` PASS(54, cleanup 2 포함 — 기준 시각 경계·묶음 반복 삭제). 빌드한 서버를 띄워 health·signup·콘솔 인증 링크·login·me·refresh 확인 후 테스트 계정 삭제.
+- 주의/롤백: revert로 롤백. 데이터 영향 없음(정리 작업은 만료 후 1일 지난 행만 지운다). 여러 인스턴스에서 동시에 돌아도 결과는 같다.
+
+## 2026-11-10 | feat(auth): 가입·이메일 인증·로그인·refresh·로그아웃·비밀번호 재설정 API와 요청 제한
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현 4단계. 이메일/비밀번호 인증의 공개 API를 연다.
+- 변경: `AuthController`(signup·email-verification(+resend)·login·refresh·logout·password-reset(+confirm)), `MeController`(`GET /api/me`). `AuthService` — 가입은 항상 해시 1회·메일 1통(새 가입이면 인증, 기존이면 "이미 가입" 안내), 로그인은 없는 계정에도 더미 검증, 재설정은 토큰 사용·비밀번호 교체·이메일 인증·전체 Refresh 폐기를 한 트랜잭션. `AuthRepository` — 가입 `INSERT … ON CONFLICT (email) WHERE email IS NOT NULL DO NOTHING`(raw), 메일 토큰 조건부 사용 처리. 메일 본문(`auth-mail.ts`), 발송 실패는 마스킹 로그만. Refresh 쿠키(`keepio_refresh`, HttpOnly·Secure·SameSite=Lax·Path=/api/auth), refresh·logout의 Origin 검사(403 `INVALID_ORIGIN`, 명세에 추가·승인 대기). 요청 제한 `AuthThrottlerGuard`(IP 분당 10, 로그인 이메일 15분 5, 메일 이메일 시간당 3을 라우트 합산, 429 `TOO_MANY_ATTEMPTS`), refresh·logout은 제외. `setupApp`에 cookie-parser·`trust proxy`(TRUST_PROXY_HOPS). OpenAPI·클라이언트 재생성.
+- 영향: 새 공개 API 9개. 메일 발송은 운영에서만 실제 호출(개발 콘솔, 테스트 메모리). 요청 제한은 메모리라 재시작 시 초기화되고 서버를 늘리면 인스턴스별로 센다. 같은 NAT(사무실 등) 뒤 사용자는 IP 제한(분당 10회 로그인)을 함께 쓴다.
+- 검증: api 단위 PASS. `npm run test:integration` PASS(52: auth 26, session 10, bookmarks 14, health 2). AC-04 가입 10개 동시(도착 후 일괄) 계정 1개. 변이 검사: 가입 `ON CONFLICT` 제거 시 AC-04 3회 모두 실패, 복구 후 PASS. `npm run verify` PASS(8/8).
+- 주의/롤백: revert로 롤백. 데이터는 이 커밋에서 스키마 변경 없음. argon2 기본 파라미터(64MiB)라 동시 해시 수(libuv 스레드 4)만큼 메모리를 쓴다(최대 약 256MiB).
+
+## 2026-11-10 | feat(auth): JWT Guard로 교체하고 Refresh Token 회전·재사용 감지 세션 서비스 추가
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현 3단계. D-11 임시 Guard(개발용 헤더)를 실제 인증으로 바꾸고, 로그인 수단과 무관한 세션 발급·회전·폐기를 만든다.
+- 변경: `AccessTokenService`(HS256 고정, iss·aud·15분, sub는 UUID만). `UserGuard`는 Bearer JWT 서명만 검증(DB 조회 없음), `x-dev-user-id` 제거. `SessionService` — issue(새 묶음), rotate(조건부 `updateManyAndReturn` + 새 토큰 INSERT를 저장소 메서드 안 트랜잭션으로, 만료 시각 승계), 유예 10초 후 재사용 시 묶음 폐기, revoke(멱등). `AuthModule`에 `JwtModule`. OpenAPI bearer 보안 스키마와 북마크 `@ApiBearerAuth()`. BACKEND.md(트랜잭션은 저장소 메서드 안에서만, Guard·테스트 토큰 규칙), D-11 종료.
+- 영향: 북마크 API가 Access Token 없이는 401. 웹은 아직 토큰을 보내지 않는다(웹 화면·토큰 처리는 별도 작업). 생성 클라이언트 코드는 변경 없음(openapi.json만). `AppModule`을 띄우는 단위 테스트는 `JWT_SECRET`이 필요하다(health 테스트에 stub).
+- 검증: api 단위 93개 PASS. `npm run test:integration` PASS(26: bookmarks 14, session 10, health 2). AC-12 20개 동시 회전(도착 후 일괄 진행) 승자 1·묶음 미폐기. 변이 검사: 회전 조건 `usedAt: null` 제거 시 AC-12 3회 모두 실패, 복구 후 PASS. `npm run verify` PASS(8/8).
+- 주의/롤백: revert로 롤백(임시 Guard 복원). 데이터 영향 없음. 로그아웃 후 Access Token은 최대 15분 유효(Q-3 수용). AC-17은 현재 북마크 API가 저장뿐이라 저장 경로로만 검증했다.
+
+## 2026-11-10 | feat(api): 인증 테이블 마이그레이션, 이메일·비밀번호·토큰 함수, mail 모듈
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현 2단계. 세션·가입 로직이 기댈 테이블과 순수 함수, 메일 발송 추상화를 먼저 만든다.
+- 변경: 마이그레이션 `add_auth` — `users.email`(NULL 허용, 부분 UNIQUE)·`email_verified_at`, `password_credentials`, `refresh_tokens`(family·만료 인덱스), `email_tokens`, enum `email_token_purpose`. SQL CHECK: 이메일은 소문자·trim·3~254자, 토큰 해시 32바이트. 인증 데이터는 사용자 삭제 시 CASCADE. `auth/lib` — 이메일 정규화, 비밀번호 정책(8~128자, 코드 포인트 기준)·argon2id 해시·더미 검증, 256비트 토큰 생성·SHA-256 해시·형식 검사. `common/mask-email`. `mail` 모듈 — `MailSender` 추상 클래스, 운영 Resend(5초 AbortSignal), 개발 콘솔 출력, 테스트 메모리 기록.
+- 영향: DB 테이블 3개·enum 1개·`users` 컬럼 2개 추가. 기존 `users` 행은 email NULL. 아직 API에서 쓰지 않는다. `migrate dev`가 비대화형 환경에서 실행되지 않아 마이그레이션은 `migrate diff --from-config-datasource`(최신 상태 개발 DB 기준)로 만들고 CHECK·롤백 블록을 덧붙였다.
+- 검증: `npm run db:deploy`·`db:migrate:test` 적용 PASS. 적용 후 `migrate diff` 결과 빈 마이그레이션(CHECK·부분 인덱스 유지) 확인. api 단위(lib·mail·common) 39개 PASS. `npm run verify` PASS(8/8). `npm run test:integration` PASS.
+- 주의/롤백: 코드는 revert. DB는 마이그레이션 끝 롤백 블록(테이블 3개·enum drop, `users` 컬럼·인덱스·CHECK drop, `_prisma_migrations` 행 삭제). 운영 데이터 없음.
+
+## 2026-11-10 | chore(api): 인증 의존성 추가와 JWT·메일·프록시 환경 변수 검증
+
+- Feature: FEAT-003
+- 목적: FEAT-003 구현의 첫 단계. 의존성과 시작 시 환경 변수 검증(AC-19)을 먼저 넣어 이후 커밋이 기댈 설정을 확정한다.
+- 변경: api 의존성 `argon2`·`@nestjs/jwt`·`@nestjs/throttler`·`@nestjs/schedule`·`cookie-parser`·`resend`(+`@types/cookie-parser`), 정확한 버전 고정. `loadEnv`에 `JWT_SECRET`(모든 환경 필수, 32바이트 이상, 기본값 없음), 운영 필수 `WEB_ORIGIN`·`RESEND_API_KEY`·`MAIL_FROM`, `TRUST_PROXY_HOPS`(0~10, 기본 0). CI job env에 테스트 전용 `JWT_SECRET`, turbo `globalPassThroughEnv`에 새 변수. `.env.example`·SETUP 환경 변수 표.
+- 영향: 로컬 `.env`에 `JWT_SECRET`이 없으면 api 시작·통합 테스트·openapi 생성이 실패한다(`openssl rand -base64 48`로 추가). 아직 코드에서 새 의존성을 쓰지 않는다. `argon2`는 install script가 npm 정책으로 막혔지만 패키지의 prebuild(darwin-arm64·linux-x64 포함)로 해시·검증 동작을 확인했다.
+- 검증: `JWT_SECRET=<임시값> npm run verify` PASS(8/8). `JWT_SECRET=<임시값> npm run test:integration` PASS. api 단위 env·guard 20개 PASS.
+- 주의/롤백: revert로 롤백. 데이터 영향 없음.
+
+## 2026-11-10 | docs(auth): FEAT-003 이메일/비밀번호 인증 명세와 로그인 방식 결정 (ADR-011)
+
+- Feature: FEAT-003
+- 목적: 사용자가 이메일/비밀번호·소셜·패스키 로그인을 모두 원해 D-04(로그인 제공자/토큰 저장)를 확정하고, 공통 세션 기반이 되는 첫 기능을 명세한다.
+- 변경: `auth-email-password.md` Approved(AC 19개, API 9개, 오류 문구, 테이블 3개 추가, 결정 Q-1~Q-7). ADR-011 accepted(직접 조립: JWT Access 15분 + 해시 저장·회전 Refresh 쿠키, Google·Kakao·패스키 순서, Apple은 iOS 출시 시, 메일 Resend). OPEN-QUESTIONS D-04 결정(모바일 저장소만 PoC 후). spec 03 인증 및 보안, spec 04 테이블·API 목록. Feature 목록에 FEAT-003.
+- 영향: 문서만. 이후 FEAT-003 구현이 이 명세를 기준으로 한다. 쿠키 전송을 위해 웹·API 같은 사이트 배포가 전제가 된다(D-12 호스팅 결정 시 반영).
+- 검증: Prettier 검사(pre-commit). 문서 전용이라 verify 미실행.
+- 주의/롤백: revert로 롤백. FEAT-002 Draft는 별도 브랜치에 있어 번호 FEAT-002를 비워 둔다.
+
 ## 2026-10-30 | feat(bookmarks): 링크 저장 API — URL 정규화와 동시 저장 중복 방지
 
 - Feature: FEAT-001

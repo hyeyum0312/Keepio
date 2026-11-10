@@ -2,7 +2,7 @@ import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { AppModule } from "../app.module.js";
-import { DEV_USER_HEADER } from "../auth/user.guard.js";
+import { AccessTokenService } from "../auth/access-token.service.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { setupApp } from "../setup-app.js";
 import { BookmarksRepository } from "./bookmarks.repository.js";
@@ -13,6 +13,7 @@ const CONCURRENT_REQUESTS = 100;
 describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let accessTokens: AccessTokenService;
   let baseUrl: string;
   const createdUserIds: string[] = [];
 
@@ -26,6 +27,7 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
     await app.listen(0);
     baseUrl = await app.getUrl();
     prisma = app.get(PrismaService);
+    accessTokens = app.get(AccessTokenService);
   });
 
   afterAll(async () => {
@@ -43,10 +45,12 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
     return user.id;
   }
 
-  function save(userId: string, body: unknown) {
+  // 실제 Guard를 거치도록 서버가 쓰는 것과 같은 서명으로 Access Token을 만든다(FEAT-003)
+  async function save(userId: string, body: unknown) {
+    const token = await accessTokens.sign(userId);
     return request(baseUrl)
       .post("/api/bookmarks")
-      .set(DEV_USER_HEADER, userId)
+      .set("Authorization", `Bearer ${token}`)
       .send(body as object);
   }
 
@@ -217,6 +221,29 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       code: "UNAUTHENTICATED",
       message: "로그인이 필요해요.",
     });
+  });
+
+  it("FEAT-003 AC-18: 개발용 사용자 ID 헤더로는 더 이상 인증되지 않는다", async () => {
+    const userId = await newUser();
+
+    const res = await request(baseUrl)
+      .post("/api/bookmarks")
+      .set("x-dev-user-id", userId)
+      .send({ url: URL_A });
+
+    expect(res.status).toBe(401);
+    expect(res.body.code).toBe("UNAUTHENTICATED");
+    expect(await countBookmarks(userId)).toBe(0);
+  });
+
+  it("FEAT-003 AC-17: 토큰의 사용자에게만 저장되고 다른 사용자 데이터에는 닿지 않는다", async () => {
+    const [userA, userB] = [await newUser(), await newUser()];
+
+    const res = await save(userA, { url: URL_A });
+
+    expect(res.status).toBe(201);
+    expect(await countBookmarks(userA)).toBe(1);
+    expect(await countBookmarks(userB)).toBe(0);
   });
 
   it("DB CHECK 제약이 앱 검증과 별개로 2048자 초과 URL을 막는다", async () => {

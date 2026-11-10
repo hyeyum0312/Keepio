@@ -14,13 +14,73 @@ datasource db {
   provider = "postgresql"
 }
 
-// 최소 컬럼만. 이메일·플랜 등은 인증 기능(D-04)에서 추가한다
+// 플랜 등은 해당 기능에서 추가한다
 model User {
-  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  bookmarks Bookmark[]
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // 정규화(trim·소문자)된 값. 이메일을 주지 않는 소셜 계정이 있어 NULL 허용(FEAT-003)
+  email              String?
+  emailVerifiedAt    DateTime?           @map("email_verified_at") @db.Timestamptz(3)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  bookmarks          Bookmark[]
+  passwordCredential PasswordCredential?
+  refreshTokens      RefreshToken[]
+  emailTokens        EmailToken[]
 
+  // 동시 가입의 최종 권위(FEAT-003 AC-04)
+  @@unique([email], map: "users_email_key", where: raw("email IS NOT NULL"))
   @@map("users")
+}
+
+// 소셜·패스키 전용 계정은 비밀번호가 없으므로 users와 분리한다
+model PasswordCredential {
+  userId       String   @id @map("user_id") @db.Uuid
+  passwordHash String   @map("password_hash")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_credentials")
+}
+
+// 원문은 쿠키에만 있고 DB에는 SHA-256만 둔다. family = 한 번의 로그인에서 회전으로 이어진 토큰 묶음
+model RefreshToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  familyId  String    @map("family_id") @db.Uuid
+  tokenHash Bytes     @unique(map: "refresh_tokens_token_hash_key") @map("token_hash") @db.ByteA
+  // 첫 로그인 기준 절대 만료. 회전해도 같은 값을 물려받는다(FEAT-003 Q-3)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  // 만료 행 정리(FEAT-003 Q-7)
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+enum EmailTokenPurpose {
+  verify_email
+  reset_password
+
+  @@map("email_token_purpose")
+}
+
+model EmailToken {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  purpose   EmailTokenPurpose
+  tokenHash Bytes             @unique(map: "email_tokens_token_hash_key") @map("token_hash") @db.ByteA
+  expiresAt DateTime          @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime?         @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("email_tokens")
 }
 
 model Bookmark {

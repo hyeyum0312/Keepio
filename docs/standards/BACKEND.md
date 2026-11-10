@@ -19,10 +19,10 @@ apps/api/src/
 ```
 
 - Create only the files a module needs. Files are `<domain>.<role>.ts` (kebab-case, lint); DTO files `dto/<action>-<domain>.dto.ts`, response models `dto/<domain>-response.dto.ts`. Relative imports end in `.js` (ESM).
-- Services do not inject `PrismaService`; they call the module's repository. No generic base repository. FEAT-001 needed no multi-statement transaction (each statement is atomic and the unique index decides races); how a transaction reaches repositories is decided by the first feature that needs one (e.g. Outbox) and written here. Do not build it ahead.
+- Services do not inject `PrismaService`; they call the module's repository. No generic base repository. Prefer a single atomic statement where the database can decide the race (unique index, conditional `UPDATE … WHERE` returning rows). When several statements must succeed together, open `prisma.$transaction(async (tx) => …)` inside one repository method; services never see `tx`. Cross-repository transactions are decided by the first feature that needs one (e.g. Outbox) and written here. Do not build it ahead. Example: `AuthRepository.rotateRefreshToken`.
 - Raw SQL only in repositories, only via tagged `$queryRaw`/`$executeRaw` (parameters bound, never string-built; `$queryRawUnsafe` is forbidden). Use it when Prisma's API cannot express the query (e.g. `ON CONFLICT … WHERE` on a partial index), alias columns to the record type, and cover it with an integration test.
 - Another module uses a domain only through the providers its module `exports`, never its repository, `dto/` or `lib/` files directly. Lint enforcement is added with the second domain module.
-- Controllers get the current user from one guard + decorator, never from body or query. Until auth (D-04), a dev/test-only guard supplies it and rejects in production (D-11); the auth feature replaces the guard without changing controllers.
+- Controllers get the current user from one guard + decorator, never from body or query: `@UseGuards(UserGuard)` + `@ApiBearerAuth()` on the controller and `@CurrentUser()` in the handler. `UserGuard` verifies the JWT Access Token only (no DB lookup, ADR-011). Integration tests sign a real token with `AccessTokenService`; never add a header or bypass that skips the guard.
 
 ## Migrations and tests
 

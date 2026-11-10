@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -27,6 +28,7 @@ import { SaveBookmarkDto } from "./dto/save-bookmark.dto.js";
 
 @Controller("api/bookmarks")
 @UseGuards(UserGuard)
+@ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorResponse })
 export class BookmarksController {
   constructor(private readonly bookmarks: BookmarksService) {}
