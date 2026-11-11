@@ -5,6 +5,7 @@ import { useState } from "react";
 import { NETWORK_ERROR_MESSAGE } from "@/shared/lib/network-error";
 import { serverMessage, submit } from "@/shared/lib/server-message";
 import { FormError, Notice } from "@/shared/ui/FormParts";
+import { Logo } from "@/shared/ui/Logo";
 import { clearSession } from "../model/session-store";
 
 const ERROR_ID = "account-error";
@@ -44,17 +45,20 @@ export function AccountHeader() {
   return (
     <header className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-4">
-        <p className="font-semibold">
-          {profile ? displayName(profile) : "불러오는 중이에요…"}
-        </p>
-        <button
-          type="button"
-          onClick={onLogout}
-          disabled={logout.isPending}
-          className="rounded border px-3 py-1 text-sm font-medium disabled:opacity-50"
-        >
-          로그아웃
-        </button>
+        <Logo />
+        <div className="flex items-center gap-3">
+          <p className="font-semibold">
+            {profile ? displayName(profile) : "불러오는 중이에요…"}
+          </p>
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={logout.isPending}
+            className="rounded border px-3 py-1 text-sm font-medium disabled:opacity-50"
+          >
+            로그아웃
+          </button>
+        </div>
       </div>
       {profile && !profile.emailVerified && profile.email && (
         <Notice>이메일 인증 전이에요. 받은 메일의 링크로 인증해 주세요.</Notice>
