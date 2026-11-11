@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-11 | feat(web): 로그인 홈 상단에 로고와 서비스명
+
+- Feature: N/A(FEAT-006 AC-12 홈 헤더 보강)
+- 목적: 상단에 서비스 정체성(심볼 + keepio)을 보이게 한다.
+- 변경: `shared/ui/Logo` — 레드 라이트 심볼(`next/image`, SVG라 `unoptimized`, 장식이라 `alt=""`) + Outfit 700 워드마크(`next/font/google`, 빌드 때 받아 자체 호스팅). `AccountHeader` 상단 줄을 왼쪽 로고, 오른쪽 my-아이디·로그아웃으로 재배치. vitest에는 Next 폰트 변환이 없어 `vitest.setup.ts`에서 `next/font/google` mock.
+- 영향: 로그인 홈 헤더만. 랜딩(비로그인)은 그대로. 워드마크 색은 시안 `#1A1A22` 대신 기존 `foreground` 토큰(색 리터럴 금지 규칙). 빌드 시 Google Fonts 다운로드 필요.
+- 검증: web 테스트 40 PASS, `npm run verify` PASS(8/8), `npm run build --workspace=@keepio/web` PASS. 브라우저 육안 확인 미실행(로그인 필요, 사용자 확인 예정).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-11 | chore(web): 로고 컬러 세트 SVG와 대표 컬러(레드) 눈 굴리는 GIF
 
 - Feature: N/A
