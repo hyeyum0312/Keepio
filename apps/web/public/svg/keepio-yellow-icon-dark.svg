@@ -1,1 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="keepio"><rect width="200" height="200" rx="46" fill="#0A0C14"/><g transform="translate(14 8) scale(0.86)"><defs><radialGradient id="yellow-id-dg" cx="50%" cy="58%" r="62%"><stop offset="0" stop-color="#FF8A00"/><stop offset="0.55" stop-color="#FFC21A"/><stop offset="1" stop-color="#FFF4C2"/></radialGradient><radialGradient id="yellow-id-dh" cx="40%" cy="18%" r="45%"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.75"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient><filter id="yellow-id-db" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="12"/></filter></defs><path d="M64 34 H136 a14 14 0 0 1 14 14 V166 L100 136 L50 166 V48 a14 14 0 0 1 14 -14 Z" fill="#FFC21A" opacity="0.6" filter="url(#yellow-id-db)"/><path d="M64 34 H136 a14 14 0 0 1 14 14 V166 L100 136 L50 166 V48 a14 14 0 0 1 14 -14 Z" fill="url(#yellow-id-dg)" stroke="#FFF4C2" stroke-opacity="0.7" stroke-width="5" stroke-linejoin="round"/><path d="M64 34 H136 a14 14 0 0 1 14 14 V166 L100 136 L50 166 V48 a14 14 0 0 1 14 -14 Z" fill="url(#yellow-id-dh)"/><ellipse cx="85" cy="90" rx="10" ry="11" fill="#FFFFFF"/><circle cx="88" cy="86" r="5" fill="#1A1A22"/><ellipse cx="115" cy="90" rx="10" ry="11" fill="#FFFFFF"/><circle cx="118" cy="86" r="5" fill="#1A1A22"/></g></svg>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="200" height="200" rx="46" fill="#0A0C14"/>
+<g transform="translate(56.36 40) scale(1.3636)">
+<defs>
+<radialGradient id="yellow-id-g" cx="50%" cy="58%" r="62%"><stop offset="0" stop-color="#FF8A00"/><stop offset="0.55" stop-color="#FFC21A"/><stop offset="1" stop-color="#FFF4C2"/></radialGradient>
+<radialGradient id="yellow-id-h" cx="40%" cy="18%" r="45%"><stop offset="0" stop-color="white" stop-opacity="0.75"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>
+<filter id="yellow-id-b" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
+<mask id="yellow-id-m" fill="white"><path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z"/></mask>
+</defs>
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z" fill="#FFC21A" opacity="0.6" filter="url(#yellow-id-b)"/>
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z" fill="url(#yellow-id-g)"/>
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z" stroke-width="2" stroke="#FFF4C2" stroke-opacity="0.7" mask="url(#yellow-id-m)"/>
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z" fill="url(#yellow-id-h)"/>
+<g transform="translate(0 38) scale(1 1) translate(0 -38)"><circle cx="23" cy="38" r="6" fill="white"/><circle cx="25.5" cy="35.5" r="2.5" fill="#20212A"/><circle cx="41" cy="38" r="6" fill="white"/><circle cx="43.5" cy="35.5" r="2.5" fill="#20212A"/></g>
+</g>
+</svg>

@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="112" height="144" viewBox="44 28 112 144" role="img" aria-label="keepio"><defs><radialGradient id="blue-sl-l" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#7FA6FF"/><stop offset="1" stop-color="#2F5BE8"/></radialGradient></defs><path d="M64 34 H136 a14 14 0 0 1 14 14 V166 L100 136 L50 166 V48 a14 14 0 0 1 14 -14 Z" fill="url(#blue-sl-l)" stroke="#2F5BE8" stroke-width="6" stroke-linejoin="round"/><ellipse cx="85" cy="90" rx="10" ry="11" fill="#FFFFFF"/><circle cx="88" cy="86" r="5" fill="#1A1A22"/><ellipse cx="115" cy="90" rx="10" ry="11" fill="#FFFFFF"/><circle cx="118" cy="86" r="5" fill="#1A1A22"/></svg>
+<svg width="64" height="88" viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z" fill="url(#paint0_linear_15_373)"/>
+<mask id="stroke0_15_373" fill="white">
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z"/>
+</mask>
+<path d="M10 0H54C59.5228 0 64 4.47715 64 10V88L32 72L0 88V10C0 4.47715 4.47715 0 10 0Z" stroke-width="2" stroke="#2F5BE8" mask="url(#stroke0_15_373)"/>
+<circle cx="41" cy="38" r="6" fill="white"/>
+<circle cx="43.5" cy="35.5" r="2.5" fill="#20212A"/>
+<circle cx="23" cy="38" r="6" fill="white"/>
+<circle cx="25.5" cy="35.5" r="2.5" fill="#20212A"/>
+<defs>
+<linearGradient id="paint0_linear_15_373" x1="32" y1="0" x2="32" y2="88" gradientUnits="userSpaceOnUse">
+<stop stop-color="#436DED"/>
+<stop offset="1" stop-color="#7DA5FE"/>
+</linearGradient>
+</defs>
+</svg>
