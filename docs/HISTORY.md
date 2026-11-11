@@ -5,6 +5,33 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-11 | feat(web): 사용자 제작 로고로 교체, 다크 버전·GIF를 새 심볼 모양으로 재생성
+
+- Feature: N/A
+- 목적: 사용자가 직접 만든 로고·심볼을 정식으로 쓴다.
+- 변경: 헤더 `Logo`를 사용자 로고 `keepio-logo.svg`(심볼 + 워드마크 패스, 105×30) 한 장으로 교체해 Outfit 폰트(`next/font/google`)와 vitest 폰트 mock 제거. 라이트 심볼 5색을 사용자 원본(64×88)으로 교체, 이전 라이트 앱 아이콘 5개 삭제. 다크 글로우 심볼·다크 앱 아이콘 5색과 레드 다크 GIF를 새 심볼 모양으로 재생성(기존 다크 팔레트 유지). 레드 라이트 GIF를 사용자 심볼로 재생성(흰 배경, 240px, 3.4초 반복).
+- 영향: 로그인 홈 헤더 표시. 빌드 시 Google Fonts 다운로드 불필요. `public/svg`의 라이트 아이콘 경로 제거(코드 참조 없음 확인).
+- 검증: `npm run verify` PASS(8/8), `npm run build --workspace=@keepio/web` PASS. 새 SVG `xmllint` 통과, 렌더 육안 확인. GIF 메타데이터(무한 반복, 총 3,400ms)와 프레임 육안 확인. 헤더 브라우저 확인 미실행(로그인 필요).
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-11 | feat(web): 로그인 홈 상단에 로고와 서비스명
+
+- Feature: N/A(FEAT-006 AC-12 홈 헤더 보강)
+- 목적: 상단에 서비스 정체성(심볼 + keepio)을 보이게 한다.
+- 변경: `shared/ui/Logo` — 레드 라이트 심볼(`next/image`, SVG라 `unoptimized`, 장식이라 `alt=""`) + Outfit 700 워드마크(`next/font/google`, 빌드 때 받아 자체 호스팅). `AccountHeader` 상단 줄을 왼쪽 로고, 오른쪽 my-아이디·로그아웃으로 재배치. vitest에는 Next 폰트 변환이 없어 `vitest.setup.ts`에서 `next/font/google` mock.
+- 영향: 로그인 홈 헤더만. 랜딩(비로그인)은 그대로. 워드마크 색은 시안 `#1A1A22` 대신 기존 `foreground` 토큰(색 리터럴 금지 규칙). 빌드 시 Google Fonts 다운로드 필요.
+- 검증: web 테스트 40 PASS, `npm run verify` PASS(8/8), `npm run build --workspace=@keepio/web` PASS. 브라우저 육안 확인 미실행(로그인 필요, 사용자 확인 예정).
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-11 | chore(web): 로고 컬러 세트 SVG와 대표 컬러(레드) 눈 굴리는 GIF
+
+- Feature: N/A
+- 목적: 디자인 시안(keepio 컬러 세트)의 로고를 앱에서 정적 파일로 쓸 수 있게 둔다. 대표 컬러는 레드.
+- 변경: `apps/web/public/svg/` — 5색(red·yellow·tangerine·blue·purple) × 심볼 라이트/다크(글로우)·앱 아이콘 라이트/다크 SVG 20개. 시안 값 그대로, 그라데이션 id는 파일마다 고유(인라인 충돌 방지), 다크 심볼은 글로우가 잘리지 않게 viewBox 확장. 레드 심볼 GIF 2개(라이트 흰 배경, 다크 `#0A0C14` 배경, 240px, 3.4초 반복: 왼쪽·오른쪽·위 보기와 고개 기울임, 깜빡임).
+- 영향: 정적 파일 추가만. 코드 변경 없음. GIF 크기 약 245KB/464KB.
+- 검증: SVG 20개 `xmllint` 통과, 일부 PNG 렌더 육안 확인. GIF 메타데이터 확인(반복 무한, 총 3,400ms), 프레임 육안 확인. 생성 스크립트는 저장소에 두지 않음.
+- 주의/롤백: 워드마크(“keepio” 글자)는 폰트 의존이라 SVG에 넣지 않음. revert로 롤백.
+
 ## 2026-11-10 | docs(feature): FEAT-002 구현 완료 기록과 브라우저 확인
 
 - Feature: FEAT-002
