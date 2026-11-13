@@ -9,9 +9,13 @@
 3. 스펙 원본: 제품 `docs/spec/01-PRD.md`; 디자인 `docs/spec/02-DESIGN.md`; 백엔드 `docs/spec/03-BACKEND-ARCHITECTURE.md`; DB/API `docs/spec/04-DATABASE-API.md`; 로드맵 `docs/spec/05-ROADMAP-PORTFOLIO.md`. spec·standards가 최종 상태다. 결정이 바뀌면 spec·standards를 고치고 `docs/decisions/` ADR에 이유를 남긴다. ADR은 이유가 필요할 때만 읽는다.
 4. 역할별 가이드: `docs/standards/PRODUCT.md`, `DESIGN.md`, `FRONTEND.md`, `BACKEND.md`, `QUALITY.md`, `OPERATIONS.md`, 브랜치·PR `BRANCHING.md`.
 
+## 결정 제안 방식
+
+사용자에게 결정이 필요하면 "선택지 + 추천 하나 + 근거"로 제안해 승인만으로 진행할 수 있게 한다. 되돌리기 어려운 것(DB 구조, 보안, 개인정보, 공개 URL, 비용)은 장단점을 비교하고 ADR로 남긴다. 되돌리기 쉬운 것(문구, 배치, 색)은 기본값을 추천하고 기록하지 않는다. MVP에 필요 없으면 `docs/OPEN-QUESTIONS.md`로 미루자고 제안한다. 결정이 여러 개면 번호를 붙여 한 번에 승인받는다.
+
 ## 작업 프로토콜 (매 작업)
 
-**현재 단계(2026-10-30): 기능 구현(Phase 1, FEAT-001부터).** 기능은 승인된 Feature 문서 범위만 구현한다. 모바일 앱(`apps/mobile`), 디자인 시스템, 배포·CD는 사용자가 시작을 지시하기 전에 착수하지 않는다. 배포·CD는 호스팅 결정 후 맨 마지막에 한다.
+**현재 단계(2026-11-13): 웹 MVP 기능 구현(Phase 2~4, 목표 2026-12-31, ADR-013).** 기능은 승인된 Feature 문서 범위만 구현한다. 모바일 앱(`apps/mobile`), 디자인 시스템, 배포·CD는 사용자가 시작을 지시하기 전에 착수하지 않는다. 배포·CD는 호스팅 결정 후 맨 마지막에 한다.
 
 **지시 범위와 목표.**
 
