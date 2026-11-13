@@ -38,8 +38,8 @@
 | HOME-01   | 랜딩(비로그인 홈)               | `/`                              | 웹              | FEAT-006         | 1차  | 최소 UI | —                                                                  | —     |
 | INFO-01   | 이용약관                        | `/terms` (제안)                  | 웹·앱           | —                | 1차  | 미착수  | —                                                                  | —     |
 | INFO-02   | 개인정보처리방침                | `/privacy` (제안)                | 웹·앱           | —                | 1차  | 미착수  | —                                                                  | —     |
-| AUTH-01   | 로그인                          | `/login`                         | 웹(1차)·앱(2차) | FEAT-003·004·006 | 1차  | 기획    | [로그인 기획서](https://claude.ai/artifact/8rKDnj3bEzv37kmJkBMh3o) | —     |
-| AUTH-02   | 가입                            | `/signup`                        | 웹·앱           | FEAT-003·004·006 | 1차  | 최소 UI | —                                                                  | —     |
+| AUTH-01   | 로그인                          | `/login`                         | 웹(1차)·앱(2차) | FEAT-003·004·006 | 1차  | 디자인  | [로그인 기획서](https://claude.ai/artifact/8rKDnj3bEzv37kmJkBMh3o) | —     |
+| AUTH-02   | 가입                            | `/signup`                        | 웹·앱           | FEAT-003·004·006 | 1차  | 기획    | [가입 기획서](https://claude.ai/artifact/DHH4gRnmFPXbVVWy4ukd2q)   | —     |
 | AUTH-03   | 이메일 인증 결과                | `/verify-email`                  | 웹              | FEAT-003·006     | 1차  | 최소 UI | —                                                                  | —     |
 | AUTH-04   | 비밀번호 찾기                   | `/forgot-password`               | 웹·앱           | FEAT-003·006     | 1차  | 최소 UI | —                                                                  | —     |
 | AUTH-05   | 비밀번호 재설정                 | `/reset-password`                | 웹              | FEAT-003·006     | 1차  | 최소 UI | —                                                                  | —     |
