@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-13 | docs: 주 버튼 토큰을 잉크색으로, 브랜드 레드는 accent로 분리 (spec 07 v0.2)
+
+- Feature: N/A
+- 목적: 로그인 시안에서 레드 주 버튼이 소셜 버튼·캐릭터와 경쟁하고 강조색 비율(10%)을 넘어 차분한 잉크색으로 바꾼다(사용자 피드백).
+- 변경: 07-BRAND `primary`를 `neutral-800`/`neutral-100`으로, `primary-foreground` 대비 갱신, `accent`(red-500/red-300) 토큰 추가, 원칙 1에 "화면의 주인공을 먼저 정한다" 보강, 3층 브랜드 토큰을 `accent` 기준으로 변경. standards DESIGN 제안 토큰 목록에 `accent` 추가.
+- 영향: 문서만. 코드 토큰은 D-09 확정 전까지 변경 없음. 시안 캔버스(AUTH-01 v0.2)에 같은 값 반영.
+- 검증: 대비는 WCAG 공식으로 재계산(라이트 버튼 16.0:1, 다크 13.69:1). `npm run format:check` PASS. `npm run verify` 전체는 미실행(작업 VM이 macOS용 node_modules로 빌드 불가, 로컬 실행 필요).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-13 | docs: 브랜드·디자인 기준 후보 추가 (spec 07)
 
 - Feature: N/A

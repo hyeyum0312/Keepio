@@ -20,4 +20,4 @@ Defined in `apps/web/src/app/globals.css` (`:root` CSS variables → `@theme inl
 | `surface`, `muted`, `border`, `primary`, `primary-foreground`, `destructive`, `success`, `warning`, `focus-ring` | not defined yet                                                                    |
 | `ai` (#7f77dd)                                                                                                   | exists from the earlier plan ("only AI features use purple"); keep or drop is D-09 |
 
-Candidate values, the 3-layer token structure (palette → semantic → brand) and two proposed additions (`muted-foreground`, `input`) are in `docs/spec/07-BRAND.md`. Do not add colors to code until D-09 confirms them.
+Candidate values, the 3-layer token structure (palette → semantic → brand) and three proposed additions (`muted-foreground`, `input`, `accent`; `primary` is a neutral ink, the brand red moves to `accent`) are in `docs/spec/07-BRAND.md`. Do not add colors to code until D-09 confirms them.
