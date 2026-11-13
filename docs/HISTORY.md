@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-13 | docs: 브랜드·디자인 기준 후보 추가 (spec 07)
+
+- Feature: N/A
+- 목적: 시안이 감이 아니라 원칙에 근거하도록 브랜드 성격·디자인 원칙·토큰 기준을 한 문서로 둔다.
+- 변경: `docs/spec/07-BRAND.md` 추가(브랜드 키워드, 디자인 원칙 7개, 색 3층 구조와 라이트·다크 역할 토큰 14개 및 대비 수치, 글자·간격·모양·움직임·말투, 토큰 운영 원칙, 패밀리 서비스 방식, 피드백 방식). 02-DESIGN·standards DESIGN·README·AGENTS에 링크.
+- 영향: 문서만. 코드 토큰(`globals.css`)은 D-09 확정 전까지 바꾸지 않음. standards에 없던 `muted-foreground`·`input` 토큰과 `ai` 값 변경(`#7F77DD`→`#6B63D6`)은 제안 상태.
+- 검증: 대비 수치는 WCAG 상대 휘도 공식으로 계산(Python). `npx prettier --check` PASS(변경 파일). `npm run verify` 전체는 미실행(작업 VM이 macOS용 node_modules로 빌드 불가, 로컬 실행 필요).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-13 | docs: 화면 ID 규칙과 화면 목록 추가
 
 - Feature: N/A
