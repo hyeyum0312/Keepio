@@ -6,13 +6,15 @@ import { useState } from "react";
 import { submit } from "@/shared/lib/server-message";
 import { useOneTimeUrlToken } from "../model/useOneTimeUrlToken";
 import {
-  AuthLayout,
+  buttonClass,
   fieldValue,
   FormError,
   Notice,
   SubmitButton,
   TextField,
 } from "@/shared/ui/FormParts";
+import { AuthStage } from "./AuthStage";
+import { BackLink } from "./BackLink";
 
 // FEAT-006 AC-11. 토큰이 없거나 잘못됐으면 서버가 INVALID_TOKEN 문구를 준다(프론트가 문구를 만들지 않는다)
 export function ResetPasswordForm() {
@@ -38,20 +40,21 @@ export function ResetPasswordForm() {
 
   if (done) {
     return (
-      <AuthLayout title="비밀번호를 바꿨어요">
+      <AuthStage title="비밀번호를 바꿨어요" compact>
         <Notice>새 비밀번호로 다시 로그인해 주세요.</Notice>
-        <Link href="/login" className="text-sm">
+        <Link href="/login?method=email" className={buttonClass.primary}>
           로그인하러 가기
         </Link>
-      </AuthLayout>
+      </AuthStage>
     );
   }
 
   return (
-    <AuthLayout title="새 비밀번호 정하기">
+    <AuthStage title="새 비밀번호 정하기" compact>
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <TextField
-          label="새 비밀번호 (8자 이상)"
+          label="새 비밀번호"
+          helpText="8자 이상으로 입력해 주세요."
           name="newPassword"
           type="password"
           autoComplete="new-password"
@@ -61,9 +64,7 @@ export function ResetPasswordForm() {
         <FormError message={error} />
         <SubmitButton pending={confirm.isPending}>비밀번호 바꾸기</SubmitButton>
       </form>
-      <Link href="/forgot-password" className="text-sm">
-        재설정 메일 다시 받기
-      </Link>
-    </AuthLayout>
+      <BackLink href="/forgot-password">재설정 메일 다시 받기</BackLink>
+    </AuthStage>
   );
 }

@@ -45,6 +45,8 @@ function renderWithClient(ui: React.ReactNode) {
 describe("소셜 로그인 화면 (FEAT-004)", () => {
   beforeEach(() => {
     resetSessionForTest();
+    window.localStorage.clear();
+    window.sessionStorage.clear();
     replace.mockClear();
     vi.mocked(navigateTo).mockClear();
     searchParams = new URLSearchParams();
@@ -61,23 +63,28 @@ describe("소셜 로그인 화면 (FEAT-004)", () => {
     renderWithClient(<SocialLoginButtons />);
 
     await userEvent.click(
-      await screen.findByRole("button", { name: "Google로 계속하기" }),
+      await screen.findByRole("button", { name: "Google 로그인" }),
     );
 
-    expect(
-      screen.queryByRole("button", { name: "카카오로 계속하기" }),
-    ).not.toBeInTheDocument();
     expect(navigateTo).toHaveBeenCalledWith("/api/auth/oauth/google/start");
   });
 
-  it("AC-11: 켜진 제공자가 없거나 목록을 못 받으면 버튼을 그리지 않는다", async () => {
+  it("FEAT-007 AC-05: 카카오는 서버가 켜지 않아도 버튼을 보여 주고, 누르면 이동 없이 준비 중 안내를 한다", async () => {
     stubFetch({
       "/api/auth/oauth/providers": () => json(200, { providers: [] }),
     });
-    const { container } = renderWithClient(<SocialLoginButtons />);
+    renderWithClient(<SocialLoginButtons />);
 
     await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
-    expect(container).toBeEmptyDOMElement();
+    expect(
+      screen.queryByRole("button", { name: "Google 로그인" }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "카카오 로그인" }),
+    );
+
+    expect(navigateTo).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("준비 중이에요");
   });
 
   it("AC-12: 콜백 화면은 refresh로 로그인 상태를 받고 홈으로 간다", async () => {
@@ -90,6 +97,27 @@ describe("소셜 로그인 화면 (FEAT-004)", () => {
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
     expect(getAuthStatus()).toBe("authenticated");
+  });
+
+  it("FEAT-007 AC-03: 소셜을 누르면 후보로 두고, 콜백 성공 시에만 최근 사용으로 확정한다", async () => {
+    stubFetch({
+      "/api/auth/oauth/providers": () => json(200, { providers: ["google"] }),
+      "/api/auth/refresh": () =>
+        json(200, { accessToken: "access", expiresIn: 900 }),
+    });
+    renderWithClient(<SocialLoginButtons />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Google 로그인" }),
+    );
+    expect(window.localStorage.getItem("keepio.lastLoginMethod")).toBeNull();
+
+    renderWithClient(<OAuthCallback />);
+
+    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(window.localStorage.getItem("keepio.lastLoginMethod")).toBe(
+      "google",
+    );
+    expect(window.sessionStorage.length).toBe(0);
   });
 
   it("AC-12: 콜백 화면에서 refresh가 실패하면 /login?oauth=failed", async () => {
