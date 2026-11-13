@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-13 | docs: 화면 ID 규칙과 화면 목록 추가
+
+- Feature: N/A
+- 목적: 화면마다 고유 ID를 붙이고 기능(FEAT)·기획서·Figma·경로를 한 표에서 연결해 전체 흐름을 한눈에 본다.
+- 변경: `docs/spec/06-SCREENS.md` 추가(ID 규칙 `영역-번호`, 상태 값, 1차·2차 화면 24개). `docs/README.md` 스펙 목록과 `AGENTS.md` 스펙 원본 목록에 링크 추가.
+- 영향: 문서만. 코드·API·DB·비용 영향 없음. 예정 화면의 경로는 `(제안)`으로 표시했고 확정 아님.
+- 검증: `npx prettier --check` PASS(변경 파일). `npm run verify` 전체는 미실행(작업 VM이 macOS용 node_modules로 빌드 불가, 로컬 실행 필요).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-13 | docs: 웹 먼저 출시로 2026 MVP 범위 확정 (ADR-013)
 
 - Feature: N/A
