@@ -18,6 +18,14 @@
 - If a test is flaky, quarantine with owner/issue/expiry, do not silently skip. Snapshot updates require intentional visual review.
 - No external services or secrets in ordinary unit tests. Test DB must be isolated and disposable.
 
+## Done report
+
+Every "done" report (AI or human, chat or PR) ends with three lines. A check that was not run is written as `not run (reason)`, never omitted.
+
+- Commands: the exact commands run, e.g. `npm run verify`.
+- Environment: where they ran (Mac / VM / cloud / CI) and Node version if relevant.
+- Result: PASS/FAIL per command; for FAIL, the failing task and next step.
+
 ## When to run tests
 
 Run cheap checks often, expensive ones once. Never claim a pass without running it.
@@ -50,6 +58,18 @@ Run cheap checks often, expensive ones once. Never claim a pass without running 
 - Enforced by ESLint (`src/**/*.test.ts(x)`): no `.only`, no `.skip` (use `.todo`), no test without `expect`, no duplicate titles.
 - Review-only: no `sleep`-based waits (use fake timers / `findBy*`), no unreviewed snapshot updates, no weakened assertions.
 - Coverage: no percentage target yet. Decide after measuring a few features; do not invent a number.
+
+## Debugging
+
+Fix the cause, not the symptom.
+
+1. Reproduce: write the exact steps or a failing test. No reproduction → collect evidence (logs, network, env) before changing code.
+2. Hypothesize: state one root-cause guess and how to confirm it.
+3. Verify: confirm or reject the guess with evidence before editing.
+4. Fix: smallest change that removes the cause; the failing test now passes.
+5. Guard: keep the regression test; note the cause in the HISTORY entry.
+
+If three fix attempts for the same problem fail, stop. Re-read the evidence, question the assumption or architecture, and report to the user before a fourth attempt.
 
 ## Test case format
 
