@@ -13,6 +13,8 @@ spec(`spec/`)과 standards(`standards/`)가 최종 상태다. 결정이 바뀌�
 3. [백엔드 아키텍처](spec/03-BACKEND-ARCHITECTURE.md)
 4. [DB 및 API 설계](spec/04-DATABASE-API.md)
 5. [개발 계획·테스트·포트폴리오](spec/05-ROADMAP-PORTFOLIO.md)
+6. [화면 목록](spec/06-SCREENS.md): 화면 ID와 기능·기획서·Figma 연결
+7. [브랜드·디자인 기준](spec/07-BRAND.md): 디자인 원칙, 토큰 3층 구조, 라이트·다크, 패밀리 서비스
 
 ## 개발 환경
 
