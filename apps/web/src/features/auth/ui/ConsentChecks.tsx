@@ -31,7 +31,7 @@ export function ConsentChecks({
       {ITEMS.map((item) => (
         <div
           key={item.key}
-          className="flex min-h-11 items-center justify-between gap-2"
+          className="flex min-h-11 items-center justify-between gap-2 md:min-h-9"
         >
           <label className="inline-flex cursor-pointer items-center gap-3 text-sm">
             <input

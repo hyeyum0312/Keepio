@@ -53,7 +53,11 @@ export function SignupForm() {
 
   return (
     <AuthStage title="이메일로 회원가입" compact>
-      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <form
+        onSubmit={onSubmit}
+        noValidate
+        className="flex flex-col gap-4 md:gap-3"
+      >
         <BackLink href="/login">카카오·Google로 시작하기</BackLink>
         <TextField
           label="이메일"

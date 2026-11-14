@@ -23,7 +23,7 @@ export function AuthStage({
       <div
         className={`relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-6 pb-8 md:justify-center ${
           compact
-            ? "gap-7 pt-10 md:gap-6 md:py-8"
+            ? "gap-7 pt-10 md:gap-5 md:py-6"
             : "gap-8 pt-12 md:gap-8 md:py-16"
         }`}
       >
@@ -65,7 +65,11 @@ export function AuthStage({
             )}
           </div>
         </div>
-        <div className="flex w-full flex-col gap-6 md:rounded-3xl md:border md:border-border md:bg-surface md:px-6 md:py-8">
+        <div
+          className={`flex w-full flex-col md:rounded-3xl md:border md:border-border md:bg-surface md:px-6 ${
+            compact ? "gap-6 md:gap-4 md:py-6" : "gap-6 md:py-8"
+          }`}
+        >
           {children}
         </div>
       </div>
