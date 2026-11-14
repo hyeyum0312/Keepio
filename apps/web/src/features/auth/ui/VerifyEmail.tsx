@@ -9,13 +9,14 @@ import { useEffect, useRef, useState } from "react";
 import { submit } from "@/shared/lib/server-message";
 import { useOneTimeUrlToken } from "../model/useOneTimeUrlToken";
 import {
-  AuthLayout,
+  buttonClass,
   fieldValue,
   FormError,
   Notice,
   SubmitButton,
   TextField,
 } from "@/shared/ui/FormParts";
+import { AuthStage } from "./AuthStage";
 
 type Result =
   | { state: "pending" }
@@ -45,28 +46,32 @@ export function VerifyEmail() {
 
   if (result.state === "pending") {
     return (
-      <AuthLayout title="이메일 인증">
+      <AuthStage title="이메일 인증" compact>
         <Notice>인증하는 중이에요…</Notice>
-      </AuthLayout>
+      </AuthStage>
     );
   }
 
   if (result.state === "done") {
     return (
-      <AuthLayout title="이메일 인증 완료">
-        <Notice>이메일 인증이 끝났어요.</Notice>
-        <Link href="/" className="text-sm">
-          홈으로 가기
+      // FEAT-007 AC-10: 축하 모션(07-BRAND 8장)
+      <AuthStage
+        title="이메일 인증이 끝났어요"
+        subtitle="이제 링크를 저장해 볼까요?"
+        celebrate
+      >
+        <Link href="/" className={buttonClass.primary}>
+          시작하기
         </Link>
-      </AuthLayout>
+      </AuthStage>
     );
   }
 
   return (
-    <AuthLayout title="이메일 인증">
+    <AuthStage title="이메일 인증" compact>
       <FormError message={result.message} />
       <ResendVerification />
-    </AuthLayout>
+    </AuthStage>
   );
 }
 

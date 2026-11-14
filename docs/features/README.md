@@ -17,3 +17,4 @@
 | FEAT-003 | [이메일/비밀번호 인증과 세션](auth-email-password.md)   | Implemented |
 | FEAT-004 | [소셜 로그인(Google·Kakao)과 계정 연결](auth-social.md) | Implemented |
 | FEAT-006 | [웹 로그인 화면과 토큰 처리](auth-web.md)               | Implemented |
+| FEAT-007 | [인증 화면 디자인 적용](auth-screens-design.md)         | Implemented |

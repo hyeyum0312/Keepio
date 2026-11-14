@@ -14,10 +14,10 @@
 
 Defined in `apps/web/src/app/globals.css` (`:root` CSS variables → `@theme inline`). The CSS variables are the only source.
 
-| Token                                                                                                            | Status                                                                             |
-| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `background`, `foreground`                                                                                       | defined                                                                            |
-| `surface`, `muted`, `border`, `primary`, `primary-foreground`, `destructive`, `success`, `warning`, `focus-ring` | not defined yet                                                                    |
-| `ai` (#7f77dd)                                                                                                   | exists from the earlier plan ("only AI features use purple"); keep or drop is D-09 |
+| Token                                                                                                                                                                                                    | Status                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `background`, `foreground`, `surface`, `muted`, `muted-foreground`, `border`, `input`, `primary`, `primary-foreground`, `accent`, `destructive`, `success`, `warning`, `focus-ring`, `ai` (light + dark) | defined (D-09 partially confirmed for auth screens, FEAT-007, 2026-11-13) |
+| Brand/asset vars: `stage-*`, `symbol-*`, `glass-*`, provider colors `kakao*`, `google*`                                                                                                                  | defined; provider colors follow provider guides, not this system          |
+| Text sizes `text-caption` (13px), `text-title` (28px), `text-display` (40px)                                                                                                                             | defined (07-BRAND 5장)                                                    |
 
-Candidate values, the 3-layer token structure (palette → semantic → brand) and three proposed additions (`muted-foreground`, `input`, `accent`; `primary` is a neutral ink, the brand red moves to `accent`) are in `docs/spec/07-BRAND.md`. Do not add colors to code until D-09 confirms them.
+Candidate values, the 3-layer token structure (palette → semantic → brand) and three proposed additions (`muted-foreground`, `input`, `accent`; `primary` is a neutral ink, the brand red moves to `accent`) are in `docs/spec/07-BRAND.md`. Values and rationale are in `docs/spec/07-BRAND.md`; add new colors only through that document (D-09 remaining scope: confirm with the LINK-01 design).
