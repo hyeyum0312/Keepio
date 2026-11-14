@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-14 | docs: 완료 보고 형식·디버깅 순서·검토한 대안 칸 추가
+
+- Feature: N/A
+- 목적: 외부 워크플로(Superpowers)를 검토해 Keepio 규칙에 빠진 부분만 보완한다. 검증 환경 누락(VM/Mac 차이)과 증상 위주 수정을 막고, 이미 쓰는 "선택지+추천+근거" 방식을 문서 규칙으로 고정한다.
+- 변경: `docs/standards/QUALITY.md`에 Done report(명령·환경·결과, 미실행은 사유 기재)와 Debugging(재현→가설→검증→수정→회귀 테스트, 3회 실패 시 중단·보고) 섹션 추가. `docs/features/FEATURE-TEMPLATE.md`에 "검토한 대안" 섹션 추가.
+- 영향: 문서만. 기존 FEAT 문서는 소급 수정하지 않고 새 기능부터 적용.
+- 검증: `npx prettier --check` (변경 문서 3개) PASS, `scripts/check-history.py` PASS — 리눅스 VM(Node 22). `npm run verify`는 미실행(문서만 변경, VM에서 Mac node_modules 실행 불가).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-14 | fix(web): PC 회원가입 화면도 스크롤 없이 한 화면에 (FEAT-007)
 
 - Feature: FEAT-007
