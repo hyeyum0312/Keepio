@@ -19,9 +19,10 @@ import { SignupForm } from "./SignupForm";
 import { VerifyEmail } from "./VerifyEmail";
 
 const replace = vi.fn();
+const push = vi.fn();
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace, push: vi.fn() }),
+  useRouter: () => ({ replace, push }),
   useSearchParams: () => searchParams,
 }));
 
@@ -81,7 +82,9 @@ function openWithToken(path: string) {
 describe("인증 화면 (FEAT-006)", () => {
   beforeEach(() => {
     resetSessionForTest();
+    window.localStorage.clear();
     replace.mockClear();
+    push.mockClear();
     searchParams = new URLSearchParams();
     window.history.replaceState(null, "", "/");
   });
@@ -90,6 +93,36 @@ describe("인증 화면 (FEAT-006)", () => {
   });
 
   describe("로그인", () => {
+    // FEAT-007 AC-02: 이메일 입력은 이메일 모드에서만 보인다
+    beforeEach(() => {
+      searchParams = new URLSearchParams("method=email");
+    });
+
+    it("FEAT-007 AC-01: 첫 화면에는 이메일 입력이 없고, [이메일로 로그인]은 이메일 모드 주소로 이동한다", async () => {
+      searchParams = new URLSearchParams();
+      stubApi({});
+      renderWithClient(<LoginForm />);
+
+      expect(screen.queryByLabelText("이메일")).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "회원가입" })).toHaveAttribute(
+        "href",
+        "/signup",
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: "이메일로 로그인" }),
+      );
+      expect(push).toHaveBeenCalledWith("/login?method=email");
+    });
+
+    it("FEAT-007 AC-03: 마지막에 이메일로 로그인했으면 [이메일로 로그인]에 최근 사용 배지가 붙는다", () => {
+      searchParams = new URLSearchParams();
+      window.localStorage.setItem("keepio.lastLoginMethod", "email");
+      stubApi({});
+      renderWithClient(<LoginForm />);
+
+      expect(screen.getByText("최근 사용")).toBeInTheDocument();
+    });
+
     it("AC-09: 성공하면 토큰을 메모리에 두고 홈으로 이동한다", async () => {
       const api = stubApi({
         "/api/auth/login": () =>
@@ -107,7 +140,11 @@ describe("인증 화면 (FEAT-006)", () => {
         email: "user@example.com",
         password: "correct horse",
       });
-      expect(window.localStorage.length).toBe(0);
+      // FEAT-007 AC-03: 저장소에는 방법 이름만(토큰 없음, FEAT-006 AC-01)
+      expect(window.localStorage.length).toBe(1);
+      expect(window.localStorage.getItem("keepio.lastLoginMethod")).toBe(
+        "email",
+      );
       expect(window.sessionStorage.length).toBe(0);
     });
 
@@ -172,17 +209,54 @@ describe("인증 화면 (FEAT-006)", () => {
   });
 
   describe("가입·비밀번호 찾기", () => {
+    async function agreeAll() {
+      for (const name of [
+        /만 14세 이상/,
+        /이용약관 동의/,
+        /개인정보 수집·이용 동의/,
+      ]) {
+        await userEvent.click(screen.getByRole("checkbox", { name }));
+      }
+    }
+
+    it("FEAT-007 AC-07: 필수 동의 3개를 모두 체크해야 가입하기가 활성이다", async () => {
+      stubApi({});
+      renderWithClient(<SignupForm />);
+      const submitButton = screen.getByRole("button", { name: "가입하기" });
+
+      expect(submitButton).toBeDisabled();
+      await userEvent.click(
+        screen.getByRole("checkbox", { name: /만 14세 이상/ }),
+      );
+      await userEvent.click(
+        screen.getByRole("checkbox", { name: /이용약관 동의/ }),
+      );
+      expect(submitButton).toBeDisabled();
+      await userEvent.click(
+        screen.getByRole("checkbox", { name: /개인정보 수집·이용 동의/ }),
+      );
+      expect(submitButton).toBeEnabled();
+    });
+
     it("AC-07: 가입이 접수되면 인증 메일 안내를 보여 준다", async () => {
       stubApi({ "/api/auth/signup": () => json(202) });
       renderWithClient(<SignupForm />);
 
       await userEvent.type(screen.getByLabelText("이메일"), "user@example.com");
-      await userEvent.type(screen.getByLabelText(/비밀번호/), "correct horse");
+      await userEvent.type(screen.getByLabelText("비밀번호"), "correct horse");
+      await agreeAll();
       await userEvent.click(screen.getByRole("button", { name: "가입하기" }));
 
       expect(await screen.findByRole("status")).toHaveTextContent(
-        "인증 메일을 보냈어요",
+        "user@example.com으로 인증 메일을 보냈어요",
       );
+      // FEAT-007 AC-08: 재발송은 60초 대기 후 활성
+      expect(
+        screen.getByRole("button", { name: "메일 다시 보내기 (60초)" }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole("link", { name: "로그인하러 가기" }),
+      ).toHaveAttribute("href", "/login?method=email");
     });
 
     it("AC-07: 서버가 거부하면 그 문구를 보여 준다", async () => {
@@ -197,7 +271,8 @@ describe("인증 화면 (FEAT-006)", () => {
       renderWithClient(<SignupForm />);
 
       await userEvent.type(screen.getByLabelText("이메일"), "user@example.com");
-      await userEvent.type(screen.getByLabelText(/비밀번호/), "short");
+      await userEvent.type(screen.getByLabelText("비밀번호"), "short");
+      await agreeAll();
       await userEvent.click(screen.getByRole("button", { name: "가입하기" }));
 
       expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -235,7 +310,7 @@ describe("인증 화면 (FEAT-006)", () => {
       );
 
       expect(
-        await screen.findByText("이메일 인증이 끝났어요."),
+        await screen.findByText("이메일 인증이 끝났어요"),
       ).toBeInTheDocument();
       expect(window.location.search).toBe("");
       expect(api.count("/api/auth/email-verification")).toBe(1);

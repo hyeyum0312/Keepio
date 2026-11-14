@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-14 | fix(web): PC 회원가입 화면도 스크롤 없이 한 화면에 (FEAT-007)
+
+- Feature: FEAT-007
+- 목적: PC 노트북 높이(720~768px)에서 회원가입 화면에 스크롤이 생겨 한눈에 보이지 않는 문제(사용자 요청).
+- 변경: `AuthStage` 폼 화면(compact)의 PC 위아래 여백·카드 안 간격 축소, 회원가입 폼 간격 `md:gap-3`, 동의 체크 행 PC 높이 36px(모바일은 44px 유지).
+- 영향: PC의 회원가입·이메일 로그인·찾기·재설정 화면 간격. 모바일 변화 없음.
+- 검증: 작업 컨테이너(Node 24.22.1)에서 web `eslint` 0건·`tsc` PASS·`vitest` 44 PASS, Playwright로 `/signup`·`/login`·`/login?method=email` 문서 높이 = 화면 높이 확인(1280×800·1366×768·1440×720, 모바일 390×844). `npm run verify` 미실행(Mac 확인 필요).
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-13 | feat(web): FEAT-007 인증 화면 디자인 적용 — 시작·이메일 회원가입·인증 결과
+
+- Feature: FEAT-007
+- 목적: 확정 시안(캐릭터 무대 B안)대로 로그인·가입 화면을 다시 그린다. 화면만, 서버 변경 없음.
+- 변경: 07-BRAND 역할 토큰(라이트·다크)을 `globals.css`에 반영(D-09 부분 확정), 공용 입력·버튼 모양 변경, 시작 화면(소셜 + 이메일 접기·펼치기 `?method=email` + 최근 사용 배지 + 회원가입 링크), 이메일 회원가입(필수 동의 3개·발송 안내·재발송 60초), 인증 완료 축하 모션, 찾기·재설정·콜백 화면 레이아웃, 소셜 문구 "카카오 로그인"·"Google 로그인", 카카오는 키 발급 전에도 버튼 표시(누르면 준비 중 안내), PC 이메일 모드는 제목을 한 줄로 줄여 스크롤 없음. FEAT-007 명세 추가, 화면 목록·D-09·DESIGN 토큰 현황 갱신.
+- 영향: `/login`·`/signup`·`/verify-email`·`/forgot-password`·`/reset-password`·`/auth/callback`. `/signup`에서 소셜 버튼 제거(시작 화면으로 일원화). 공용 입력·버튼과 토큰 변경으로 홈·북마크 화면 모양도 바뀜. API·DB 변경 없음. 브라우저 저장소에 로그인 방법 이름만 저장.
+- 검증: 작업 컨테이너(Node 24.22.1, 저장소 사본 `npm ci`)에서 web `eslint` 0건, `tsc` PASS, `vitest` 44 PASS(카카오 준비 중 안내 포함), `next build` PASS, `npm run format:check` PASS, Playwright 캡처로 시안 비교. `npm run verify` 전체는 미실행(Mac 로컬 확인 필요). 커밋 전 hook은 실행하지 않음(`--no-verify`, 사용자 요청: 작업 VM이 Mac용 node_modules로 `test:related`를 실행할 수 없음). hook의 포맷 검사·HISTORY 검사는 직접 실행해 PASS, 관련 테스트는 위 전체 테스트로 대신함.
+- 주의/롤백: revert로 롤백. 동의 기록·카카오 공식 에셋·약관 페이지는 후속 작업.
+
 ## 2026-11-13 | docs: 축하 순간 캐릭터 모션 규칙 (spec 07)
 
 - Feature: N/A

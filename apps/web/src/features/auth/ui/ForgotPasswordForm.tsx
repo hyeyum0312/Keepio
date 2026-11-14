@@ -1,17 +1,17 @@
 "use client";
 
 import { useAuthControllerRequestPasswordReset } from "@keepio/api-client";
-import Link from "next/link";
 import { useState } from "react";
 import { submit } from "@/shared/lib/server-message";
 import {
-  AuthLayout,
   fieldValue,
   FormError,
   Notice,
   SubmitButton,
   TextField,
 } from "@/shared/ui/FormParts";
+import { AuthStage } from "./AuthStage";
+import { BackLink } from "./BackLink";
 
 // FEAT-006 AC-10. 가입 여부와 무관하게 같은 안내(FEAT-003 AC-14)
 export function ForgotPasswordForm() {
@@ -32,7 +32,8 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <AuthLayout title="비밀번호 찾기">
+    <AuthStage title="비밀번호 찾기" compact>
+      <BackLink href="/login?method=email">로그인으로 돌아가기</BackLink>
       {sent ? (
         <Notice>
           가입된 이메일이면 비밀번호 재설정 메일을 보냈어요. 링크는 30분 동안 쓸
@@ -44,6 +45,7 @@ export function ForgotPasswordForm() {
             label="이메일"
             name="email"
             type="email"
+            inputMode="email"
             autoComplete="email"
             hasError={!!error}
           />
@@ -53,9 +55,6 @@ export function ForgotPasswordForm() {
           </SubmitButton>
         </form>
       )}
-      <Link href="/login" className="text-sm">
-        로그인으로 돌아가기
-      </Link>
-    </AuthLayout>
+    </AuthStage>
   );
 }
