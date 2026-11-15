@@ -19,3 +19,4 @@
 | FEAT-006 | [웹 로그인 화면과 토큰 처리](auth-web.md)               | Implemented |
 | FEAT-007 | [인증 화면 디자인 적용](auth-screens-design.md)         | Implemented |
 | FEAT-008 | [카테고리·태그 CRUD와 링크 분류](category-tag.md)       | Draft       |
+| FEAT-009 | [앱 틀과 홈 화면 디자인](app-shell-home.md)             | Implemented |
