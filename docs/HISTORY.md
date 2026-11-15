@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-16 | feat(web): 인증 화면 디자인 v3·v4와 라이트·다크 전환 버튼 (FEAT-007)
+
+- Feature: FEAT-007
+- 목적: 사용자 디자인 리뷰(AUTH v2→v3 라이트, v4 다크)를 반영해 첫 화면의 캐릭터 배치·배경을 다듬고, 라이트와 다크가 같은 브랜드로 보이게 한다. 비교를 위해 테마 전환 버튼을 둔다.
+- 변경: `BrandArt` 무대 배치(PC 7개·모바일 3개/2개, 크게 잘리는 캐릭터 하나), 다크 유리알 캐릭터 제거(같은 평면 에셋), `StageWash` 비대칭 색 번짐(`globals.css` `kp-wash-*`, `--wash-*`·`--border-subtle`·`--text-headline` 토큰, 다크 기본 색 조정, 미사용 `bg-stage` 삭제), `AuthStage` 모바일 왼쪽 정렬·로고 표시, 로그인 안내 위치, 동의 영역 표시·터치 영역, Google 버튼 라이트 Neutral 테마, `ThemeToggle`·`shared/lib/theme`(dark 변형을 `html[data-theme]` 우선으로), 레이아웃 head에 테마 부트 스크립트. 문서: 07-BRAND 7.1, FEAT-007 후속 변경.
+- 영향: 인증 화면 전부(로그인·가입·인증·비밀번호·콜백)와 다크 토큰을 쓰는 화면(배경·표면·글자 색 소폭 변화). API·데이터 변경 없음.
+- 검증: 클라우드(Node 24.22.1) — `prettier --check`·`eslint --max-warnings=0`·`tsc --noEmit` PASS, `vitest run` 46 PASS(ThemeToggle 2 추가), `next build` PASS, Playwright로 PC 3크기·모바일 390에서 라이트·다크 무스크롤 확인, 라이트 화면 v3와 픽셀 동일 확인. Mac `npm run verify`는 커밋 전 사용자 실행.
+- 주의/롤백: revert로 롤백. 다크용 `*-symbol-dark.svg`는 더 이상 쓰지 않음(파일은 남김).
+
 ## 2026-11-15 | docs: 제품 방향을 레퍼런스 라이브러리로, 이미지·AI 요약·MCP를 1차 범위에 (ADR-014)
 
 - Feature: N/A

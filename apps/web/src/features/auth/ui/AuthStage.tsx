@@ -1,6 +1,8 @@
-// 인증 화면 공통 레이아웃(FEAT-007, 07-BRAND 7.1 무대형).
-// PC: 가장자리 캐릭터 + 작은 로고 + 큰 제목 + 가운데 카드. 모바일: 패밀리 심볼 + 제목, 카드 테두리 없이 전체 폭(여백 24px)
-import { FamilySymbol, Lockup, StageCharacters } from "./BrandArt";
+// 인증 화면 공통 레이아웃(FEAT-007, 07-BRAND 7.1 무대형 v3).
+// PC: 가장자리 캐릭터 + 색 번짐 + 작은 로고 + 큰 제목 + 가운데 카드.
+// 모바일: 위쪽에 캐릭터(하나만 잘림) + 왼쪽 정렬 로고·제목, 카드 테두리 없이 전체 폭(여백 24px)
+import { FamilySymbol, Lockup, StageCharacters, StageWash } from "./BrandArt";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
 export function AuthStage({
   title,
@@ -18,40 +20,39 @@ export function AuthStage({
   children: React.ReactNode;
 }) {
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-stage">
-      <StageCharacters />
+    <main className="relative min-h-dvh overflow-hidden bg-background">
+      <StageWash />
+      {!celebrate && <StageCharacters compact={compact} />}
+      <ThemeToggle className="absolute right-4 bottom-4 z-10 md:top-6 md:right-6 md:bottom-auto" />
       <div
         className={`relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-6 pb-8 md:justify-center ${
-          compact
-            ? "gap-7 pt-10 md:gap-5 md:py-6"
-            : "gap-8 pt-12 md:gap-8 md:py-16"
+          celebrate
+            ? "gap-8 pt-12 md:gap-8 md:py-16"
+            : compact
+              ? "gap-6 pt-10 md:gap-5 md:py-5"
+              : "gap-7 pt-48 md:gap-9 md:py-16"
         }`}
       >
         <div
-          className={`flex flex-col items-center text-center md:flex-none md:gap-3 ${
-            compact ? "gap-2.5" : "flex-1 justify-center gap-6"
+          className={`flex flex-col md:items-center md:text-center ${
+            celebrate
+              ? "flex-1 items-center justify-center gap-6 text-center md:flex-none md:gap-3"
+              : "items-start gap-3 text-left md:gap-4"
           }`}
         >
-          <div className={celebrate ? "" : "md:hidden"}>
-            <FamilySymbol
-              scale={compact ? 0.62 : celebrate ? 1.2 : 1.35}
-              celebrate={celebrate}
-            />
-          </div>
-          {!compact && !celebrate && (
-            <span className="-mt-3 text-2xl font-semibold tracking-tight md:hidden">
-              keepio
-            </span>
+          {celebrate ? (
+            <FamilySymbol scale={1.2} celebrate />
+          ) : (
+            <Lockup size={compact ? 20 : 24} />
           )}
-          <div className={celebrate ? "hidden" : "hidden md:block"}>
-            <Lockup />
-          </div>
           <div
-            className={`flex flex-col items-center gap-3 ${celebrate ? "kp-rise" : ""}`}
+            className={`flex flex-col gap-3 md:items-center ${celebrate ? "kp-rise items-center" : ""}`}
           >
             <h1
               className={`leading-tight font-semibold tracking-tight ${
-                compact ? "text-xl md:text-title" : "text-title md:text-display"
+                compact
+                  ? "text-title md:text-headline"
+                  : "text-title md:text-display"
               }`}
             >
               {title}
@@ -66,8 +67,8 @@ export function AuthStage({
           </div>
         </div>
         <div
-          className={`flex w-full flex-col md:rounded-3xl md:border md:border-border md:bg-surface md:px-6 ${
-            compact ? "gap-6 md:gap-4 md:py-6" : "gap-6 md:py-8"
+          className={`flex w-full flex-col md:rounded-3xl md:border md:border-border-subtle md:bg-surface md:px-6 ${
+            compact ? "gap-6 md:gap-4 md:py-5" : "gap-6 md:pt-8 md:pb-6"
           }`}
         >
           {children}
