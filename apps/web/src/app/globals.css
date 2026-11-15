@@ -41,6 +41,13 @@
   --wash-butter: #ffe7a3;
   /* 카드 외곽선: 기본 테두리보다 한 단계 연하게(첫 화면 카드) */
   --border-subtle: #e6e7ec;
+  /* 홈(FEAT-009): 유일한 그림자 카드용 그림자, 카테고리 칩 캐릭터 얼굴 배경 */
+  --shadow-soft: rgba(32, 33, 42, 0.08);
+  --face-yellow: #fff4d6;
+  --face-blue: #e6edff;
+  --face-red: #ffe6e3;
+  --face-purple: #efeaff;
+  --face-tangerine: #ffebdd;
   /* 색 번짐 세기(다크는 낮춘다) */
   --wash-strength: 1;
   --wash-blur: 34px;
@@ -85,6 +92,12 @@
   --focus-ring: #fb8070;
   --ai: #a9a3f0;
   --border-subtle: #2a2e3a;
+  --shadow-soft: rgba(0, 0, 0, 0.35);
+  --face-yellow: #3a3322;
+  --face-blue: #1f2a48;
+  --face-red: #40242a;
+  --face-purple: #2c2546;
+  --face-tangerine: #3d2a20;
   --wash-coral: #c4574f;
   --wash-pink: #6a4cc9;
   --wash-peach: #b8735a;
@@ -115,6 +128,12 @@
     --focus-ring: #fb8070;
     --ai: #a9a3f0;
     --border-subtle: #2a2e3a;
+    --shadow-soft: rgba(0, 0, 0, 0.35);
+    --face-yellow: #3a3322;
+    --face-blue: #1f2a48;
+    --face-red: #40242a;
+    --face-purple: #2c2546;
+    --face-tangerine: #3d2a20;
     --wash-coral: #c4574f;
     --wash-pink: #6a4cc9;
     --wash-peach: #b8735a;
@@ -136,6 +155,11 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
+  --color-face-yellow: var(--face-yellow);
+  --color-face-blue: var(--face-blue);
+  --color-face-red: var(--face-red);
+  --color-face-purple: var(--face-purple);
+  --color-face-tangerine: var(--face-tangerine);
   --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);

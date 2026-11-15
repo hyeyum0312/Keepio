@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-16 | feat(web): 앱 틀(사이드바·하단 탭)과 홈 화면 디자인 (FEAT-009)
+
+- Feature: FEAT-009
+- 목적: 로그인 뒤 화면을 와이어(E1·E3)대로 바꿔 정리 → 버킷 → 공유 구조를 보이게 한다. 서버가 없는 부분은 가짜 데이터 없이 숨기고, 디자인은 개발 전용 미리보기로 확인한다(사용자 결정).
+- 변경: `features/app-shell`(사이드바 접기·펴기, 하단 탭, 모바일 머리, 준비 중 메뉴), `features/home`(검색 자리, 정리할 링크 한 줄 카드·건너뛰기, 버킷 아트워크 타일, 공유한 페이지 목록, 미리보기 샘플), `auth` AccountMenu, `shared/ui/KeepioMark`(BrandArt에서 이동), `shared/lib/preview`, 라우트 `/`·`/links`·`/trash`·`/preview/home`, `globals.css` 그림자·칩 얼굴 배경 토큰, `public/bucket-art` 임시 이미지 4장. 문서: FEAT-009, features 목록.
+- 영향: 로그인 후 첫 화면. 저장·목록·삭제·복구 기능은 `/links`·`/trash`로 옮겼을 뿐 그대로. API·데이터 변경 없음.
+- 검증: 클라우드(Node 24.22.1) — prettier·eslint(--max-warnings=0)·tsc PASS, vitest 57 PASS(AppShell 3·Home 6·preview 2 추가), `next build` PASS, 배포 빌드에서 `/preview/home` 404 확인, 개발 서버 미리보기를 PC·다크·접힘·모바일로 화면 확인. Mac `npm run verify`는 커밋 전 사용자 실행.
+- 주의/롤백: revert로 롤백. 버킷 이미지는 원본(1000px 이상 WebP)이 오면 같은 이름으로 교체.
+
 ## 2026-11-16 | docs: 카테고리는 링크당 하나로 (ADR-015, FEAT-008 명세)와 캐릭터 규칙
 
 - Feature: FEAT-008

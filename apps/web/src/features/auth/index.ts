@@ -1,6 +1,7 @@
 // features/auth 공개 API(FEAT-006). 다른 곳은 이 파일로만 import한다
 export { authFetch } from "./model/auth-fetch";
 export { AccountHeader } from "./ui/AccountHeader";
+export { AccountMenu } from "./ui/AccountMenu";
 export { AuthBootstrap } from "./ui/AuthBootstrap";
 export { AuthSwitch } from "./ui/AuthSwitch";
 export { ForgotPasswordForm } from "./ui/ForgotPasswordForm";
