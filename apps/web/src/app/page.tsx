@@ -1,16 +1,24 @@
-import { AccountHeader, AuthSwitch } from "@/features/auth";
-import { BookmarkPanel } from "@/features/bookmarks";
+import { Suspense } from "react";
+import { AppShell } from "@/features/app-shell";
+import { AccountMenu, AuthSwitch } from "@/features/auth";
+import { HomeRoute } from "@/features/home";
 import { Landing } from "@/features/landing";
 
-// 로그인 상태면 my-아이디·로그아웃 + 북마크, 아니면 랜딩(FEAT-006 AC-12, FEAT-002)
-export default function Home() {
+// 로그인 상태면 앱 홈(FEAT-009), 아니면 랜딩(FEAT-006 AC-12)
+export default function Page() {
   return (
     <AuthSwitch
       authenticated={
-        <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-8 p-6">
-          <AccountHeader />
-          <BookmarkPanel />
-        </main>
+        <AppShell
+          account={{
+            up: <AccountMenu open="up" />,
+            down: <AccountMenu open="down" />,
+          }}
+        >
+          <Suspense>
+            <HomeRoute />
+          </Suspense>
+        </AppShell>
       }
       anonymous={<Landing />}
     />
