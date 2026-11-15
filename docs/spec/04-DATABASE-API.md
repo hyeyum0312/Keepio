@@ -2,7 +2,9 @@
 
 ## 논리 모델
 
-- User 1:N Bookmark/Category/Tag/Bucket/Publication
+- User 1:N Bookmark/Category/Tag/Publication/ApiToken
+- Workspace 1:N Bucket. 가입 시 개인 Workspace 1개 자동 생성(owner = 사용자). 팀 멤버십은 나중(ADR-014)
+- Bookmark 1:N BookmarkImage
 - Bookmark N:M Category (`bookmark_categories`)
 - Bookmark N:M Tag (`bookmark_tags`)
 - Bookmark N:M Bucket (`bucket_items`)
@@ -11,27 +13,30 @@
 
 ## 주요 테이블
 
-| 테이블               | 주요 필드                                                                                                   |
-| -------------------- | ----------------------------------------------------------------------------------------------------------- |
-| users                | id, email(NULL 허용, 부분 UNIQUE), email_verified_at, plan_id                                               |
-| password_credentials | user_id, password_hash                                                                                      |
-| refresh_tokens       | id, user_id, family_id, token_hash, expires_at, used_at, revoked_at                                         |
-| email_tokens         | id, user_id, purpose, token_hash, expires_at, used_at                                                       |
-| oauth_accounts       | id, user_id, provider, subject (UNIQUE provider+subject)                                                    |
-| bookmarks            | id, user_id, original_url, normalized_url, title, description, thumbnail, classification_status, deleted_at |
-| categories           | id, user_id, name, normalized_name                                                                          |
-| category_aliases     | id, category_id, alias                                                                                      |
-| bookmark_categories  | bookmark_id, category_id                                                                                    |
-| tags                 | id, user_id, name                                                                                           |
-| bookmark_tags        | bookmark_id, tag_id                                                                                         |
-| buckets              | id, user_id, title, description                                                                             |
-| bucket_items         | bucket_id, bookmark_id, sort_order                                                                          |
-| templates            | id, name, schema_version, config                                                                            |
-| publications         | id, user_id, slug, template_id, status, published_version_id                                                |
-| publication_versions | id, publication_id, version, content_json, created_at                                                       |
-| plan_limits          | plan_id, resource_type, limit_value                                                                         |
-| usage_counters       | user_id, resource_type, period, used                                                                        |
-| outbox_events        | id, type, payload, created_at, delivered_at                                                                 |
+| 테이블               | 주요 필드                                                                                                                                                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| users                | id, email(NULL 허용, 부분 UNIQUE), email_verified_at, plan_id                                                                                                                                      |
+| password_credentials | user_id, password_hash                                                                                                                                                                             |
+| refresh_tokens       | id, user_id, family_id, token_hash, expires_at, used_at, revoked_at                                                                                                                                |
+| email_tokens         | id, user_id, purpose, token_hash, expires_at, used_at                                                                                                                                              |
+| oauth_accounts       | id, user_id, provider, subject (UNIQUE provider+subject)                                                                                                                                           |
+| workspaces           | id, owner_user_id, kind(personal), name                                                                                                                                                            |
+| bookmarks            | id, user_id, original_url(NULL 허용), normalized_url(NULL 허용), link_kind(page/video, NULL 허용), title, description, thumbnail, memo, summary, summary_status, classification_status, deleted_at |
+| bookmark_images      | id, bookmark_id, storage_key, thumbnail_key, mime_type, bytes, width, height, sort_order, is_public                                                                                                |
+| categories           | id, user_id, name, normalized_name                                                                                                                                                                 |
+| category_aliases     | id, category_id, alias                                                                                                                                                                             |
+| bookmark_categories  | bookmark_id, category_id                                                                                                                                                                           |
+| tags                 | id, user_id, name                                                                                                                                                                                  |
+| bookmark_tags        | bookmark_id, tag_id                                                                                                                                                                                |
+| buckets              | id, workspace_id, title, description, mcp_enabled(기본 false)                                                                                                                                      |
+| bucket_items         | bucket_id, bookmark_id, sort_order                                                                                                                                                                 |
+| templates            | id, name, schema_version, config                                                                                                                                                                   |
+| publications         | id, user_id, slug, template_id, status, published_version_id                                                                                                                                       |
+| publication_versions | id, publication_id, version, content_json, created_at                                                                                                                                              |
+| api_tokens           | id, user_id, name, token_hash, scope(read), last_used_at, revoked_at, created_at                                                                                                                   |
+| plan_limits          | plan_id, resource_type, limit_value                                                                                                                                                                |
+| usage_counters       | user_id, resource_type, period, used                                                                                                                                                               |
+| outbox_events        | id, type, payload, created_at, delivered_at                                                                                                                                                        |
 
 모든 사용자 소유 데이터에 소유권 검증을 적용. 생성/수정 시각과 필요한 외래 키는 실제 마이그레이션에 포함.
 
@@ -45,6 +50,10 @@
 - `bookmarks(user_id, normalized_url) WHERE deleted_at IS NULL` 부분 UNIQUE 인덱스
 - 부분 인덱스는 Prisma 스키마(`partialIndexes` preview)로, Prisma가 표현하지 못하는 제약(CHECK)은 SQL 마이그레이션으로 관리
 - `bookmarks` URL 길이 CHECK(`original_url`·`normalized_url` 2048자 이하)
+- 항목은 링크 또는 이미지 중 하나 이상 필수. 이미지 개수는 DB CHECK로 표현할 수 없으므로 서비스 계층에서 트랜잭션으로 검증(링크 없는 항목의 마지막 이미지 삭제 거부)
+- `bookmark_images(bookmark_id, sort_order)` UNIQUE, 항목당 최대 10장
+- `api_tokens(token_hash)` UNIQUE. 원문 토큰은 발급 시 한 번만 보여준다
+- 버킷 소유 검증은 `workspace.owner_user_id`로 한다(팀 도입 시 멤버십으로 교체)
 - 연결 대상이 같은 사용자 소유인지 서비스 계층에서 검증; 필요하면 DB 레벨 제약 보강
 
 ## URL 정책
@@ -58,36 +67,42 @@
 
 ## API 목록
 
-| Method       | Path                               | 기능                    |
-| ------------ | ---------------------------------- | ----------------------- |
-| POST         | /api/auth/signup                   | 이메일 가입             |
-| POST         | /api/auth/email-verification       | 이메일 인증(+/resend)   |
-| POST         | /api/auth/login                    | 로그인                  |
-| POST         | /api/auth/refresh                  | 토큰 회전               |
-| POST         | /api/auth/logout                   | 로그아웃                |
-| POST         | /api/auth/password-reset           | 재설정 요청(+/confirm)  |
-| GET          | /api/me                            | 현재 사용자             |
-| GET          | /api/auth/oauth/providers          | 사용 가능한 소셜 제공자 |
-| GET          | /api/auth/oauth/:provider/start    | 소셜 로그인 시작(302)   |
-| GET          | /api/auth/oauth/:provider/callback | 소셜 로그인 콜백(302)   |
-| POST         | /api/bookmarks                     | 링크 저장 및 중복 반환  |
-| GET          | /api/bookmarks                     | 검색·필터·페이지네이션  |
-| PATCH        | /api/bookmarks/:id                 | 링크 수정               |
-| DELETE       | /api/bookmarks/:id                 | Soft Delete             |
-| POST         | /api/bookmarks/:id/restore         | 복구                    |
-| POST         | /api/bookmarks/bulk                | 일괄 분류/연결          |
-| POST         | /api/bookmarks/:id/classify        | AI 분류 요청            |
-| GET/POST     | /api/categories                    | 카테고리 조회/생성      |
-| PATCH/DELETE | /api/categories/:id                | 수정/삭제               |
-| GET/POST     | /api/buckets                       | 버킷 조회/생성          |
-| PUT          | /api/buckets/:id/items             | 버킷 구성/순서          |
-| GET          | /api/templates                     | 템플릿 조회             |
-| GET/POST     | /api/publications                  | 발행물 조회/초안 생성   |
-| PATCH        | /api/publications/:id              | 초안 수정               |
-| POST         | /api/publications/:id/publish      | 발행/수정 발행          |
-| POST         | /api/publications/:id/unpublish    | 발행 취소               |
-| GET          | /p/:slug                           | 공개 페이지             |
-| GET          | /api/usage                         | 사용량 조회             |
+| Method       | Path                               | 기능                                   |
+| ------------ | ---------------------------------- | -------------------------------------- |
+| POST         | /api/auth/signup                   | 이메일 가입                            |
+| POST         | /api/auth/email-verification       | 이메일 인증(+/resend)                  |
+| POST         | /api/auth/login                    | 로그인                                 |
+| POST         | /api/auth/refresh                  | 토큰 회전                              |
+| POST         | /api/auth/logout                   | 로그아웃                               |
+| POST         | /api/auth/password-reset           | 재설정 요청(+/confirm)                 |
+| GET          | /api/me                            | 현재 사용자                            |
+| GET          | /api/auth/oauth/providers          | 사용 가능한 소셜 제공자                |
+| GET          | /api/auth/oauth/:provider/start    | 소셜 로그인 시작(302)                  |
+| GET          | /api/auth/oauth/:provider/callback | 소셜 로그인 콜백(302)                  |
+| POST         | /api/bookmarks                     | 항목 저장(링크·메모) 및 중복 반환      |
+| POST         | /api/bookmarks/:id/images          | 이미지 업로드(예정)                    |
+| PATCH/DELETE | /api/bookmarks/:id/images/:imageId | 공개 여부·순서/삭제(예정)              |
+| GET          | /api/bookmarks                     | 검색·필터·페이지네이션                 |
+| PATCH        | /api/bookmarks/:id                 | 링크 수정                              |
+| DELETE       | /api/bookmarks/:id                 | Soft Delete                            |
+| POST         | /api/bookmarks/:id/restore         | 복구                                   |
+| POST         | /api/bookmarks/bulk                | 일괄 분류/연결                         |
+| POST         | /api/bookmarks/:id/classify        | AI 분류 요청                           |
+| GET/POST     | /api/categories                    | 카테고리 조회/생성                     |
+| PATCH/DELETE | /api/categories/:id                | 수정/삭제                              |
+| GET/POST     | /api/buckets                       | 버킷 조회/생성                         |
+| PUT          | /api/buckets/:id/items             | 버킷 구성/순서                         |
+| PATCH        | /api/buckets/:id                   | 수정(`mcpEnabled` 포함, 예정)          |
+| GET/POST     | /api/tokens                        | MCP 토큰 조회/발급(예정)               |
+| DELETE       | /api/tokens/:id                    | MCP 토큰 폐기(예정)                    |
+| POST         | /mcp                               | MCP 서버(읽기 전용, Bearer 토큰, 예정) |
+| GET          | /api/templates                     | 템플릿 조회                            |
+| GET/POST     | /api/publications                  | 발행물 조회/초안 생성                  |
+| PATCH        | /api/publications/:id              | 초안 수정                              |
+| POST         | /api/publications/:id/publish      | 발행/수정 발행                         |
+| POST         | /api/publications/:id/unpublish    | 발행 취소                              |
+| GET          | /p/:slug                           | 공개 페이지                            |
+| GET          | /api/usage                         | 사용량 조회                            |
 
 ## 저장 응답 예시
 
@@ -140,5 +155,7 @@ AI confidence는 모델의 자기 평가값으로 취급하며 자동 적용 기
   ]
 }
 ```
+
+이미지 경로("예정")와 MCP 도구 이름·응답 형태는 해당 Feature 문서에서 확정한다(ADR-014). 발행 스냅샷에는 `is_public`인 항목 이미지만 복사한다.
 
 `sourceBookmarkId`는 추적용이며 공개 렌더링은 스냅샷 값 사용. 발행 상태는 draft/published/unpublished. 공개 버전 포인터 변경은 트랜잭션으로 수행.
