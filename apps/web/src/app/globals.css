@@ -1,4 +1,18 @@
 @import "tailwindcss";
+/* dark: 변형 = 테마 버튼으로 다크를 골랐거나, 고르지 않았고 시스템이 다크일 때 */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(
+      :root:not([data-theme="light"]),
+      :root:not([data-theme="light"]) *
+    ) {
+      @slot;
+    }
+  }
+}
 
 /* 디자인 토큰 원본(ADR-002). 값과 근거: docs/spec/07-BRAND.md, 규칙: docs/standards/DESIGN.md
    D-09 부분 확정(2026-11-13): 인증 화면(FEAT-007)에 쓰는 토큰. 나머지는 내 링크 화면 디자인 때 확정 */
@@ -19,10 +33,17 @@
   --focus-ring: #e8392b;
   /* AI 기능 전용 강조색. 흰 배경 대비를 위해 #7f77dd → #6b63d6(07-BRAND) */
   --ai: #6b63d6;
-  /* 첫 화면 무대 배경(07-BRAND 7.1) */
-  --stage-center: #ffffff;
-  --stage-mid: #f5f4f8;
-  --stage-edge: #fbeeeb;
+  /* 첫 화면 색 번짐(라이트 전용, 07-BRAND 7.1 v3): 맑은 블러시 핑크·코랄 피치·페일 블루·버터 옐로 */
+  --wash-coral: #f6b4ab;
+  --wash-pink: #f7c3d2;
+  --wash-peach: #ffc7a6;
+  --wash-blue: #c4dcff;
+  --wash-butter: #ffe7a3;
+  /* 카드 외곽선: 기본 테두리보다 한 단계 연하게(첫 화면 카드) */
+  --border-subtle: #e6e7ec;
+  /* 색 번짐 세기(다크는 낮춘다) */
+  --wash-strength: 1;
+  --wash-blur: 34px;
   /* 캐릭터 심볼(로고 원본 색) */
   --symbol-top: #ee5041;
   --symbol-bottom: #fb8070;
@@ -36,21 +57,56 @@
   /* 소셜 버튼: 제공자 가이드 색(07-BRAND 3.2, 이 문서보다 제공자 가이드 우선) */
   --kakao: #fee500;
   --kakao-foreground: rgba(0, 0, 0, 0.85);
-  --google: #ffffff;
-  --google-border: #747775;
+  /* 라이트는 Google 가이드의 Neutral 테마(채움 #F2F2F2, 외곽선 없음 → 채움과 같은 색으로 1px 유지) */
+  --google: #f2f2f2;
+  --google-border: #f2f2f2;
   --google-foreground: #1f1f1f;
 }
 
+:root {
+  color-scheme: light;
+}
+/* 다크 토큰: 시스템 설정을 따르되, 화면 테마 버튼으로 고른 값(html[data-theme])이 우선 */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #141722;
+  --foreground: #f3f3f7;
+  --surface: #191c27;
+  --muted: #20232f;
+  --muted-foreground: #9da1b0;
+  --border: #303440;
+  --input: #6e7383;
+  --primary: #f3f3f7;
+  --primary-foreground: #20212a;
+  --accent: #fb8070;
+  --destructive: #ff8a80;
+  --success: #6fd08c;
+  --warning: #f5b54a;
+  --focus-ring: #fb8070;
+  --ai: #a9a3f0;
+  --border-subtle: #2a2e3a;
+  --wash-coral: #c4574f;
+  --wash-pink: #6a4cc9;
+  --wash-peach: #b8735a;
+  --wash-blue: #2f57c9;
+  --wash-butter: #4b3aa6;
+  --wash-strength: 0.5;
+  --wash-blur: 48px;
+  --google: #131314;
+  --google-border: #8e918f;
+  --google-foreground: #e3e3e3;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0c14;
-    --foreground: #ecedf2;
-    --surface: #141720;
-    --muted: #1b1f2a;
-    --muted-foreground: #a3a6b3;
-    --border: #2e3340;
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: #141722;
+    --foreground: #f3f3f7;
+    --surface: #191c27;
+    --muted: #20232f;
+    --muted-foreground: #9da1b0;
+    --border: #303440;
     --input: #6e7383;
-    --primary: #ecedf2;
+    --primary: #f3f3f7;
     --primary-foreground: #20212a;
     --accent: #fb8070;
     --destructive: #ff8a80;
@@ -58,12 +114,14 @@
     --warning: #f5b54a;
     --focus-ring: #fb8070;
     --ai: #a9a3f0;
-    --stage-center: #181c2b;
-    --stage-mid: #0e111b;
-    --stage-edge: #0a0c14;
-    --symbol-top: #ff4b3e;
-    --symbol-bottom: #ffd0c7;
-    --symbol-line: #ffd0c7;
+    --border-subtle: #2a2e3a;
+    --wash-coral: #c4574f;
+    --wash-pink: #6a4cc9;
+    --wash-peach: #b8735a;
+    --wash-blue: #2f57c9;
+    --wash-butter: #4b3aa6;
+    --wash-strength: 0.5;
+    --wash-blur: 48px;
     --google: #131314;
     --google-border: #8e918f;
     --google-foreground: #e3e3e3;
@@ -77,6 +135,7 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -94,6 +153,7 @@
   /* 글자 크기 단계(07-BRAND 5장) 중 Tailwind 기본에 없는 값 */
   --text-caption: 0.8125rem;
   --text-title: 1.75rem;
+  --text-headline: 2.25rem;
   --text-display: 2.5rem;
   --font-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -104,18 +164,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-}
-
-/* 첫 화면 무대 배경 */
-@utility bg-stage {
-  background-color: var(--background);
-  background-image: radial-gradient(
-    120% 90% at 50% 38%,
-    var(--stage-center) 0%,
-    var(--stage-center) 30%,
-    var(--stage-mid) 70%,
-    var(--stage-edge) 100%
-  );
 }
 
 /* 키보드 포커스(07-BRAND focus-ring, 2px + 2px 간격) */
@@ -254,5 +302,105 @@ body {
   .kp-celebrate-3,
   .kp-rise {
     animation: none;
+  }
+}
+
+/* 첫 화면 색 번짐(07-BRAND 7.1 v3·v4). 네 모서리 균등 대신 비대칭·불규칙, 중앙(제목·카드)은 배경색 그대로.
+   라이트 = Diffused Daylight, 다크 = Ambient Color(같은 모양, 색과 세기만 다르다) */
+.kp-wash {
+  position: absolute;
+  filter: blur(var(--wash-blur));
+  pointer-events: none;
+}
+.kp-wash-coral {
+  left: 11%;
+  top: -180px;
+  width: 600px;
+  height: 320px;
+  border-radius: 58% 42% 55% 45% / 46% 60% 40% 54%;
+  transform: rotate(-9deg);
+  background: var(--wash-coral);
+  opacity: calc(0.5 * var(--wash-strength));
+}
+.kp-wash-pink {
+  right: 9%;
+  top: -150px;
+  width: 360px;
+  height: 260px;
+  border-radius: 55% 45% 60% 40%;
+  background: var(--wash-pink);
+  opacity: calc(0.32 * var(--wash-strength));
+}
+.kp-wash-peach {
+  right: -110px;
+  top: 30%;
+  width: 440px;
+  height: 400px;
+  border-radius: 44% 56% 38% 62% / 55% 45% 55% 45%;
+  transform: rotate(14deg);
+  background: var(--wash-peach);
+  opacity: calc(0.42 * var(--wash-strength));
+}
+.kp-wash-blue {
+  left: -150px;
+  bottom: -150px;
+  width: 520px;
+  height: 300px;
+  border-radius: 60% 40% 50% 50% / 50% 55% 45% 50%;
+  background: var(--wash-blue);
+  opacity: calc(0.4 * var(--wash-strength));
+}
+.kp-wash-butter {
+  right: 20%;
+  bottom: -150px;
+  width: 340px;
+  height: 210px;
+  border-radius: 50%;
+  background: var(--wash-butter);
+  opacity: calc(0.42 * var(--wash-strength));
+}
+.kp-wash-clear {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    44% 60% at 50% 46%,
+    var(--background) 58%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+@media (max-width: 767px) {
+  .kp-wash-coral {
+    left: -60px;
+    top: -100px;
+    width: 340px;
+    height: 200px;
+    opacity: calc(0.4 * var(--wash-strength));
+  }
+  .kp-wash-peach {
+    right: -80px;
+    top: 10px;
+    width: 220px;
+    height: 200px;
+    opacity: calc(0.34 * var(--wash-strength));
+  }
+  .kp-wash-blue {
+    left: -70px;
+    top: 120px;
+    bottom: auto;
+    width: 180px;
+    height: 120px;
+    opacity: calc(0.3 * var(--wash-strength));
+  }
+  .kp-wash-pink,
+  .kp-wash-butter {
+    display: none;
+  }
+  .kp-wash-clear {
+    background: linear-gradient(
+      transparent 0,
+      transparent 140px,
+      var(--background) 280px
+    );
   }
 }

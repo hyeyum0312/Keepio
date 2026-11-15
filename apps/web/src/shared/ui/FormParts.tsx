@@ -11,7 +11,7 @@ const BUTTON_BASE =
 // 버튼 모양을 링크(<a>)에도 쓰려고 클래스로 내보낸다
 export const buttonClass = {
   primary: `${BUTTON_BASE} rounded-full bg-primary text-primary-foreground disabled:bg-muted disabled:text-muted-foreground`,
-  secondary: `${BUTTON_BASE} rounded-full border border-border bg-muted text-foreground`,
+  secondary: `${BUTTON_BASE} rounded-full border border-border bg-muted text-foreground dark:hover:border-muted-foreground`,
   quiet: `${BUTTON_BASE} rounded-full text-muted-foreground`,
 } as const;
 
