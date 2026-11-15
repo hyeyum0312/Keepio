@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-15 | docs: 제품 방향을 레퍼런스 라이브러리로, 이미지·AI 요약·MCP를 1차 범위에 (ADR-014)
+
+- Feature: N/A
+- 목적: 단순 북마크는 차별점이 약하다는 사용자 판단에 따라 "AI가 꺼내 쓸 수 있는 내 레퍼런스 라이브러리"로 방향을 정하고, 승인된 결정 1~8을 spec에 반영한다.
+- 변경: ADR-014 추가(방향·타깃·기능 판단 기준·항목 구조·이미지 분류·MCP·발행 이미지 공개·워크스페이스 소유·AI 요약·유튜브·인스타 정책). spec 01(목표·판단 기준·도메인·범위·AI 정책·비기능·제외), spec 04(workspaces·bookmark_images·api_tokens, bookmarks/buckets 필드, 제약, 예정 API), spec 05(1·2차 범위표·주차별 목표·Phase 3~5·핵심 테스트) 갱신. ADR-013 상태에 일부 대체 표시. OPEN-QUESTIONS D-05 부분 결정, D-13·D-14 추가.
+- 영향: 문서만. 코드·DB 변경 없음. 1차 범위가 늘어 12월 일정 부담이 커짐(이미지 업로드·요약·MCP). 실제 스키마·API·MCP 도구는 각 Feature 문서에서 확정한다.
+- 검증: `prettier --check` (변경 문서 7개) PASS, `python3 scripts/check-history.py` PASS, pre-commit hook 통과 — 리눅스 VM(Node 22). `npm run verify` 미실행(문서만 변경, VM에서 Mac node_modules 실행 불가).
+- 주의/롤백: revert로 롤백. 워크스페이스 소유 구조는 데이터가 쌓인 뒤 되돌리기 어려우므로 구현 전 Feature 문서에서 마이그레이션 계획을 확정한다.
+
 ## 2026-11-14 | docs: 완료 보고 형식·디버깅 순서·검토한 대안 칸 추가
 
 - Feature: N/A
