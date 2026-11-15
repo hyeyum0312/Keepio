@@ -1,0 +1,104 @@
+# FEAT-008 — 카테고리·태그 CRUD와 링크 분류
+
+- Status: Draft
+- Updated: 2026-11-15
+- Related: PRD v0.3 카테고리·태그 정책 / ADR-015 / spec 04 / 화면 CAT-01·LINK-01·LINK-03 / [정책 기획서](https://claude.ai/artifact/TiYqnwWyza9FGxkXQw4jh8) / [홈 와이어프레임](https://claude.ai/artifact/TVK97VZWLdiXH6GdM6PiBx)
+
+## 목적 및 비범위
+
+- 사용자 문제: 저장한 링크가 한 목록에 쌓여 다시 찾기 어렵다. 링크를 한 서랍(카테고리)에 넣고, 키워드(태그)로 좁혀 찾고 싶다.
+- 이번 작업에서 하지 않는 것: 화면(FEAT-009 앱 틀·홈), AI 분류 제안(LINK-04), 하위 카테고리, 색·아이콘, 직접 순서, 카테고리 휴지통, 유사 이름 차단, 검색(링크 제목 등 메타데이터 수집 전이라 URL만 검색 가능 — 메타데이터 기능과 함께).
+
+## 검토한 대안
+
+| 선택지                        | 장점                               | 단점                                               |
+| ----------------------------- | ---------------------------------- | -------------------------------------------------- |
+| A. N:M + 이동/추가 둘 다      | 한 링크를 여러 서랍에서 볼 수 있다 | 어디 뒀는지 헷갈리고, 매번 이동/추가를 골라야 한다 |
+| B. 링크당 0~1개 + 태그 + 버킷 | 링크는 늘 한 곳, 이동이 단순       | 두 서랍 동시 노출은 태그·버킷으로 대신해야 한다    |
+
+- 추천 및 근거: B. 카테고리의 목적이 "쉽게 찾기"이고, 여러 기준 묶음은 태그와 버킷이 맡는다(사용자 결정).
+- 관련 ADR: ADR-015
+
+## 사용자 흐름 및 수용 기준
+
+- [ ] AC-01 카테고리를 만들면 목록에 이름순으로 나타나고 링크 수가 함께 온다.
+- [ ] AC-02 "여행"이 있을 때 " 여행 "·"TRAVEL"/"travel"처럼 정규화 후 같은 이름(별칭 포함)을 만들면 409와 기존 ID를 반환한다.
+- [ ] AC-03 카테고리를 고르지 않고 저장한 링크는 미분류, 고르고 저장한 링크는 그 카테고리에 나타난다. 이미 저장된 링크를 다시 저장할 때 카테고리를 주면 무시하지 않고 그 카테고리로 옮기지 않는다(기존 값 유지, 응답 200).
+- [ ] AC-04 카테고리를 삭제하면 그 안의 링크는 남고 미분류가 된다. 별칭도 함께 지워진다.
+- [ ] AC-05 A를 B로 병합하면 A의 링크가 모두 B로 옮겨지고 A는 사라지며, A 이름으로 다시 만들면 409로 B를 안내한다. 자기 자신으로 병합하면 400.
+- [ ] AC-06 링크에 태그 이름 목록을 주면 없는 태그는 만들고 연결한다. 11번째 태그는 422이고 기존 연결은 바뀌지 않는다.
+- [ ] AC-07 다른 사용자의 카테고리·태그는 조회·수정·삭제·병합·연결할 수 없다(404). 링크에 남의 카테고리 ID를 주면 404.
+- [ ] AC-08 같은 이름으로 동시에 생성 요청이 와도 카테고리·태그는 하나만 생긴다.
+- [ ] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
+- [ ] AC-10 `GET /api/tags?categoryId=`는 그 카테고리의 활성 링크에 쓰인 태그만 돌려준다.
+- [ ] AC-11 목록 `GET /api/bookmarks`는 `categoryId`·`uncategorized=true`·`tag` 필터를 지원하고 응답에 각 링크의 `categoryId`와 `tags`를 담는다.
+- [ ] AC-12 상한: 사용자당 카테고리 100개·태그 500개를 넘으면 422.
+
+## 데이터 계약
+
+- 서버 소유 값: 이름 정규화(앞뒤 공백 제거, 연속 공백 1칸, NFC, 영문 소문자)와 중복 판정, 정렬(이름순, `ko` collation), 링크 수, 상한, 미분류 판정.
+- 프론트 전용 파생 값: 없음. 화면은 서버 값만 그린다.
+- API 요청/응답/오류:
+
+  | 메서드 | 경로                      | 설명                                                    |
+  | ------ | ------------------------- | ------------------------------------------------------- |
+  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount }] }` 이름순       |
+  | POST   | /api/categories           | `{ name }` → 201 카테고리                               |
+  | PATCH  | /api/categories/:id       | `{ name }` 이름 변경                                    |
+  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                    |
+  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                      |
+  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순 |
+  | PATCH  | /api/tags/:id             | `{ name }`                                              |
+  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                      |
+  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                    |
+  | PATCH  | /api/bookmarks/:id        | `{ categoryId: string \| null }` 이동                   |
+  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                         |
+  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터          |
+
+- 오류 문구(ADR-009, 서버 `message` 그대로 표시):
+
+  | status | code               | 상황                        | 문구                                                  |
+  | ------ | ------------------ | --------------------------- | ----------------------------------------------------- |
+  | 409    | CATEGORY_DUPLICATE | 같은 이름(별칭 포함) 존재   | 이미 같은 이름의 카테고리가 있어요.                   |
+  | 409    | TAG_DUPLICATE      | 태그 이름 변경 시 중복      | 이미 같은 이름의 태그가 있어요.                       |
+  | 400    | VALIDATION_FAILED  | 카테고리 1~20자·태그 1~30자 | 카테고리 이름은 1~20자로 입력해 주세요. (태그 1~30자) |
+  | 400    | MERGE_SAME         | 자기 자신에게 병합          | 다른 카테고리를 골라 주세요.                          |
+  | 422    | CATEGORY_LIMIT     | 사용자당 100개 초과         | 카테고리는 100개까지 만들 수 있어요.                  |
+  | 422    | TAG_LIMIT          | 사용자당 500개 초과         | 태그는 500개까지 만들 수 있어요.                      |
+  | 422    | BOOKMARK_TAG_LIMIT | 링크당 10개 초과            | 링크 하나에 태그는 10개까지 달 수 있어요.             |
+  | 404    | NOT_FOUND          | 없거나 남의 항목            | 카테고리를 찾을 수 없어요. (태그는 "태그를")          |
+
+- DB 변경/마이그레이션:
+  - `categories(id, user_id, name, normalized_name, created_at, updated_at)` UNIQUE `(user_id, normalized_name)`
+  - `category_aliases(id, category_id, user_id, normalized_alias)` UNIQUE `(user_id, normalized_alias)`, 카테고리 삭제 시 CASCADE
+  - `tags(id, user_id, name, normalized_name, …)` UNIQUE `(user_id, normalized_name)`
+  - `bookmark_tags(bookmark_id, tag_id)` PK 복합, 양쪽 CASCADE
+  - `bookmarks.category_id` NULL 허용, FK `ON DELETE SET NULL`, 인덱스 `(user_id, category_id, created_at DESC, id DESC) WHERE deleted_at IS NULL`
+  - 이름 중복은 카테고리 이름과 별칭을 함께 본다: 생성·이름 변경 시 같은 트랜잭션에서 별칭 테이블도 확인한다. 별칭과 이름 사이의 동시성 경합은 드물어 UNIQUE 두 개 + 트랜잭션 검사로 충분하다(남은 위험 참조).
+
+## UX 및 디자인
+
+- 이 기능은 API만 다룬다. 화면은 FEAT-009(앱 틀·홈 E버전)와 CAT-01·LINK-03 명세에서 다룬다.
+- 카테고리 썸네일(사용자 요청, 2026-11-15): 홈 카테고리 카드는 이름 + Keepio 캐릭터 얼굴 썸네일만 보여 준다. 썸네일은 카테고리 ID로 정해지는 표시용 값이라 API·DB에 필드를 두지 않는다(새로고침해도 같은 얼굴). 사용자가 직접 고르는 기능이 생기면 그때 서버 필드로 옮긴다. 상세는 FEAT-009.
+
+## 영향도 및 주의사항
+
+- 기존 Feature 및 회귀 위험: FEAT-001 저장(중복 반환 시 카테고리 처리, AC-03), FEAT-002 목록(필터 추가, 키셋 페이지 유지), 휴지통 링크의 카테고리·태그 연결은 유지된다(복구 시 그대로).
+- 캐시/호출 빈도/무효화: 카테고리 목록·링크 수는 링크 저장·삭제·복구·이동 후 무효화(TanStack Query 키는 FEAT-009에서).
+- 메모리/동시성/비용/보안: 이름 중복·동시 생성은 UNIQUE로 막고 충돌 시 기존 행 반환. 모든 쿼리는 `user_id`로 범위 제한. 링크 수는 `GROUP BY`(카테고리 100개 상한).
+- 롤백 및 데이터 호환성: 새 테이블과 NULL 허용 컬럼만 추가하므로 down 마이그레이션은 테이블·컬럼 삭제. 기존 북마크 데이터 영향 없음.
+
+## 테스트 계획
+
+테스트 이름은 `AC-xx: 동작 문장` 형식으로 수용 기준과 연결한다.
+
+- Unit: 이름 정규화(`lib/normalize-name`), 상한 판정.
+- Integration: AC-01~12 실제 PostgreSQL. AC-08은 요청을 생성 직전에 붙잡는 배리어로 경합을 강제한다(QUALITY.md).
+- E2E: 없음(화면은 FEAT-009).
+- Regression: FEAT-001·002 기존 통합 테스트 전체.
+
+## 구현 결과 (검증 후)
+
+- 변경 파일/PR:
+- 실행 명령 및 실제 결과:
+- 남은 위험: 별칭↔이름 동시 생성 경합(UNIQUE 대상이 달라 이론상 둘 다 통과 가능) — 빈도 낮음, 발견 시 사용자별 advisory lock으로 보강.
