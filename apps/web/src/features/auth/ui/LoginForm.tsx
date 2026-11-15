@@ -74,10 +74,7 @@ function LoginScreen() {
         <EmailLogin email={email} onEmailChange={setEmail} />
       ) : (
         <div className="flex flex-col gap-3">
-          <SocialLoginButtons
-            recent={recent}
-            note="카카오·Google은 처음이면 자동으로 가입돼요."
-          />
+          <SocialLoginButtons recent={recent} />
           <div className="relative">
             <button
               type="button"
@@ -88,6 +85,10 @@ function LoginScreen() {
             </button>
             {recent === "email" && <RecentBadge />}
           </div>
+          {/* 버튼 사이 간격을 고르게 두려고 안내는 버튼들 아래에(07-BRAND 7.1 v3) */}
+          <p className="text-center text-caption leading-normal text-muted-foreground">
+            카카오·Google은 처음이면 자동으로 가입돼요.
+          </p>
         </div>
       )}
       <Divider />

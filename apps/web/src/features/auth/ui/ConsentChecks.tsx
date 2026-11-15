@@ -26,14 +26,14 @@ export function ConsentChecks({
   onChange: (next: Consents) => void;
 }) {
   return (
-    <fieldset className="flex flex-col py-1">
-      <legend className="sr-only">필수 동의</legend>
+    <fieldset className="flex flex-col">
+      <legend className="pb-1 text-sm font-semibold">필수 동의 3개</legend>
       {ITEMS.map((item) => (
         <div
           key={item.key}
-          className="flex min-h-11 items-center justify-between gap-2 md:min-h-9"
+          className="flex min-h-12 items-center justify-between gap-3 md:min-h-9"
         >
-          <label className="inline-flex cursor-pointer items-center gap-3 text-sm">
+          <label className="inline-flex cursor-pointer items-center gap-3 text-base leading-snug md:text-sm">
             <input
               type="checkbox"
               name={`consent-${item.key}`}
@@ -51,7 +51,7 @@ export function ConsentChecks({
             <a
               href={item.href}
               aria-label={`${item.label.replace(" 동의", "")} 보기`}
-              className="rounded px-1 py-2 text-sm text-muted-foreground underline focus-visible:focus-ring"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded px-1 text-sm text-foreground underline underline-offset-4 focus-visible:focus-ring md:min-h-9"
             >
               보기
             </a>
