@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-17 | chore(web): Next.js와 eslint-config-next를 16.4.5로
+
+- Feature: N/A
+- 목적: 개발 서버가 Next.js 16.4.3을 알려진 보안 취약점 대상으로 경고한다. dependabot PR #45(next만 올림)는 `next`가 앱 폴더로 내려가 루트의 `eslint-config-next` 16.4.3이 `next`를 못 찾아 lint가 깨진다.
+- 변경: `apps/web`의 `next`와 `eslint-config-next`를 함께 16.4.5로(정확한 버전 고정 유지), `package-lock.json` 갱신. 코드 변경 없음.
+- 영향: web 빌드·개발 서버·lint. api는 영향 없음.
+- 검증: 클라우드(Node 24.22.1)에서 `npm ci` 후 web eslint(--max-warnings=0) PASS, tsc PASS, vitest 57 PASS, `next build` PASS. #45 lockfile만으로는 eslint가 `next/dist/compiled/babel/eslint-parser`를 못 찾아 실패하는 것을 먼저 확인. `npm run verify`(전체)는 미실행.
+- 주의/롤백: revert로 롤백. 이 PR이 머지되면 dependabot #44·#45는 닫는다.
+
 ## 2026-11-17 | docs: 개발 시작 순서와 DB 꺼짐 문제 해결 안내
 
 - Feature: N/A
