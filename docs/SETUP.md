@@ -65,8 +65,8 @@ load-nvmrc
 
 ```bash
 brew install --cask orbstack
-open -a OrbStack                      # 최초 1회 실행해 초기 설정
-docker --version                      # 확인
+open /Applications/OrbStack.app       # 최초 1회 실행해 초기 설정(Docker 선택). `open -a OrbStack`이 앱을 못 찾을 때도 이 경로로 연다
+docker --version                      # 확인. 설정 후 새 터미널 창에서
 ```
 
 ### 3-4. 저장소 준비
@@ -91,6 +91,18 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 `npm install` 때 `install-scripts ... not yet covered by allowScripts` 경고가 나온다. npm이 패키지 설치 스크립트를 기본으로 보류하는 정책이고, 현재 보류된 것(prisma, @swc/core, @scarf/scarf 등) 없이도 정상 동작함을 확인했다. **승인(`npm install-scripts approve`)하지 않는다.**
 
 ## 4. 매일 쓰는 명령어
+
+### 개발 시작 순서
+
+재부팅하거나 OrbStack을 끈 뒤에는 DB도 꺼져 있다. 앱을 띄우기 전에 DB부터 켠다. 한 줄씩 실행한다(OrbStack이 뜨기 전에 `docker`를 부르면 실패한다).
+
+```bash
+open /Applications/OrbStack.app       # Docker 엔진 켜기 (이미 켜져 있으면 생략)
+docker --version                      # docker 명령이 잡히는지 확인
+npm run db:up                         # PostgreSQL 컨테이너 시작 (localhost:7712)
+npm run db:deploy                     # 아직 적용 안 된 마이그레이션 적용
+npm run dev:api                       # api (다른 터미널에서 npm run dev:web)
+```
 
 | 하고 싶은 것                             | 명령어                                                  |
 | ---------------------------------------- | ------------------------------------------------------- |
@@ -164,4 +176,7 @@ open http://localhost:7711/docs       # API 문서(OpenAPI)
 | `NEXT_PUBLIC_API_BASE_URL is required in production` (build) | web 운영 빌드에 API 주소가 없다 → `cp apps/web/.env.example apps/web/.env.local`             |
 | `DATABASE_URL is not set` / `Connection url is empty`        | `.env`가 없다 → `cp .env.example .env`                                                       |
 | `EADDRINUSE :7711`                                           | api가 이미 떠 있다 → 기존 터미널에서 `Ctrl+C`, 또는 `lsof -nP -iTCP:7711`로 확인             |
+| `P1001: Can't reach database server at localhost:7712`       | DB가 꺼짐 → "개발 시작 순서"대로 OrbStack → `npm run db:up` → `npm run db:deploy`            |
+| 소셜 로그인 후 `{"code":"INTERNAL_ERROR"}` 화면              | 대개 DB가 꺼져 계정 저장에 실패 → 위와 같이 DB를 켜고 api를 재시작한 뒤 다시 로그인          |
+| `docker: command not found`                                  | OrbStack 미설치 또는 미실행 → 3-3대로 설치·실행, 초기 설정 후 **새 터미널 창**에서 다시 실행 |
 | 로컬 DB를 완전히 초기화하고 싶다                             | `docker compose down -v` → `npm run db:up` → `npm run db:deploy` (**로컬 데이터 전부 삭제**) |
