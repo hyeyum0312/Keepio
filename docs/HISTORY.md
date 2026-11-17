@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-17 | docs: 개발 시작 순서와 DB 꺼짐 문제 해결 안내
+
+- Feature: N/A
+- 목적: 새 Mac에서 Docker(OrbStack)가 없어 DB가 꺼진 채 구글 로그인을 하자 api가 `INTERNAL_ERROR`를 냈다. 매번 DB를 켜는 순서와 증상별 해결을 한곳에 남긴다.
+- 변경: SETUP 3-3 OrbStack 실행 명령을 `open /Applications/OrbStack.app`으로(`open -a`가 앱을 못 찾는 경우), 4장에 "개발 시작 순서", 9장에 P1001·소셜 로그인 INTERNAL_ERROR·`docker: command not found` 행 추가.
+- 영향: 문서만.
+- 검증: prettier(SETUP·HISTORY) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. 명령 순서는 사용자 Mac에서 실행 중.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-17 | fix(web): 개발 표시 배지가 사이드바 테마 버튼을 가리지 않게
 
 - Feature: FEAT-009
