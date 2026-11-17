@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-17 | fix(web): 개발 표시 배지가 사이드바 테마 버튼을 가리지 않게
+
+- Feature: FEAT-009
+- 목적: 개발 서버에서 Next 개발 표시 배지(왼쪽 아래)가 사이드바 맨 아래의 라이트·다크 전환 버튼과 접기 버튼을 덮어, 홈에서 테마 전환이 안 되는 것처럼 보였다.
+- 변경: `apps/web/next.config.ts`에 `devIndicators: { position: "bottom-right" }`. 앱 코드 변경 없음.
+- 영향: 개발 서버 화면만. 배포 빌드에는 배지가 없어 영향 없음.
+- 검증: 클라우드 개발 서버(Node 24.22.1, Next 16.4.3) `/preview/home` 1440px에서 버튼이 보이고 눌러 `data-theme`이 light → dark로 바뀌는 것을 Playwright로 확인. `python3 scripts/check-history.py` PASS. `npm run verify`는 미실행(설정 한 줄).
+- 주의/롤백: revert로 롤백. 모바일 폭에서는 배지가 오른쪽 아래 하단 탭과 겹칠 수 있음(개발 전용).
+
 ## 2026-11-16 | feat(web): 앱 틀(사이드바·하단 탭)과 홈 화면 디자인 (FEAT-009)
 
 - Feature: FEAT-009
