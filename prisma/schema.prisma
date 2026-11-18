@@ -26,6 +26,7 @@ model User {
   refreshTokens      RefreshToken[]
   emailTokens        EmailToken[]
   oauthAccounts      OAuthAccount[]
+  tags               Tag[]
 
   // 동시 가입의 최종 권위(FEAT-003 AC-04)
   @@unique([email], map: "users_email_key", where: raw("email IS NOT NULL"))
@@ -85,15 +86,23 @@ model EmailToken {
 }
 
 model Bookmark {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String    @map("user_id") @db.Uuid
-  originalUrl   String    @map("original_url")
-  normalizedUrl String    @map("normalized_url")
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String           @map("user_id") @db.Uuid
+  originalUrl     String           @map("original_url")
+  normalizedUrl   String           @map("normalized_url")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   // raw INSERT도 값을 갖도록 DB 기본값을 함께 둔다
-  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(3)
-  user          User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(3)
+  // FEAT-010. 사용자가 저장할 때 넣은 제목(선택)과 링크 페이지의 og:title(자동, 표시 제목 대체용)
+  title           String?          @db.VarChar(100)
+  pageTitle       String?          @map("page_title") @db.VarChar(300)
+  // 썸네일 파일 키(서버가 만든 무작위 이름). 기존 행은 썸네일 없음(failed)
+  thumbnailKey    String?          @map("thumbnail_key")
+  thumbnailStatus ThumbnailStatus  @default(failed) @map("thumbnail_status")
+  thumbnailSource ThumbnailSource? @map("thumbnail_source")
+  user            User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tags            BookmarkTag[]
 
   // 활성 북마크는 사용자별 정규화 URL당 하나. 동시 저장의 최종 권위(FEAT-001 AC-03)
   @@unique([userId, normalizedUrl], map: "bookmarks_active_user_url_key", where: raw("deleted_at IS NULL"))
@@ -125,4 +134,46 @@ model OAuthAccount {
   @@unique([provider, subject], map: "oauth_accounts_provider_subject_key")
   @@index([userId])
   @@map("oauth_accounts")
+}
+
+// FEAT-010 썸네일. 저장 직후 pending → 자동 수집 결과 ready/failed. 직접 올리면 ready·upload
+enum ThumbnailStatus {
+  pending
+  ready
+  failed
+
+  @@map("thumbnail_status")
+}
+
+enum ThumbnailSource {
+  auto
+  upload
+
+  @@map("thumbnail_source")
+}
+
+// FEAT-010·FEAT-008. 사용자별 태그. 이름은 정규화 값으로 중복 판정(앞뒤 공백·연속 공백·NFC·영문 소문자)
+model Tag {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  name           String        @db.VarChar(30)
+  normalizedName String        @map("normalized_name") @db.VarChar(60)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookmarks      BookmarkTag[]
+
+  @@unique([userId, normalizedName])
+  @@map("tags")
+}
+
+model BookmarkTag {
+  bookmarkId String   @map("bookmark_id") @db.Uuid
+  tagId      String   @map("tag_id") @db.Uuid
+  bookmark   Bookmark @relation(fields: [bookmarkId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookmarkId, tagId])
+  // 태그로 링크 찾기(FEAT-008 필터)
+  @@index([tagId])
+  @@map("bookmark_tags")
 }

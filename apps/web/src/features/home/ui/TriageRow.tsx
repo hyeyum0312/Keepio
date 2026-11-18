@@ -1,6 +1,12 @@
 import Image from "next/image";
 
-export type TriageLink = { id: string; url: string; title?: string };
+// FEAT-010: 서버가 주는 표시 제목(넣은 제목 → 페이지 제목 → 도메인)이 있으면 그것을 쓴다
+export type TriageLink = {
+  id: string;
+  url: string;
+  title?: string | null;
+  displayTitle?: string;
+};
 export type CategoryChip = {
   id: string;
   name: string;
@@ -54,7 +60,7 @@ export function TriageRow({
             rel="noopener noreferrer"
             className="block truncate font-semibold hover:underline focus-visible:focus-ring"
           >
-            {link.title ?? host(link.url)}
+            {link.displayTitle ?? link.title ?? host(link.url)}
           </a>
           <p className="truncate text-caption text-muted-foreground">
             {host(link.url)}

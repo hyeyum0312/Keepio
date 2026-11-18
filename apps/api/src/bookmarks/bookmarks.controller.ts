@@ -7,26 +7,38 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   Res,
+  UploadedFile,
+  UseFilters,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiPayloadTooLargeResponse,
   ApiUnauthorizedResponse,
+  ApiUnprocessableEntityResponse,
 } from "@nestjs/swagger";
 import type { Response } from "express";
 import { CurrentUser } from "../auth/current-user.decorator.js";
 import { type AuthUser, UserGuard } from "../auth/user.guard.js";
 import { ApiErrorResponse } from "../common/api-error.js";
 import type { BookmarkRecord } from "./bookmarks.repository.js";
+import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
 import { BookmarksService } from "./bookmarks.service.js";
+import { MAX_IMAGE_BYTES } from "./link-preview.fetcher.js";
+import { UploadErrorFilter } from "./upload-error.filter.js";
 import {
   BookmarkConflictErrorResponse,
   BookmarkListResponse,
@@ -40,22 +52,26 @@ import { SaveBookmarkDto } from "./dto/save-bookmark.dto.js";
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorResponse })
 export class BookmarksController {
-  constructor(private readonly bookmarks: BookmarksService) {}
+  constructor(
+    private readonly bookmarks: BookmarksService,
+    private readonly thumbnails: BookmarkThumbnailsService,
+  ) {}
 
   @Post()
   @ApiCreatedResponse({ type: BookmarkResponse, description: "새로 저장" })
   @ApiOkResponse({ type: BookmarkResponse, description: "이미 저장된 링크" })
   @ApiBadRequestResponse({ type: ApiErrorResponse })
   @ApiConflictResponse({ type: BookmarkConflictErrorResponse })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorResponse })
   // 신규/기존은 상태 코드로만 구분한다(FEAT-001)
   async save(
     @CurrentUser() user: AuthUser,
     @Body() dto: SaveBookmarkDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<BookmarkResponse> {
-    const { bookmark, created } = await this.bookmarks.save(user.id, dto.url);
+    const { bookmark, created } = await this.bookmarks.save(user.id, dto);
     res.status(created ? HttpStatus.CREATED : HttpStatus.OK);
-    return toResponse(bookmark);
+    return this.toResponse(bookmark);
   }
 
   // FEAT-002 AC-01~03. status=deleted면 휴지통
@@ -72,7 +88,10 @@ export class BookmarksController {
       query.limit,
       query.cursor,
     );
-    return { items: page.items.map(toResponse), nextCursor: page.nextCursor };
+    return {
+      items: page.items.map((b) => this.toResponse(b)),
+      nextCursor: page.nextCursor,
+    };
   }
 
   @Delete(":id")
@@ -92,16 +111,66 @@ export class BookmarksController {
     @CurrentUser() user: AuthUser,
     @Param("id") id: string,
   ): Promise<BookmarkResponse> {
-    return toResponse(await this.bookmarks.restore(user.id, id));
+    return this.toResponse(await this.bookmarks.restore(user.id, id));
+  }
+
+  // FEAT-010 AC-06. multipart 필드 이름 file. 형식은 바이트로 확인한다
+  @Put(":id/thumbnail")
+  @UseFilters(UploadErrorFilter)
+  @UseInterceptors(
+    FileInterceptor("file", {
+      // 상한을 1바이트 넘겨 받아 두고 서비스가 IMAGE_TOO_LARGE 문구로 거부한다. 그 이상은 필터가 같은 문구로
+      limits: { fileSize: MAX_IMAGE_BYTES + 1, files: 1, fields: 0, parts: 2 },
+    }),
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      required: ["file"],
+      properties: { file: { type: "string", format: "binary" } },
+    },
+  })
+  @ApiOkResponse({ type: BookmarkResponse })
+  @ApiBadRequestResponse({ type: ApiErrorResponse })
+  @ApiNotFoundResponse({ type: ApiErrorResponse })
+  @ApiPayloadTooLargeResponse({ type: ApiErrorResponse })
+  async uploadThumbnail(
+    @CurrentUser() user: AuthUser,
+    @Param("id") id: string,
+    @UploadedFile() file: { buffer: Buffer; size: number } | undefined,
+  ): Promise<BookmarkResponse> {
+    await this.thumbnails.upload(user.id, id, file);
+    return this.toResponse(await this.bookmarks.get(user.id, id));
+  }
+
+  private toResponse(bookmark: BookmarkRecord): BookmarkResponse {
+    return {
+      id: bookmark.id,
+      url: bookmark.originalUrl,
+      normalizedUrl: bookmark.normalizedUrl,
+      createdAt: bookmark.createdAt.toISOString(),
+      deletedAt: bookmark.deletedAt?.toISOString() ?? null,
+      title: bookmark.title,
+      displayTitle: displayTitle(bookmark),
+      tags: bookmark.tags,
+      thumbnail: {
+        status: bookmark.thumbnailStatus,
+        url:
+          bookmark.thumbnailStatus === "ready"
+            ? this.thumbnails.publicPath(bookmark.thumbnailKey)
+            : null,
+      },
+    };
   }
 }
 
-function toResponse(bookmark: BookmarkRecord): BookmarkResponse {
-  return {
-    id: bookmark.id,
-    url: bookmark.originalUrl,
-    normalizedUrl: bookmark.normalizedUrl,
-    createdAt: bookmark.createdAt.toISOString(),
-    deletedAt: bookmark.deletedAt?.toISOString() ?? null,
-  };
+// FEAT-010 AC-07. 넣은 제목 → og:title → 도메인
+function displayTitle(bookmark: BookmarkRecord): string {
+  return (
+    bookmark.title ??
+    bookmark.pageTitle ??
+    URL.parse(bookmark.originalUrl)?.hostname ??
+    bookmark.originalUrl
+  );
 }

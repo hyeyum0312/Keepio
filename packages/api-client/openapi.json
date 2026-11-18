@@ -559,6 +559,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -750,6 +760,154 @@
         ],
         "tags": ["Bookmarks"]
       }
+    },
+    "/api/bookmarks/{id}/thumbnail": {
+      "put": {
+        "operationId": "BookmarksController_uploadThumbnail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Bookmarks"]
+      }
+    },
+    "/api/files/thumbnails/{key}": {
+      "get": {
+        "operationId": "BookmarkFilesController_thumbnail",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sig",
+            "required": true,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "exp",
+            "required": true,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "썸네일 이미지"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              },
+              "image/gif": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["BookmarkFiles"]
+      }
     }
   },
   "info": {
@@ -903,9 +1061,50 @@
           "url": {
             "type": "string",
             "example": "https://example.com/article?id=1"
+          },
+          "title": {
+            "type": "string",
+            "example": "랜딩 모션 레퍼런스",
+            "maxLength": 100
+          },
+          "tags": {
+            "example": ["모션", "랜딩"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": ["url"]
+      },
+      "BookmarkTagResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "BookmarkThumbnailResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending", "ready", "failed"],
+            "description": "pending: 가져오는 중, ready: 있음, failed: 없음(직접 올리기 가능)"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "API 기준 경로(서명, 10~20분 유효). API 주소를 앞에 붙여 <img>에 쓴다"
+          }
+        },
+        "required": ["status", "url"]
       },
       "BookmarkResponse": {
         "type": "object",
@@ -929,9 +1128,38 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "description": "저장할 때 넣은 제목"
+          },
+          "displayTitle": {
+            "type": "string",
+            "description": "보여 줄 제목: 넣은 제목 → 페이지 제목(og:title) → 도메인"
+          },
+          "tags": {
+            "description": "이름순",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookmarkTagResponse"
+            }
+          },
+          "thumbnail": {
+            "$ref": "#/components/schemas/BookmarkThumbnailResponse"
           }
         },
-        "required": ["id", "url", "normalizedUrl", "createdAt", "deletedAt"]
+        "required": [
+          "id",
+          "url",
+          "normalizedUrl",
+          "createdAt",
+          "deletedAt",
+          "title",
+          "displayTitle",
+          "tags",
+          "thumbnail"
+        ]
       },
       "BookmarkConflictErrorResponse": {
         "type": "object",

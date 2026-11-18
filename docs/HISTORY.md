@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-18 | feat: 링크 저장 시 제목·태그와 썸네일 (FEAT-010)
+
+- Feature: FEAT-010
+- 목적: 인스타그램 링크를 저장해도 주소만 보여 무엇이었는지 알 수 없었다. 저장할 때 넣은 제목·태그와 게시물 썸네일을 함께 남긴다.
+- 변경: DB `bookmarks`에 title·page_title·thumbnail_key·thumbnail_status·thumbnail_source, `tags`·`bookmark_tags` 추가(마이그레이션 `20261118000000_add_bookmark_meta`). `POST /api/bookmarks`가 title·tags를 받고 응답·목록에 displayTitle·tags·thumbnail 추가. 저장 뒤 서버가 og:image를 받아 로컬 저장소(STORAGE_DIR)에 보관(SSRF 방어 요청), 실패 시 `PUT /api/bookmarks/:id/thumbnail`로 직접 올리기, 이미지는 서명 주소 `GET /api/files/thumbnails/:key`. 인스타 게시물 주소는 쿼리를 떼고 정규화. web 저장 폼에 제목·태그 입력, 목록에 썸네일·표시 제목·태그·캡처 올리기, pending 동안 3초 폴링.
+- 영향: API 응답 필드 추가(기존 필드 그대로). 기존 북마크는 썸네일 없음(failed)으로 보인다. 새 환경 변수 STORAGE_DIR·LINK_PREVIEW_USER_AGENT(선택). 인스타 북마크 정규화가 바뀌어 기존 개발 데이터와 중복 판정이 다를 수 있다.
+- 검증: 클라우드(Node 24.22.1, PostgreSQL 16) api 단위 151 PASS, 통합 99 중 98 PASS(실패 1건은 Prisma 엔진 다운로드 차단으로 `_prisma_migrations`가 없는 환경 문제), FEAT-010 통합 12 PASS. web 61 PASS, tsc·eslint·`next build`·`nest build`·`prettier --check .` PASS. `npm run verify`·`openapi:check`는 이 환경에서 미실행(turbo가 Prisma 엔진을 받지 못함) → Mac·CI에서 확인.
+- 주의/롤백: revert + 마이그레이션 파일의 롤백 SQL(태그·제목·썸네일 정보 삭제, STORAGE_DIR 파일은 따로 삭제). 마이그레이션 SQL은 손으로 작성 → Mac에서 `db:migrate -- --create-only`로 스키마 차이 없음 확인 필요.
+
 ## 2026-11-19 | fix(build): turbo 빌드에 API_PROXY_TARGET 전달
 
 - Feature: N/A

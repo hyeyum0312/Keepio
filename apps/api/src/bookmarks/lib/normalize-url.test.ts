@@ -85,4 +85,32 @@ describe("normalizeUrl", () => {
 
     expect(normalizeUrl(input)).toEqual({ ok: true, normalizedUrl: input });
   });
+
+  it("FEAT-010 AC-08: 인스타 게시물·릴스 주소는 쿼리를 모두 뗀다", () => {
+    expect(
+      normalizeUrl(
+        "https://www.instagram.com/p/Df4Gbo2kYej/?img_index=4&jplx=cjJicWdkNnFwNTg2",
+      ),
+    ).toEqual({
+      ok: true,
+      normalizedUrl: "https://www.instagram.com/p/Df4Gbo2kYej/",
+    });
+    expect(normalizeUrl("https://instagram.com/reel/ABC123?igsh=xyz")).toEqual({
+      ok: true,
+      normalizedUrl: "https://instagram.com/reel/ABC123",
+    });
+  });
+
+  it("FEAT-010 AC-08: 인스타의 게시물이 아닌 주소와 다른 사이트는 기존 규칙 그대로다", () => {
+    expect(
+      normalizeUrl("https://www.instagram.com/explore/tags/motion/?hl=ko"),
+    ).toEqual({
+      ok: true,
+      normalizedUrl: "https://www.instagram.com/explore/tags/motion/?hl=ko",
+    });
+    expect(normalizeUrl("https://example.com/p/abc/?img_index=2")).toEqual({
+      ok: true,
+      normalizedUrl: "https://example.com/p/abc/?img_index=2",
+    });
+  });
 });

@@ -15,6 +15,11 @@ function link(n: number) {
     normalizedUrl: `https://site${n}.example/page`,
     createdAt: new Date(Date.UTC(2026, 0, n)).toISOString(),
     deletedAt: null,
+    // FEAT-010 필드. 제목이 없으면 서버가 도메인을 표시 제목으로 준다
+    title: null,
+    displayTitle: `site${n}.example`,
+    tags: [],
+    thumbnail: { status: "failed", url: null },
   };
 }
 

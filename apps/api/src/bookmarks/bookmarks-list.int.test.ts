@@ -5,9 +5,15 @@ import { AppModule } from "../app.module.js";
 import { AccessTokenService } from "../auth/access-token.service.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { setupApp } from "../setup-app.js";
+import { LinkPreviewFetcher } from "./link-preview.fetcher.js";
 
 const URL_A = "https://example.com/a";
 const CONCURRENT_RESTORES = 10;
+
+const OFFLINE_FETCHER = {
+  fetchPage: () => Promise.reject(new Error("offline")),
+  fetchImage: () => Promise.reject(new Error("offline")),
+};
 
 describe("링크 목록·삭제·복구 (실제 PostgreSQL, FEAT-002)", () => {
   let app: INestApplication;
@@ -19,7 +25,11 @@ describe("링크 목록·삭제·복구 (실제 PostgreSQL, FEAT-002)", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      // 썸네일 수집은 외부 요청이라 실패하는 가짜로 둔다(FEAT-010은 bookmark-meta.int.test.ts)
+      .overrideProvider(LinkPreviewFetcher)
+      .useValue(OFFLINE_FETCHER)
+      .compile();
     app = moduleRef.createNestApplication({ logger: false });
     setupApp(app);
     await app.listen(0);

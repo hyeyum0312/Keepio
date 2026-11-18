@@ -14,7 +14,9 @@
     "GOOGLE_CLIENT_SECRET",
     "KAKAO_CLIENT_ID",
     "KAKAO_CLIENT_SECRET",
-    "API_ORIGIN"
+    "API_ORIGIN",
+    "STORAGE_DIR",
+    "LINK_PREVIEW_USER_AGENT"
   ],
   "tasks": {
     "build": {

@@ -1,11 +1,18 @@
 import { BadRequestException, HttpStatus, Injectable } from "@nestjs/common";
 import { ApiException } from "../common/api-error.js";
 import { Prisma } from "../generated/prisma/client.js";
+import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
 import {
   type BookmarkRecord,
   BookmarksRepository,
+  TagLimitExceededError,
 } from "./bookmarks.repository.js";
 import { decodeCursor, encodeCursor, isUuid } from "./lib/cursor.js";
+import {
+  MAX_TAGS_PER_BOOKMARK,
+  type TagName,
+  uniqueTagNames,
+} from "./lib/normalize-tag.js";
 import { type NormalizeUrlError, normalizeUrl } from "./lib/normalize-url.js";
 
 // 승인된 문구(docs/features/bookmark-save.md 오류 표)
@@ -18,6 +25,17 @@ const BOOKMARK_DELETED_MESSAGE = "삭제한 링크예요. 복구할 수 있어�
 // docs/features/bookmark-list-delete.md 오류 표
 const NOT_FOUND_MESSAGE = "링크를 찾을 수 없어요.";
 const ALREADY_SAVED_MESSAGE = "같은 링크가 이미 저장되어 있어요.";
+// docs/features/bookmark-meta.md 오류 표(FEAT-010)
+const META_INVALID_MESSAGE = "제목은 100자, 태그는 30자까지 입력할 수 있어요.";
+const BOOKMARK_TAG_LIMIT_MESSAGE = "링크 하나에 태그는 10개까지 달 수 있어요.";
+const TAG_LIMIT_MESSAGE = "태그는 500개까지 만들 수 있어요.";
+export const MAX_TITLE_LENGTH = 100;
+
+export type SaveBookmarkInput = {
+  url: string;
+  title?: string;
+  tags?: string[];
+};
 
 export type SaveBookmarkResult = { bookmark: BookmarkRecord; created: boolean };
 export type BookmarkPage = {
@@ -27,11 +45,19 @@ export type BookmarkPage = {
 
 @Injectable()
 export class BookmarksService {
-  constructor(private readonly bookmarks: BookmarksRepository) {}
+  constructor(
+    private readonly bookmarks: BookmarksRepository,
+    private readonly thumbnails: BookmarkThumbnailsService,
+  ) {}
 
   // FEAT-001: 활성 북마크가 있으면 재사용(AC-02), 삭제된 것만 있으면 복구 안내(AC-07), 없으면 생성(AC-01).
   // 동시 요청은 insertIfAbsent의 ON CONFLICT가 하나만 통과시키고 나머지는 승자를 다시 읽는다(AC-03)
-  async save(userId: string, url: string): Promise<SaveBookmarkResult> {
+  // FEAT-010: 새로 저장할 때만 제목·태그를 붙이고 썸네일 수집을 건다. 이미 있는 링크는 그대로 돌려준다(AC-03)
+  async save(
+    userId: string,
+    input: SaveBookmarkInput,
+  ): Promise<SaveBookmarkResult> {
+    const { url } = input;
     const normalized = normalizeUrl(url);
     if (!normalized.ok) {
       throw new ApiException(
@@ -46,12 +72,29 @@ export class BookmarksService {
     if (latest?.deletedAt === null) return { bookmark: latest, created: false };
     if (latest) throw bookmarkDeleted(latest.id);
 
-    const inserted = await this.bookmarks.insertIfAbsent(
-      userId,
-      url,
-      normalizedUrl,
-    );
-    if (inserted) return { bookmark: inserted, created: true };
+    const meta = parseMeta(input);
+    let inserted: BookmarkRecord | null;
+    try {
+      inserted = await this.bookmarks.insertIfAbsent(
+        userId,
+        url,
+        normalizedUrl,
+        meta,
+      );
+    } catch (error) {
+      if (error instanceof TagLimitExceededError) {
+        throw new ApiException(
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          "TAG_LIMIT",
+          TAG_LIMIT_MESSAGE,
+        );
+      }
+      throw error;
+    }
+    if (inserted) {
+      this.thumbnails.enqueue(inserted.id, normalizedUrl);
+      return { bookmark: inserted, created: true };
+    }
 
     // 충돌한 행은 이미 커밋됐다. 새 쿼리라 보인다(같은 문장 안의 조회는 이전 스냅샷이라 못 볼 수 있다)
     const winner = await this.bookmarks.findActiveByUrl(userId, normalizedUrl);
@@ -92,6 +135,15 @@ export class BookmarksService {
     };
   }
 
+  // FEAT-010 업로드 응답용. 소유한 것만
+  async get(userId: string, id: string): Promise<BookmarkRecord> {
+    const owned = isUuid(id)
+      ? await this.bookmarks.findOwned(userId, id)
+      : null;
+    if (!owned) throw notFound();
+    return owned;
+  }
+
   // FEAT-002 AC-04·07. 이미 삭제됐어도 성공(멱등)
   async remove(userId: string, id: string): Promise<void> {
     if (!isUuid(id)) throw notFound();
@@ -124,6 +176,34 @@ export class BookmarksService {
     if (!owned) throw notFound();
     return owned;
   }
+}
+
+// FEAT-010 AC-01. 빈 제목은 없는 것으로 본다
+function parseMeta(input: SaveBookmarkInput): {
+  title: string | null;
+  tags: TagName[];
+} {
+  const title =
+    input.title?.normalize("NFC").trim().replace(/\s+/g, " ") || null;
+  if (title && title.length > MAX_TITLE_LENGTH) throw metaInvalid();
+  const tags = uniqueTagNames(input.tags ?? []);
+  if (!tags) throw metaInvalid();
+  if (tags.length > MAX_TAGS_PER_BOOKMARK) {
+    throw new ApiException(
+      HttpStatus.UNPROCESSABLE_ENTITY,
+      "BOOKMARK_TAG_LIMIT",
+      BOOKMARK_TAG_LIMIT_MESSAGE,
+    );
+  }
+  return { title, tags };
+}
+
+function metaInvalid() {
+  return new ApiException(
+    HttpStatus.BAD_REQUEST,
+    "VALIDATION_FAILED",
+    META_INVALID_MESSAGE,
+  );
 }
 
 function bookmarkDeleted(bookmarkId: string) {

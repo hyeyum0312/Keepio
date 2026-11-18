@@ -26,6 +26,7 @@ import type {
   BookmarkListResponse,
   BookmarkResponse,
   BookmarksControllerListParams,
+  BookmarksControllerUploadThumbnailBody,
   SaveBookmarkDto,
 } from "../model";
 
@@ -76,6 +77,11 @@ export type bookmarksControllerSaveResponse409 = {
   status: 409;
 };
 
+export type bookmarksControllerSaveResponse422 = {
+  data: ApiErrorResponse;
+  status: 422;
+};
+
 export type bookmarksControllerSaveResponseSuccess = (
   bookmarksControllerSaveResponse200 | bookmarksControllerSaveResponse201
 ) & {
@@ -85,6 +91,7 @@ export type bookmarksControllerSaveResponseError = (
   | bookmarksControllerSaveResponse400
   | bookmarksControllerSaveResponse401
   | bookmarksControllerSaveResponse409
+  | bookmarksControllerSaveResponse422
 ) & {
   headers: Headers;
 };
@@ -660,6 +667,147 @@ export const useBookmarksControllerRestore = <
 > => {
   return useMutation(
     getBookmarksControllerRestoreMutationOptions(options),
+    queryClient,
+  );
+};
+export type bookmarksControllerUploadThumbnailResponse200 = {
+  data: BookmarkResponse;
+  status: 200;
+};
+
+export type bookmarksControllerUploadThumbnailResponse400 = {
+  data: ApiErrorResponse;
+  status: 400;
+};
+
+export type bookmarksControllerUploadThumbnailResponse401 = {
+  data: ApiErrorResponse;
+  status: 401;
+};
+
+export type bookmarksControllerUploadThumbnailResponse404 = {
+  data: ApiErrorResponse;
+  status: 404;
+};
+
+export type bookmarksControllerUploadThumbnailResponse413 = {
+  data: ApiErrorResponse;
+  status: 413;
+};
+
+export type bookmarksControllerUploadThumbnailResponseSuccess =
+  bookmarksControllerUploadThumbnailResponse200 & {
+    headers: Headers;
+  };
+export type bookmarksControllerUploadThumbnailResponseError = (
+  | bookmarksControllerUploadThumbnailResponse400
+  | bookmarksControllerUploadThumbnailResponse401
+  | bookmarksControllerUploadThumbnailResponse404
+  | bookmarksControllerUploadThumbnailResponse413
+) & {
+  headers: Headers;
+};
+
+export type bookmarksControllerUploadThumbnailResponse =
+  | bookmarksControllerUploadThumbnailResponseSuccess
+  | bookmarksControllerUploadThumbnailResponseError;
+
+export const getBookmarksControllerUploadThumbnailUrl = (id: string) => {
+  return `/api/bookmarks/${id}/thumbnail`;
+};
+
+export const bookmarksControllerUploadThumbnail = async (
+  id: string,
+  bookmarksControllerUploadThumbnailBody: BookmarksControllerUploadThumbnailBody,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<bookmarksControllerUploadThumbnailResponse> => {
+  const formData = new FormData();
+  formData.append(`file`, bookmarksControllerUploadThumbnailBody.file);
+
+  return apiFetch<bookmarksControllerUploadThumbnailResponse>(
+    getBookmarksControllerUploadThumbnailUrl(id),
+    {
+      ...options,
+      method: "PUT",
+      body: formData,
+    },
+  );
+};
+
+export const getBookmarksControllerUploadThumbnailMutationKey = () =>
+  ["bookmarksControllerUploadThumbnail"] as const;
+
+export const getBookmarksControllerUploadThumbnailMutationOptions = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bookmarksControllerUploadThumbnail>>,
+    TError,
+    BookmarksControllerUploadThumbnailMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof apiFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bookmarksControllerUploadThumbnail>>,
+  TError,
+  BookmarksControllerUploadThumbnailMutationVariables,
+  TContext
+> => {
+  const mutationKey = getBookmarksControllerUploadThumbnailMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bookmarksControllerUploadThumbnail>>,
+    BookmarksControllerUploadThumbnailMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return bookmarksControllerUploadThumbnail(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BookmarksControllerUploadThumbnailMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bookmarksControllerUploadThumbnail>>
+>;
+export type BookmarksControllerUploadThumbnailMutationBody =
+  BookmarksControllerUploadThumbnailBody;
+export type BookmarksControllerUploadThumbnailMutationError = ApiErrorResponse;
+export type BookmarksControllerUploadThumbnailMutationVariables = {
+  id: string;
+  data: BookmarksControllerUploadThumbnailBody;
+};
+
+export const useBookmarksControllerUploadThumbnail = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof bookmarksControllerUploadThumbnail>>,
+      TError,
+      BookmarksControllerUploadThumbnailMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof bookmarksControllerUploadThumbnail>>,
+  TError,
+  BookmarksControllerUploadThumbnailMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getBookmarksControllerUploadThumbnailMutationOptions(options),
     queryClient,
   );
 };

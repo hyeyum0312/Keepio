@@ -7,4 +7,7 @@
 
 export interface SaveBookmarkDto {
   url: string;
+  /** @maxLength 100 */
+  title?: string;
+  tags?: string[];
 }

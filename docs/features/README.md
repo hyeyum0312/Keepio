@@ -20,3 +20,4 @@
 | FEAT-007 | [인증 화면 디자인 적용](auth-screens-design.md)         | Implemented |
 | FEAT-008 | [카테고리·태그 CRUD와 링크 분류](category-tag.md)       | Draft       |
 | FEAT-009 | [앱 틀과 홈 화면 디자인](app-shell-home.md)             | Implemented |
+| FEAT-010 | [링크 저장 시 제목·태그와 썸네일](bookmark-meta.md)     | Draft       |
