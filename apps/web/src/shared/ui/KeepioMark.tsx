@@ -1,5 +1,5 @@
 // 대표(레드) 캐릭터 심볼. 눈동자가 움직이고 깜빡인다(globals.css kp-pupils·kp-eyes, 감소 모션이면 멈춤).
-// 인증 화면 로고와 앱 사이드바 로고가 함께 쓴다(07-BRAND 7장)
+// 회사 마스코트 캐릭터라 로고로 쓰지 않는다(ADR-016). 인증·랜딩 무대와 빈 상태에서만 쓴다(07-BRAND 7장)
 import { useId } from "react";
 
 const BODY =

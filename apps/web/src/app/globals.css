@@ -27,6 +27,10 @@
   --primary: #20212a;
   --primary-foreground: #ffffff;
   --accent: #e8392b;
+  /* 로고(ADR-016): 워드마크 북마크, 작은 마크 타일·북마크 */
+  --logo-mark: #ee5041;
+  --logo-tile: #20212a;
+  --logo-mark-on-tile: #fb8070;
   --destructive: #c62828;
   --success: #1e7d3a;
   --warning: #8f5200;
@@ -86,6 +90,7 @@
   --primary: #f3f3f7;
   --primary-foreground: #20212a;
   --accent: #fb8070;
+  --logo-mark: #fb8070;
   --destructive: #ff8a80;
   --success: #6fd08c;
   --warning: #f5b54a;
@@ -122,6 +127,7 @@
     --primary: #f3f3f7;
     --primary-foreground: #20212a;
     --accent: #fb8070;
+    --logo-mark: #fb8070;
     --destructive: #ff8a80;
     --success: #6fd08c;
     --warning: #f5b54a;
