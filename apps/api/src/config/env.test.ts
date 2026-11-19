@@ -27,7 +27,20 @@ describe("loadEnv", () => {
       trustProxyHops: 0,
       oauth: {},
       apiOrigin: "http://localhost:7711",
+      storageDir: ".storage",
+      linkPreviewUserAgent:
+        "Mozilla/5.0 (compatible; KeepioBot/0.1; link preview)",
     });
+  });
+
+  it("FEAT-010: 썸네일 보관 폴더와 미리보기 User-Agent를 바꿀 수 있다", () => {
+    const env = loadEnv({
+      ...VALID,
+      STORAGE_DIR: "/var/keepio",
+      LINK_PREVIEW_USER_AGENT: "Test/1.0",
+    });
+    expect(env.storageDir).toBe("/var/keepio");
+    expect(env.linkPreviewUserAgent).toBe("Test/1.0");
   });
 
   it("잘못된 값을 모두 모아 한 번에 알린다", () => {

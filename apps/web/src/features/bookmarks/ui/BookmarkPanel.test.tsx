@@ -9,6 +9,10 @@ type Bookmark = {
   normalizedUrl: string;
   createdAt: string;
   deletedAt: string | null;
+  title: string | null;
+  displayTitle: string;
+  tags: { id: string; name: string }[];
+  thumbnail: { status: "pending" | "ready" | "failed"; url: string | null };
 };
 
 function bookmark(n: number, deleted = false): Bookmark {
@@ -18,6 +22,11 @@ function bookmark(n: number, deleted = false): Bookmark {
     normalizedUrl: `https://example.com/${n}`,
     createdAt: new Date(Date.UTC(2026, 0, n)).toISOString(),
     deletedAt: deleted ? new Date().toISOString() : null,
+    // FEAT-010 필드. 목록 표시 제목은 서버 값을 그대로 쓴다
+    title: null,
+    displayTitle: `https://example.com/${n}`,
+    tags: [],
+    thumbnail: { status: "failed", url: null },
   };
 }
 

@@ -1,6 +1,33 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { ApiErrorResponse } from "../../common/api-error.js";
 
+export class BookmarkTagResponse {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty()
+  name!: string;
+}
+
+const THUMBNAIL_STATUSES = ["pending", "ready", "failed"] as const;
+
+export class BookmarkThumbnailResponse {
+  @ApiProperty({
+    enum: THUMBNAIL_STATUSES,
+    description:
+      "pending: 가져오는 중, ready: 있음, failed: 없음(직접 올리기 가능)",
+  })
+  status!: (typeof THUMBNAIL_STATUSES)[number];
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description:
+      "API 기준 경로(서명, 10~20분 유효). API 주소를 앞에 붙여 <img>에 쓴다",
+  })
+  url!: string | null;
+}
+
 export class BookmarkResponse {
   @ApiProperty({ format: "uuid" })
   id!: string;
@@ -16,6 +43,24 @@ export class BookmarkResponse {
 
   @ApiProperty({ type: String, format: "date-time", nullable: true })
   deletedAt!: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: "저장할 때 넣은 제목",
+  })
+  title!: string | null;
+
+  @ApiProperty({
+    description: "보여 줄 제목: 넣은 제목 → 페이지 제목(og:title) → 도메인",
+  })
+  displayTitle!: string;
+
+  @ApiProperty({ type: [BookmarkTagResponse], description: "이름순" })
+  tags!: BookmarkTagResponse[];
+
+  @ApiProperty({ type: BookmarkThumbnailResponse })
+  thumbnail!: BookmarkThumbnailResponse;
 }
 
 export class BookmarkListResponse {

@@ -24,7 +24,15 @@ export type Env = {
   oauth: Partial<Record<OAuthProviderName, OAuthCredentials>>;
   // 제공자에 넘기는 콜백 주소의 기준. 개발·테스트는 비어 있으면 http://localhost:PORT
   apiOrigin?: string;
+  // FEAT-010 썸네일 파일 보관 폴더(개발용 로컬 디스크). 상대 경로는 api 실행 위치 기준
+  storageDir: string;
+  // FEAT-010 링크 미리보기(og:image) 요청의 User-Agent
+  linkPreviewUserAgent: string;
 };
+
+const DEFAULT_STORAGE_DIR = ".storage";
+const DEFAULT_LINK_PREVIEW_USER_AGENT =
+  "Mozilla/5.0 (compatible; KeepioBot/0.1; link preview)";
 
 // 시작 시 한 번 검증하고 실패하면 바로 종료한다. 메시지에 값은 넣지 않는다(비밀값 노출 방지)
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
@@ -120,6 +128,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     );
   }
 
+  const storageDir = source.STORAGE_DIR || DEFAULT_STORAGE_DIR;
+  const linkPreviewUserAgent =
+    source.LINK_PREVIEW_USER_AGENT || DEFAULT_LINK_PREVIEW_USER_AGENT;
+
   if (problems.length > 0) {
     throw new Error(`Invalid environment:\n- ${problems.join("\n- ")}`);
   }
@@ -135,6 +147,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     trustProxyHops: trustProxyHops!,
     oauth,
     apiOrigin: apiOrigin?.replace(/\/$/, ""),
+    storageDir,
+    linkPreviewUserAgent,
   };
 }
 

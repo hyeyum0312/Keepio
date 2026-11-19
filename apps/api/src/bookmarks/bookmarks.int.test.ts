@@ -6,9 +6,15 @@ import { AccessTokenService } from "../auth/access-token.service.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { setupApp } from "../setup-app.js";
 import { BookmarksRepository } from "./bookmarks.repository.js";
+import { LinkPreviewFetcher } from "./link-preview.fetcher.js";
 
 const URL_A = "https://example.com/article?id=1";
 const CONCURRENT_REQUESTS = 100;
+
+const OFFLINE_FETCHER = {
+  fetchPage: () => Promise.reject(new Error("offline")),
+  fetchImage: () => Promise.reject(new Error("offline")),
+};
 
 describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
   let app: INestApplication;
@@ -20,7 +26,11 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      // 썸네일 수집은 외부 요청이라 실패하는 가짜로 둔다(FEAT-010은 bookmark-meta.int.test.ts)
+      .overrideProvider(LinkPreviewFetcher)
+      .useValue(OFFLINE_FETCHER)
+      .compile();
     app = moduleRef.createNestApplication({ logger: false });
     setupApp(app);
     // 동시 요청 테스트가 서버 하나를 공유하도록 실제 포트로 띄운다
@@ -71,6 +81,11 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       createdAt: expect.any(String),
       // FEAT-002에서 추가된 필드(활성은 null)
       deletedAt: null,
+      // FEAT-010에서 추가된 필드(제목·태그 없이 저장)
+      title: null,
+      displayTitle: "example.com",
+      tags: [],
+      thumbnail: { status: "pending", url: null },
     });
     expect(await countBookmarks(userId)).toBe(1);
   });

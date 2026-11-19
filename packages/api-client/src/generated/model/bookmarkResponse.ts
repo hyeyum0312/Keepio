@@ -4,6 +4,8 @@
  * keepio API
  * OpenAPI spec version: 0.1.0
  */
+import type { BookmarkTagResponse } from "./bookmarkTagResponse";
+import type { BookmarkThumbnailResponse } from "./bookmarkThumbnailResponse";
 
 export interface BookmarkResponse {
   id: string;
@@ -13,4 +15,14 @@ export interface BookmarkResponse {
   createdAt: string;
   /** @nullable */
   deletedAt: string | null;
+  /**
+   * 저장할 때 넣은 제목
+   * @nullable
+   */
+  title: string | null;
+  /** 보여 줄 제목: 넣은 제목 → 페이지 제목(og:title) → 도메인 */
+  displayTitle: string;
+  /** 이름순 */
+  tags: BookmarkTagResponse[];
+  thumbnail: BookmarkThumbnailResponse;
 }

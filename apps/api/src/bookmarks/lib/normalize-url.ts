@@ -35,12 +35,23 @@ export function normalizeUrl(input: string): NormalizeUrlResult {
     return { ok: false, error: "UNSUPPORTED_SCHEME" };
   }
 
-  url.search = stripTrackingParams(url.search);
+  url.search = isInstagramPost(url) ? "" : stripTrackingParams(url.search);
   // 한글 경로·국제화 도메인은 인코딩되며 길어진다. 인덱스에 들어가는 값도 상한 안이어야 한다
   if (url.href.length > MAX_URL_LENGTH) {
     return { ok: false, error: "URL_TOO_LONG" };
   }
   return { ok: true, normalizedUrl: url.href };
+}
+
+// FEAT-010 AC-08. 인스타 게시물·릴스 주소의 쿼리(img_index, jplx, igsh 등)는 공유 경로 표시일 뿐이다.
+// 같은 게시물을 다른 장으로 공유해도 하나로 묶는다
+const INSTAGRAM_HOSTS = new Set(["instagram.com", "www.instagram.com"]);
+const INSTAGRAM_POST_PATH = /^\/(p|reel|reels|tv)\/[^/]+\/?$/;
+
+function isInstagramPost(url: URL): boolean {
+  return (
+    INSTAGRAM_HOSTS.has(url.hostname) && INSTAGRAM_POST_PATH.test(url.pathname)
+  );
 }
 
 // searchParams.delete()는 남은 파라미터까지 다시 인코딩한다(%20 → +). 원문 그대로 두려고 문자열로 거른다
