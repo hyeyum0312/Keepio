@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | fix(build): turbo 빌드에 API_PROXY_TARGET 전달
+
+- Feature: N/A
+- 목적: Vercel 빌드(`turbo run build`)에서 `API_PROXY_TARGET`이 turbo strict env 모드에 걸려 next.config에 전달되지 않아 프록시(rewrites)가 비어 있었다. 같은 이유로 turbo 캐시 키에도 들어가지 않아, 값을 넣고 다시 배포해도 이전 빌드 결과가 재사용됐다.
+- 변경: `turbo.json` build 작업 `env`에 `API_PROXY_TARGET`, `NEXT_PUBLIC_API_BASE_URL` 추가(전달 + 캐시 키).
+- 영향: web·api 빌드의 turbo 캐시 키. 로컬·CI는 두 값이 없거나 고정이라 동작 변화 없음.
+- 검증: `turbo.json` JSON 파싱 PASS, prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. 배포 확인은 merge 후 Vercel 빌드에서 `/api/health`가 api로 넘어가는지로.
+- 주의/롤백: revert로 롤백. 빌드에 쓰는 환경 변수를 새로 늘리면 이 목록에도 추가한다.
+
 ## 2026-11-19 | feat(web): 개발용 기획·디자인 보기 페이지 (임시)
 
 - Feature: N/A
