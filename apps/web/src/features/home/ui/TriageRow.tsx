@@ -54,18 +54,26 @@ export function TriageRow({
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
           aria-hidden="true"
-          className="h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-muted"
+          className="relative h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-muted"
         >
           {link.thumbnail?.status === "ready" && link.thumbnail.url && (
-            // 서명 주소라 Next 이미지 최적화(캐시 키)를 거치지 않는다
-            <Image
-              src={apiUrl(link.thumbnail.url)}
-              alt=""
-              width={64}
-              height={48}
-              unoptimized
-              className="size-full object-cover"
-            />
+            // 서명 주소라 최적화를 거치지 않는다. 자르지 않고 다 보이게, 남는 자리는 같은 이미지를 흐리게
+            <>
+              <Image
+                src={apiUrl(link.thumbnail.url)}
+                alt=""
+                fill
+                unoptimized
+                className="scale-125 object-cover opacity-60 blur-md"
+              />
+              <Image
+                src={apiUrl(link.thumbnail.url)}
+                alt=""
+                fill
+                unoptimized
+                className="object-contain"
+              />
+            </>
           )}
         </div>
         <div className="min-w-0">

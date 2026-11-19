@@ -10,7 +10,7 @@ import { useRef } from "react";
 import { submit } from "@/shared/lib/server-message";
 
 const ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
-const BOX = "h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-muted";
+const BOX = "relative h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-muted";
 
 // FEAT-010 AC-04~06. ready는 이미지, pending은 회색 상자, failed는 빈 상자 + 캡처 올리기(활성 목록만)
 export function BookmarkThumb({
@@ -45,14 +45,22 @@ export function BookmarkThumb({
   if (thumbnail.status === "ready" && thumbnail.url) {
     return (
       <div className={BOX}>
-        {/* 서명 주소라 Next 이미지 최적화(캐시 키)를 거치지 않는다 */}
+        {/* 서명 주소라 Next 이미지 최적화(캐시 키)를 거치지 않는다. 자르지 않고 다 보이게,
+            남는 자리는 같은 이미지를 흐리게 채운다(LINK-01 시안) */}
         <Image
           src={apiUrl(thumbnail.url)}
           alt=""
-          width={64}
-          height={48}
+          aria-hidden="true"
+          fill
           unoptimized
-          className="size-full object-cover"
+          className="scale-125 object-cover opacity-60 blur-md"
+        />
+        <Image
+          src={apiUrl(thumbnail.url)}
+          alt=""
+          fill
+          unoptimized
+          className="object-contain"
         />
       </div>
     );
