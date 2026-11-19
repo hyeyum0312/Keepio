@@ -19,6 +19,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["API_PROXY_TARGET", "NEXT_PUBLIC_API_BASE_URL"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
