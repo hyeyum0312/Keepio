@@ -35,13 +35,13 @@ const PROMO_ART = "/bucket-art/coral.webp";
 // 모바일은 머리(로고·계정) + 하단 탭. 휴지통·설정·화면 모드는 계정 메뉴에 있다
 export function AppShell({
   account,
-  sidebarExtra,
+  devLinks = [],
   children,
 }: {
   // 계정 버튼(아래로 열림). PC 위쪽 막대와 모바일 머리에 같은 것을 쓴다
   account?: React.ReactNode;
-  // 사이드바 주요 메뉴 아래에 붙일 내용(개발용 링크 등). 접힘·좁은 폭에서는 숨긴다
-  sidebarExtra?: React.ReactNode;
+  // 개발용 링크(기획·디자인 등). 다른 메뉴처럼 아이콘 + 이름이라 접히거나 좁아도 아이콘은 보인다
+  devLinks?: { label: string; href: string }[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -127,8 +127,12 @@ export function AppShell({
             <span className={label}>링크 추가</span>
           </Link>
         </nav>
-        {sidebarExtra && (
-          <div className={`flex-col gap-1 ${wide}`}>{sidebarExtra}</div>
+        {devLinks.length > 0 && (
+          <nav aria-label="개발용" className="flex flex-col gap-1">
+            {devLinks.map((link) =>
+              item({ label: link.label, icon: "pages", href: link.href }),
+            )}
+          </nav>
         )}
         <Link
           href="/?save=1"

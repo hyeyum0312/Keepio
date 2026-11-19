@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | fix(web): 로그인 후 사이드바에서 기획·디자인 링크가 안 보이던 문제
+
+- Feature: N/A
+- 목적: 새 사이드바(#59)에서 개발용 "기획·디자인" 링크를 펼친 넓은 화면(1024px 이상)에만 그려, 접거나 창이 좁으면 사라졌다(사용자 확인, 로컬).
+- 변경: `AppShell`의 `sidebarExtra`(아무 내용) 대신 `devLinks`(이름·주소 목록)를 받아 다른 메뉴와 같은 아이콘 + 이름 항목으로 그린다(접힘·좁은 폭은 아이콘만). `app/page.tsx`가 개발 환경일 때 `/preview/design`을 넘긴다.
+- 영향: 로그인 후 사이드바(개발·dev 배포만). 배포(운영)에는 링크가 없다. API·데이터 변경 없음.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest·tsc는 커밋 hook(사용자 Mac)과 PR CI.
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-19 | feat(api): 휴지통에 있는 링크를 다시 저장하면 새로 저장 (ADR-017)
 
 - Feature: FEAT-001 · FEAT-002
