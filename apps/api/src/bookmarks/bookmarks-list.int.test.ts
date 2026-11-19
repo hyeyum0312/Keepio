@@ -268,22 +268,19 @@ describe("링크 목록·삭제·복구 (실제 PostgreSQL, FEAT-002)", () => {
     },
   );
 
-  it("AC-08: 삭제한 링크를 다시 저장하면 409 BOOKMARK_DELETED, 그 ID로 복구하면 활성이 된다", async () => {
+  it("AC-08: 삭제한 링크를 다시 저장하면 새로 저장되고, 휴지통의 예전 링크는 사라진다(ADR-017)", async () => {
     const me = await newUser();
     const api = await as(me);
     const saved = await api.save(URL_A);
     await api.remove(saved.body.id);
 
     const again = await api.save(URL_A);
-    const restored = await api.restore(again.body.bookmarkId);
+    const restoredOld = await api.restore(saved.body.id);
 
-    expect(again.status).toBe(409);
-    expect(again.body).toMatchObject({
-      code: "BOOKMARK_DELETED",
-      bookmarkId: saved.body.id,
-    });
-    expect(restored.status).toBe(200);
-    expect(ids(await api.list())).toEqual([saved.body.id]);
+    expect(again.status).toBe(201);
+    expect(again.body.id).not.toBe(saved.body.id);
+    expect(restoredOld.status).toBe(404);
+    expect(ids(await api.list())).toEqual([again.body.id]);
   });
 
   it("토큰이 없으면 목록·삭제·복구 모두 401", async () => {
