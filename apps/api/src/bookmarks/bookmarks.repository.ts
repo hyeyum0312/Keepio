@@ -86,6 +86,23 @@ export class BookmarksRepository {
     );
   }
 
+  // ADR-017: 휴지통의 같은 링크를 영구 삭제하고, 지운 행의 썸네일 키를 돌려준다(파일은 부른 쪽이 지운다).
+  // 태그 연결은 FK cascade로 함께 지워진다
+  async purgeDeletedByUrl(
+    userId: string,
+    normalizedUrl: string,
+  ): Promise<string[]> {
+    const rows = await this.prisma.bookmark.findMany({
+      where: { userId, normalizedUrl, deletedAt: { not: null } },
+      select: { id: true, thumbnailKey: true },
+    });
+    if (rows.length === 0) return [];
+    await this.prisma.bookmark.deleteMany({
+      where: { userId, id: { in: rows.map((r) => r.id) } },
+    });
+    return rows.flatMap((r) => (r.thumbnailKey ? [r.thumbnailKey] : []));
+  }
+
   // 활성 행과 충돌하면 아무것도 넣지 않고 null. 동시 요청의 승자는 부분 UNIQUE 인덱스가 정한다.
   // Prisma create는 충돌마다 DB 오류를 낸다(동시 100회면 99건). ON CONFLICT … WHERE는 Prisma API로 표현되지 않아 SQL로 쓴다
   // FEAT-010: 새 행이면 같은 트랜잭션에서 제목·태그를 붙이고 썸네일 상태는 pending으로 시작한다.

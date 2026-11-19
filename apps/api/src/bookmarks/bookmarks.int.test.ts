@@ -189,7 +189,7 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
     expect(res.body.code).toBe("VALIDATION_FAILED");
   });
 
-  it("AC-07: 삭제된 북마크와 같은 URL을 저장하면 409와 복구할 ID를 반환하고 새로 만들지 않는다", async () => {
+  it("AC-07: 휴지통에만 있는 URL을 저장하면 새 북마크로 만들고 휴지통의 예전 행은 영구 삭제한다(ADR-017)", async () => {
     const userId = await newUser();
     const first = await save(userId, { url: URL_A });
     await prisma.bookmark.update({
@@ -199,13 +199,13 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
 
     const res = await save(userId, { url: `${URL_A}&utm_source=x` });
 
-    expect(res.status).toBe(409);
-    expect(res.body).toMatchObject({
-      code: "BOOKMARK_DELETED",
-      message: "삭제한 링크예요. 복구할 수 있어요.",
-      bookmarkId: first.body.id,
-    });
+    expect(res.status).toBe(201);
+    expect(res.body.id).not.toBe(first.body.id);
+    expect(res.body.deletedAt).toBeNull();
     expect(await countBookmarks(userId)).toBe(1);
+    expect(
+      await prisma.bookmark.findUnique({ where: { id: first.body.id } }),
+    ).toBeNull();
   });
 
   it("AC-07: 활성 북마크가 있으면 삭제된 행이 있어도 AC-02가 우선한다", async () => {

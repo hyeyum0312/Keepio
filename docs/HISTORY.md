@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | feat(api): 휴지통에 있는 링크를 다시 저장하면 새로 저장 (ADR-017)
+
+- Feature: FEAT-001 · FEAT-002
+- 목적: 삭제한 링크를 다시 넣으면 "삭제한 링크예요. 복구할 수 있어요."로 막혔다. 다시 넣는 사람은 새로 넣기를 기대한다(사용자 결정). 실수 삭제 복구를 위해 휴지통은 유지한다.
+- 변경: `bookmarks.service.ts` save — 휴지통에만 있으면 409 대신 그 행을 영구 삭제(`purgeDeletedByUrl`, 태그 연결은 cascade)하고 썸네일 파일을 지운 뒤 새로 저장. 동시 저장·삭제로 충돌 직후 승자가 지워진 경우도 한 번 다시 넣는다. 통합 테스트 2개 갱신. ADR-017, FEAT-001 AC-07, OPEN-QUESTIONS D-01.
+- 영향: 저장 API가 `BOOKMARK_DELETED`를 더 주지 않는다. 다시 저장한 링크의 휴지통 행은 복구할 수 없게 된다. DB 스키마 변경 없음. OpenAPI 저장 409 문서와 web 복구 안내 코드는 남아 있다(쓰이지 않음, api-client 재생성 때 정리).
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. 통합 테스트는 커밋 hook(사용자 Mac)과 PR CI.
+- 주의/롤백: revert로 동작은 되돌아가지만 이미 영구 삭제된 행은 되돌릴 수 없다.
+
 ## 2026-11-19 | feat(web): 비로그인으로 홈에 오면 로그인 화면으로
 
 - Feature: FEAT-006

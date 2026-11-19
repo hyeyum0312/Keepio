@@ -1,6 +1,7 @@
 import { BadRequestException, HttpStatus, Injectable } from "@nestjs/common";
 import { ApiException } from "../common/api-error.js";
 import { Prisma } from "../generated/prisma/client.js";
+import { ThumbnailStorage } from "./thumbnail.storage.js";
 import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
 import {
   type BookmarkRecord,
@@ -21,7 +22,6 @@ const URL_ERROR_MESSAGES: Record<NormalizeUrlError, string> = {
   UNSUPPORTED_SCHEME: "http나 https로 시작하는 링크만 저장할 수 있어요.",
   URL_TOO_LONG: "링크 주소가 너무 길어요.",
 };
-const BOOKMARK_DELETED_MESSAGE = "삭제한 링크예요. 복구할 수 있어요.";
 // docs/features/bookmark-list-delete.md 오류 표
 const NOT_FOUND_MESSAGE = "링크를 찾을 수 없어요.";
 const ALREADY_SAVED_MESSAGE = "같은 링크가 이미 저장되어 있어요.";
@@ -48,9 +48,11 @@ export class BookmarksService {
   constructor(
     private readonly bookmarks: BookmarksRepository,
     private readonly thumbnails: BookmarkThumbnailsService,
+    private readonly storage: ThumbnailStorage,
   ) {}
 
-  // FEAT-001: 활성 북마크가 있으면 재사용(AC-02), 삭제된 것만 있으면 복구 안내(AC-07), 없으면 생성(AC-01).
+  // FEAT-001: 활성 북마크가 있으면 재사용(AC-02), 없으면 생성(AC-01). 휴지통에만 있으면 그 행을 영구 삭제하고
+  // 새로 넣은 것처럼 저장한다(AC-07, ADR-017 — 이전 D-01의 409 복구 안내를 대체).
   // 동시 요청은 insertIfAbsent의 ON CONFLICT가 하나만 통과시키고 나머지는 승자를 다시 읽는다(AC-03)
   // FEAT-010: 새로 저장할 때만 제목·태그를 붙이고 썸네일 수집을 건다. 이미 있는 링크는 그대로 돌려준다(AC-03)
   async save(
@@ -70,7 +72,7 @@ export class BookmarksService {
 
     const latest = await this.bookmarks.findLatestByUrl(userId, normalizedUrl);
     if (latest?.deletedAt === null) return { bookmark: latest, created: false };
-    if (latest) throw bookmarkDeleted(latest.id);
+    if (latest) await this.purgeTrashed(userId, normalizedUrl);
 
     const meta = parseMeta(input);
     let inserted: BookmarkRecord | null;
@@ -99,10 +101,29 @@ export class BookmarksService {
     // 충돌한 행은 이미 커밋됐다. 새 쿼리라 보인다(같은 문장 안의 조회는 이전 스냅샷이라 못 볼 수 있다)
     const winner = await this.bookmarks.findActiveByUrl(userId, normalizedUrl);
     if (winner) return { bookmark: winner, created: false };
-    // 충돌 직후 승자가 삭제된 경우(동시 저장·삭제, FEAT-002 이후 가능). 삭제된 행으로 복구 안내
-    const deleted = await this.bookmarks.findLatestByUrl(userId, normalizedUrl);
-    if (deleted) throw bookmarkDeleted(deleted.id);
+    // 충돌 직후 승자가 삭제된 경우(동시 저장·삭제). 휴지통의 그 행을 지우고 한 번만 다시 넣는다
+    await this.purgeTrashed(userId, normalizedUrl);
+    const retried = await this.bookmarks.insertIfAbsent(
+      userId,
+      url,
+      normalizedUrl,
+      meta,
+    );
+    if (retried) {
+      this.thumbnails.enqueue(retried.id, normalizedUrl);
+      return { bookmark: retried, created: true };
+    }
+    const again = await this.bookmarks.findActiveByUrl(userId, normalizedUrl);
+    if (again) return { bookmark: again, created: false };
     throw new Error("Bookmark disappeared after insert conflict");
+  }
+
+  // ADR-017. 썸네일 파일 삭제는 실패해도 저장을 막지 않는다(파일만 남는다)
+  private async purgeTrashed(userId: string, normalizedUrl: string) {
+    const keys = await this.bookmarks.purgeDeletedByUrl(userId, normalizedUrl);
+    await Promise.all(
+      keys.map((key) => this.storage.remove(key).catch(() => {})),
+    );
   }
 
   // FEAT-002 AC-01~03
@@ -203,15 +224,6 @@ function metaInvalid() {
     HttpStatus.BAD_REQUEST,
     "VALIDATION_FAILED",
     META_INVALID_MESSAGE,
-  );
-}
-
-function bookmarkDeleted(bookmarkId: string) {
-  return new ApiException(
-    HttpStatus.CONFLICT,
-    "BOOKMARK_DELETED",
-    BOOKMARK_DELETED_MESSAGE,
-    { bookmarkId },
   );
 }
 
