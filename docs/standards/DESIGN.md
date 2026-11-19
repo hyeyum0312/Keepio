@@ -21,3 +21,9 @@ Defined in `apps/web/src/app/globals.css` (`:root` CSS variables → `@theme inl
 | Text sizes `text-caption` (13px), `text-title` (28px), `text-display` (40px)                                                                                                                             | defined (07-BRAND 5장)                                                    |
 
 Candidate values, the 3-layer token structure (palette → semantic → brand) and three proposed additions (`muted-foreground`, `input`, `accent`; `primary` is a neutral ink, the brand red moves to `accent`) are in `docs/spec/07-BRAND.md`. Values and rationale are in `docs/spec/07-BRAND.md`; add new colors only through that document (D-09 remaining scope: confirm with the LINK-01 design).
+
+## Design index (temporary, until the dev deploy)
+
+- Every new planning or design artifact (wireflow, screen mockup, brand asset) is added to `apps/web/src/features/design-preview/model/items.ts` in the same task: group `기획` for planning/flows, `디자인` for screen and brand designs. Label = screen ID + short name (e.g. `LINK-02 상세시안`).
+- claude.ai artifacts are linked (`embed: false`); only files copied into `docs/design/` are embedded. Re-copy a copied file when its artifact changes.
+- Remove the whole index (see the 2026-11-19 HISTORY entry) when the docs repo replaces it.

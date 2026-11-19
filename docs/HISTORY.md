@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | feat(web): 개발용 기획·디자인 보기 페이지 (임시)
+
+- Feature: N/A
+- 목적: claude.ai에 흩어진 기획(웹 MVP 와이어플로우)과 화면 시안을 개발 중 한곳에서 본다. 로그인 여부와 관계없이 열리고, dev 배포 전까지만 쓴 뒤 별도 문서 레포로 옮긴다(사용자 결정).
+- 변경: `/preview/design` 단독 페이지(`app/preview/design`, 앱 틀과 별개, 왼쪽 목록 + 본문). `features/design-preview`: 목록(기획: 워크플로우 / 디자인: 디자인 전체·브랜드/로고·AUTH-01·AUTH-02). 워크플로우는 `docs/design/wireflow.html`(아티팩트 원본 사본, `.prettierignore` 추가)을 `app/preview/wireflow/route.ts`로 응답해 본문 iframe, claude.ai 시안은 claude.ai가 다른 사이트 안에 띄우는 것을 막아(frame-ancestors) 누르면 새 탭. 진입: 랜딩 아래 링크, 로그인 상태 사이드바 링크(`AppShell.sidebarExtra` 슬롯 추가). 모두 개발 환경에서만, 배포는 링크 없음·경로 404. `docs/standards/DESIGN.md`에 "새 기획·디자인은 같은 작업에서 목록에 추가" 규칙. 테스트: 라우트 2개, 보기 2개.
+- 영향: 개발 서버의 랜딩·로그인 사이드바에 링크 하나씩, `/preview/*` 두 경로. 배포 빌드·API·데이터 변경 없음.
+- 검증: prettier(바뀐 파일) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest·eslint·tsc·`npm run verify`는 미실행(VM의 node_modules가 Mac용 네이티브 바이너리). 사용자 Mac 커밋 hook과 PR CI에서 확인.
+- 주의/롤백: revert로 롤백. 걷어낼 때 `features/design-preview`, `app/preview/design`·`wireflow`, `docs/design`, 랜딩·`page.tsx` 링크, `AppShell.sidebarExtra`, DESIGN.md 규칙을 함께 지운다. 아티팩트를 고치면 wireflow 사본은 다시 복사.
+
 ## 2026-11-19 | chore(web): 테스트 배포에서 web 주소로 api를 부르도록 프록시
 
 - Feature: N/A

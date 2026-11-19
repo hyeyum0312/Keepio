@@ -9,3 +9,4 @@ coverage
 package-lock.json
 next-env.d.ts
 docs/HISTORY.md
+docs/design/*.html

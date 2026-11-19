@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Keepio 웹 MVP 와이어플로우</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* 레이아웃: 점 그리드 캔버스 위에 섹션 프레임 → 화면 카드 → 화살표, 선택한 화면 아래에 주석 카드 */
+:root{
+  --canvas:#eceef3; --dot:#c9cdd6; --panel:#ffffff; --line:#d7dbe3;
+  --ink:#1c2029; --muted:#6b7280; --faint:#9aa0ab;
+  --accent:#2f6bff; --accent-soft:rgba(47,107,255,.16);
+  --hot:#e5484d; --warn:#c77700; --warn-bg:#fff6e8;
+  --wire:#f4f5f8; --wire-line:#d3d7df;
+  --display:"Noto Sans KR",system-ui,sans-serif; --body:"Noto Sans KR",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#16181d; --dot:#2c3039; --panel:#1f2229; --line:#323742;
+  --ink:#e8eaf0; --muted:#a2a8b4; --faint:#7b8290;
+  --accent:#6b95ff; --accent-soft:rgba(107,149,255,.2); --hot:#ff6b6f; --warn:#f0a63a; --warn-bg:#2d2416;
+  --wire:#272b33; --wire-line:#3a404c; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --canvas:#16181d; --dot:#2c3039; --panel:#1f2229; --line:#323742;
+  --ink:#e8eaf0; --muted:#a2a8b4; --faint:#7b8290;
+  --accent:#6b95ff; --accent-soft:rgba(107,149,255,.2); --hot:#ff6b6f; --warn:#f0a63a; --warn-bg:#2d2416;
+  --wire:#272b33; --wire-line:#3a404c; color-scheme:dark;}
+
+html,body{height:100%;margin:0}
+body{background:var(--canvas);color:var(--ink);font-family:var(--body);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 상단 바 */
+.top{position:fixed;left:0;right:0;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 14px;min-height:40px}
+.ttl{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.ttl b{font-family:var(--display);font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
+.tb{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tb:hover{border-color:var(--accent)}
+.tb[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.tb:disabled{opacity:.4;cursor:default}
+.chips{display:flex;gap:6px;padding:0 14px 9px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:28px;padding:0 11px;border-radius:99px;border:1px solid var(--line);background:var(--canvas);font-size:12.5px;font-weight:600;cursor:pointer}
+.chip span{color:var(--faint);margin-right:5px;font-variant-numeric:tabular-nums}
+.chip.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+/* 캔버스 */
+#vp{position:fixed;left:0;right:0;bottom:0;top:90px;overflow:hidden;touch-action:none;cursor:grab;
+  background-image:radial-gradient(var(--dot) 1.2px,transparent 1.3px)}
+#vp.drag{cursor:grabbing}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;z-index:1}
+#edges path{fill:none;stroke:var(--faint);stroke-width:2;opacity:.75}
+#edges path.cross{stroke-dasharray:7 7;opacity:.4}
+#edges path.rel{stroke:var(--accent);opacity:1;stroke-width:2.5}
+#edges path.act{stroke:var(--hot);opacity:1;stroke-width:3.5;stroke-dasharray:none}
+
+.sec{position:absolute;border-radius:26px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 45%,transparent);z-index:0}
+.sec h2{position:absolute;left:40px;top:26px;margin:0;font-family:var(--display);font-size:34px;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.sec h2 small{font-size:15px;font-weight:700;color:var(--faint);margin-right:10px;font-variant-numeric:tabular-nums}
+.sec p{position:absolute;left:42px;top:74px;margin:0;font-size:16px;color:var(--muted);font-weight:500}
+
+.elab{position:absolute;z-index:2;transform:translate(-50%,-50%);font-size:13px;font-weight:700;color:var(--muted);background:var(--canvas);padding:2px 8px;border-radius:6px;white-space:nowrap;pointer-events:none}
+.elab.rel{color:var(--accent)}
+.elab.act{color:#fff;background:var(--hot)}
+
+/* 화면 카드 */
+.scr{position:absolute;z-index:3;width:320px;height:224px;background:var(--panel);border:1.5px solid var(--wire-line);border-radius:16px;overflow:hidden;cursor:pointer;
+  box-shadow:0 2px 0 rgba(0,0,0,.03),0 10px 24px -12px rgba(20,30,60,.18);transition:box-shadow .2s,border-color .2s}
+.scr.err{border-style:dashed;border-color:var(--warn)}
+.scr.sel{border:2.5px solid var(--accent);box-shadow:0 0 0 7px var(--accent-soft),0 18px 40px -14px rgba(20,40,120,.35)}
+.slab{position:absolute;z-index:3;width:320px;text-align:center;font-family:var(--display);font-size:20px;font-weight:800;color:var(--ink);pointer-events:none}
+.slab i{font-style:normal;font-size:11px;font-weight:700;color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-right:6px;vertical-align:3px;font-family:var(--mono)}
+.slab.err i{color:var(--warn);border-color:var(--warn)}
+
+.chrome{height:20px;display:flex;align-items:center;gap:4px;padding:0 8px;background:var(--wire);border-bottom:1px solid var(--wire-line)}
+.chrome i{width:6px;height:6px;border-radius:50%;background:var(--wire-line)}
+.chrome span{margin-left:6px;font-size:8px;color:var(--faint);font-family:var(--mono);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chrome em{font-style:normal;font-size:7.5px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:1px 5px;border-radius:4px}
+.body{position:relative;height:204px;display:flex}
+aside{width:50px;flex:none;border-right:1px solid var(--wire-line);background:var(--wire);padding:8px 6px;display:flex;flex-direction:column;gap:5px}
+aside .logo{width:18px;height:18px;border-radius:5px;background:var(--ink);color:var(--panel);font-size:9px;font-weight:800;display:grid;place-items:center;margin-bottom:4px}
+aside .nv{font-size:7.5px;color:var(--faint);padding:2px 4px;border-radius:4px}
+aside .nv.on{background:var(--panel);color:var(--ink);font-weight:700}
+.main{flex:1;min-width:0;padding:9px 10px;display:flex;flex-direction:column;gap:5px}
+.ghost{position:absolute;inset:0;display:flex;opacity:.5}
+.ghost .main i{display:block;height:16px;border-radius:4px;background:var(--wire)}
+.ghost .main .g{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.ghost .main .g i{height:34px}
+.dim{position:absolute;inset:0;background:rgba(18,22,32,.28)}
+.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:232px;max-height:194px;background:var(--panel);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:5px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+
+/* 와이어 요소 */
+.w-h{font-size:11.5px;font-weight:800;line-height:1.3;white-space:pre-line;color:var(--ink)}
+.w-p{font-size:8.6px;line-height:1.45;color:var(--muted)}
+.w-s{font-size:7.8px;color:var(--faint);line-height:1.4}
+.w-s.red{color:var(--hot);font-weight:700}
+.w-in{height:19px;line-height:17px;border:1px solid var(--wire-line);border-radius:5px;padding:0 6px;font-size:8.2px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+.w-in.fill{color:var(--ink)}
+.w-in.bad{border-color:var(--hot);color:var(--ink)}
+.w-btn{height:19px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:5px;border:1px solid var(--wire-line);background:var(--wire);font-size:8.6px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;padding:0 5px;transition:background .15s,color .15s}
+.w-btn.pri{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.w-btn.dgr{background:var(--hot);color:#fff;border-color:var(--hot)}
+.w-btn.gh{background:none;border-color:transparent;color:var(--accent)}
+.w-btn.sim{border:1px dashed var(--warn);background:var(--warn-bg);color:var(--warn);font-size:7.8px}
+[data-to]{cursor:pointer}
+.w-btn[data-to]:hover{outline:2px solid var(--accent);outline-offset:1px}
+.flash{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+.w-btns{display:flex;gap:5px;flex:none}
+.w-btns>*{flex:1}
+.w-row{display:flex;justify-content:space-between;gap:6px;font-size:8.2px;padding:2px 0;border-bottom:1px dashed var(--wire-line);flex:none}
+.w-row span{color:var(--faint)} .w-row b{font-weight:700}
+.w-row[data-to] b{color:var(--accent)}
+.w-chips{display:flex;gap:3px;flex-wrap:wrap;flex:none}
+.w-chips span{font-size:7.5px;padding:1px 6px;border-radius:99px;background:var(--wire);border:1px solid var(--wire-line);color:var(--muted)}
+.w-chips span.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.w-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex:none;border-radius:6px}
+.w-grid[data-to]:hover{outline:2px solid var(--accent);outline-offset:2px}
+.w-grid i{position:relative;height:30px;border-radius:4px;background:var(--wire);border:1px solid var(--wire-line);overflow:hidden;font-style:normal;font-size:6.5px;color:var(--warn);font-weight:700;display:flex;align-items:flex-end;padding:2px}
+.w-grid i::before{content:"";position:absolute;inset:0;background:linear-gradient(to top right,transparent calc(50% - .5px),var(--wire-line) 50%,transparent calc(50% + .5px))}
+.w-img{height:42px;flex:none;border-radius:6px;background:repeating-linear-gradient(45deg,var(--wire),var(--wire) 5px,transparent 5px,transparent 10px);border:1px solid var(--wire-line);display:grid;place-items:center;font-size:7.5px;color:var(--faint)}
+.w-drop{height:24px;flex:none;border:1px dashed var(--wire-line);border-radius:6px;display:grid;place-items:center;font-size:8px;color:var(--faint)}
+.w-drop.bad{border-color:var(--hot);color:var(--hot)}
+.w-tog{display:flex;justify-content:space-between;align-items:center;font-size:8.4px;padding:2px 0;flex:none}
+.w-tog i{width:20px;height:11px;border-radius:99px;background:var(--wire-line);position:relative}
+.w-tog i::after{content:"";position:absolute;left:2px;top:2px;width:7px;height:7px;border-radius:50%;background:#fff}
+.w-tog i.on{background:var(--accent)} .w-tog i.on::after{left:11px}
+.w-code{font-family:var(--mono);font-size:7.8px;background:var(--wire);border:1px solid var(--wire-line);border-radius:5px;padding:4px 6px;white-space:pre-wrap;line-height:1.45;flex:none}
+.w-list{display:flex;flex-direction:column;gap:2px;flex:none}
+.w-list div{font-size:8.4px;padding:2px 4px;border-radius:4px;display:flex;align-items:center;gap:5px}
+.w-list div::before{content:"";width:7px;height:7px;border-radius:50%;border:1px solid var(--wire-line)}
+.w-list div.on{background:var(--accent-soft);font-weight:700}
+.w-list div.on::before{border:3px solid var(--accent);width:3px;height:3px}
+.w-load{display:flex;align-items:center;gap:6px;font-size:8.2px;color:var(--muted);flex:none}
+.w-load i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--wire-line);border-top-color:var(--accent)}
+.w-load i.ok{border-color:var(--accent);background:var(--accent)}
+.w-link{display:flex;gap:6px;align-items:center;border:1px solid var(--wire-line);border-radius:6px;padding:4px;flex:none}
+.w-link i{width:40px;height:28px;border-radius:4px;background:repeating-linear-gradient(45deg,var(--wire),var(--wire) 4px,transparent 4px,transparent 8px);border:1px solid var(--wire-line);flex:none}
+.w-link b{display:block;font-size:8.4px} .w-link span{font-size:7.4px;color:var(--faint)}
+.w-or{display:flex;align-items:center;gap:6px;font-size:7.4px;color:var(--faint);flex:none}
+.w-or::before,.w-or::after{content:"";flex:1;height:1px;background:var(--wire-line)}
+.w-pub{border:1px solid var(--wire-line);border-radius:6px;padding:6px;display:flex;flex-direction:column;gap:4px;flex:none}
+
+/* 주석 카드 */
+#note{position:absolute;z-index:6;width:360px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px 16px;
+  box-shadow:0 24px 50px -18px rgba(10,20,50,.35);display:none;font-size:13.5px;line-height:1.6}
+#note.show{display:block}
+#note h3{margin:0 0 10px;font-family:var(--display);font-size:19px;font-weight:800;display:flex;align-items:center;gap:8px}
+#note h3::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+#note dt{font-weight:800;margin-top:9px;font-size:13px}
+#note dd{margin:1px 0 0;color:var(--muted)}
+#note .acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+#note .acts button{border:1px solid var(--line);background:var(--canvas);border-radius:7px;padding:3px 8px;font-size:12px;font-weight:600;cursor:pointer}
+#note .acts button:hover{border-color:var(--accent);color:var(--accent)}
+#note .acts button.sim{border-style:dashed;border-color:var(--warn);color:var(--warn);background:var(--warn-bg)}
+#note .open{margin-top:11px;background:var(--warn-bg);border-radius:10px;padding:8px 11px;color:var(--ink);font-size:12.5px}
+#note .open b{color:var(--warn)}
+
+/* 하단 컨트롤 */
+.dock{position:fixed;right:14px;bottom:14px;z-index:20;display:flex;gap:6px;align-items:center}
+.dock .grp{display:flex;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px -8px rgba(0,0,0,.25)}
+.dock .grp button{border:0;background:none;height:34px;min-width:34px;padding:0 10px;font-size:13px;font-weight:700;cursor:pointer}
+.dock .grp button+button{border-left:1px solid var(--line)}
+#zoomv{font-variant-numeric:tabular-nums;min-width:56px}
+.legend{position:fixed;left:14px;bottom:14px;z-index:20;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:5px;box-shadow:0 6px 18px -8px rgba(0,0,0,.25);max-width:290px}
+.legend div{display:flex;align-items:center;gap:7px}
+.legend .k{width:22px;height:0;border-top:2.5px solid var(--faint)}
+.legend .k.rel{border-color:var(--accent)} .legend .k.act{border-color:var(--hot);border-width:3.5px}
+.legend .k.cross{border-top-style:dashed}
+.legend .k.sim{width:18px;height:10px;border:1px dashed var(--warn);background:var(--warn-bg);border-radius:3px}
+#toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%) translateY(10px);opacity:0;z-index:30;background:var(--ink);color:var(--panel);font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;transition:.2s;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%)}
+@media (max-width:640px){
+  .legend{display:none}
+  .hide-sm{display:none}
+  .tb{padding:0 8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="bar">
+    <div class="ttl"><b>Keepio 웹 MVP</b><span class="pill">와이어플로우 · 화면 명세</span></div>
+    <button class="tb" id="back" disabled title="이전 화면">← 이전</button>
+    <button class="tb" id="notes" aria-pressed="true" title="주석 보기">주석</button>
+    <button class="tb" id="fit" title="전체 보기">전체<span class="hide-sm">&nbsp;보기</span></button>
+  </div>
+  <div class="chips" id="chips"></div>
+</div>
+<div id="vp"><div id="world"><svg id="edges"><defs></defs></svg><div id="note"></div></div></div>
+<div class="legend">
+  <div><span class="k"></span>화면 이동</div>
+  <div><span class="k rel"></span>선택한 화면과 연결</div>
+  <div><span class="k act"></span>방금 지나온 경로</div>
+  <div><span class="k cross"></span>다른 섹션으로 이동</div>
+  <div><span class="k sim"></span>예외 상황 시뮬레이션 버튼</div>
+  <div style="color:var(--faint)">화면 속 버튼을 누르면 다음 화면으로 이동해요. 드래그로 이동, 핀치·⌘+휠로 확대.</div>
+</div>
+<div class="dock">
+  <div class="grp"><button id="focus">선택 화면으로</button></div>
+  <div class="grp"><button id="zout" aria-label="축소">−</button><button id="zoomv">100%</button><button id="zin" aria-label="확대">+</button></div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ───── 데이터 ─────
+const h=v=>({t:'h',v}), p=v=>({t:'p',v}), s=(v,c)=>({t:'s',v,c}), inp=(v,c)=>({t:'in',v,c});
+const b=(v,to,c)=>({t:'btn',v,to,c}), bs=(...v)=>({t:'btns',v}), row=(k,v,to)=>({t:'row',k,v,to});
+const chips=v=>({t:'chips',v}), grid=(n,to,lab,mark)=>({t:'grid',n,to,lab,mark}), tog=(v,on)=>({t:'tog',v,on});
+const code=v=>({t:'code',v}), list=(v,on)=>({t:'list',v,on}), load=(v,ok)=>({t:'load',v,ok});
+const link=(v,src)=>({t:'link',v,src}), drop=(v,c)=>({t:'drop',v,c}), img=v=>({t:'img',v}), or=()=>({t:'or'});
+
+const SECTIONS=[
+ {id:'auth',name:'시작·인증',sub:'랜딩 → 로그인 → 가입 → 첫 홈',
+  screens:[['a1',0,0],['a2',1,0],['a3',2,0],['a4',3,0],['a3x',2,1]]},
+ {id:'save',name:'모으기 · 저장',sub:'저장 입력 → 링크 미리보기 → AI 정리 → 저장 완료',
+  screens:[['b1',0,0],['b2',1,0],['b3',2,0],['b4',3,0],['b5',4,0],['b1c',0,1],['b2x',1,1],['b3x',2,1],['b1x',0,2]]},
+ {id:'org',name:'정리 · 탐색',sub:'홈 → 버킷 → 항목 상세 → 편집 · 전체 링크(목록형/카드형)',
+  screens:[['c1',0,0],['c2',1,0],['c3',2,0],['c4',3,0],['c3d',2,1],['c5',0,1],['c5g',1,1],['c5e',0,2],['c5m',1,2]]},
+ {id:'mcp',name:'꺼내 쓰기 · AI 연결',sub:'설정 → 토큰 발급 → 버킷별 허용 → 연결 확인',
+  screens:[['d1',0,0],['d2',1,0],['d3',2,0],['d4',3,0],['d4x',3,1]]},
+ {id:'pub',name:'발행 · 공유',sub:'발행 설정 → 이미지 공개 선택 → 미리보기 → 링크',
+  screens:[['e1',0,0],['e2',1,0],['e3',2,0],['e4',3,0],['e4x',3,1]]},
+];
+
+const S={
+ a1:{name:'랜딩',url:'keepio.app',els:[s('Keepio'),h('AI가 꺼내 쓰는\n내 레퍼런스 라이브러리'),p('인스타·유튜브 링크와 캡처를 모으면 AI가 분류·요약하고, 작업할 때 꺼내 줘요.'),bs(b('로그인','a2'),b('시작하기','a2','pri'))],
+  entry:'로그인하지 않은 상태로 첫 방문.',rules:'로그인 세션이 남아 있으면 랜딩을 건너뛰고 홈으로 보낸다.'},
+ a2:{name:'로그인',url:'keepio.app/login',els:[h('로그인'),b('Google로 계속','a4'),b('카카오로 계속','a4'),or(),inp('이메일'),inp('비밀번호'),b('로그인','a4','pri'),b('처음이세요? 이메일로 가입','a3','gh')],
+  entry:'랜딩의 시작하기·로그인, 또는 세션 만료.',rules:'수집 정보는 이메일과 비밀번호 해시뿐. 이름은 받지 않는다. 첫 로그인이면 개인 워크스페이스 1개를 자동으로 만든다.',
+  off:'이메일·비밀번호를 둘 다 넣기 전에는 로그인 비활성.',open:'카카오 실연동 확인 (출시 전 후보)'},
+ a3:{name:'이메일 가입',url:'keepio.app/signup',els:[h('이메일로 가입'),inp('you@example.com','fill'),inp('비밀번호 (8자 이상)'),s('흔한 비밀번호는 쓸 수 없어요'),b('가입하기','a4','pri'),b('⚠ 흔한 비밀번호 입력 시','a3x','sim')],
+  entry:'로그인 화면의 이메일로 가입.',rules:'가입 즉시 개인 워크스페이스를 만든다. 버킷은 사용자가 아니라 워크스페이스가 소유한다.',
+  off:'이메일 형식이 틀리거나 비밀번호가 8자 미만이면 가입 비활성.'},
+ a3x:{name:'흔한 비밀번호',kind:'err',url:'keepio.app/signup',els:[h('이메일로 가입'),inp('you@example.com','fill'),inp('password123','bad'),s('너무 흔한 비밀번호예요. 다른 비밀번호를 입력해 주세요.','red'),b('다시 입력','a3','pri')],
+  entry:'흔한 비밀번호 목록에 있는 값으로 가입을 누름.',rules:'클라이언트와 서버 모두 같은 목록으로 막는다. 입력한 이메일은 지우지 않는다.'},
+ a4:{name:'홈 (빈 상태)',app:1,nav:'홈',url:'keepio.app/home',els:[h('첫 레퍼런스를 저장해 보세요'),p('링크를 붙여 넣거나 캡처를 올리면 AI가 알아서 정리해요.'),inp('링크 붙여넣기 (인스타·유튜브·웹)'),bs(b('이미지 올리기','b1'),b('저장하기','b1','pri')),s('버킷 0 · 항목 0')],
+  entry:'첫 로그인 직후, 또는 항목이 하나도 없을 때.',rules:'링크를 붙여 넣으면 저장 창이 링크가 채워진 채 열린다. 항목이 1개 이상이 되면 일반 홈으로 바뀐다.'},
+
+ b1:{name:'저장하기',app:1,modal:1,nav:'홈',url:'keepio.app/home',els:[h('저장하기'),inp('https://instagram.com/reel/C9x…','fill'),drop('캡처 추가 · 0/10'),inp('메모 (선택)'),bs(b('취소','b1c'),b('저장','b2','pri')),b('⚠ 10MB 넘는 이미지','b1x','sim')],
+  entry:'홈의 저장하기·이미지 올리기, 상단 + 저장.',rules:'한 항목 = 링크 0~1개 + 이미지 0~10장 + 메모. 이미지는 JPG·PNG·WEBP·GIF, 장당 10MB. 링크 종류(영상/페이지)는 자동 감지만 하고 사용자에게 보여주지 않는다.',
+  off:'링크와 이미지가 둘 다 없으면 저장 비활성.'},
+ b1x:{name:'업로드 실패',kind:'err',app:1,modal:1,url:'keepio.app/home',els:[h('저장하기'),inp('https://instagram.com/reel/C9x…','fill'),drop('2장 올림 · 1장 실패','bad'),s('10MB를 넘는 이미지 1장은 올리지 못했어요.','red'),b('다시 선택','b1','pri')],
+  entry:'장당 10MB 초과, 지원하지 않는 형식, 11장째 추가.',rules:'실패한 장만 빠지고 나머지 이미지와 입력은 그대로 둔다.'},
+ b1c:{name:'작성 취소 확인',kind:'err',app:1,modal:1,url:'keepio.app/home',els:[h('작성 중인 내용을 버릴까요?'),p('링크와 메모가 저장되지 않아요.'),bs(b('버리기','a4'),b('계속 작성','b1','pri'))],
+  entry:'내용이 있는 상태에서 취소·바깥 클릭·Esc.',rules:'아무것도 입력하지 않았으면 묻지 않고 바로 닫는다.'},
+ b2:{name:'링크 미리보기',app:1,modal:1,url:'keepio.app/home',els:[h('저장하기'),link('모션 레퍼런스 릴스','instagram.com · 영상'),drop('캡처 2/10 ✓'),inp('메모: 전환 타이밍 참고','fill'),bs(b('이미지 추가','b1'),b('저장','b3','pri')),b('⚠ 링크 정보를 못 가져옴','b2x','sim')],
+  entry:'링크 입력 후 메타데이터 조회 성공.',rules:'링크 종류는 썸네일·플레이어 표시용으로만 쓴다. 인스타그램은 공개 메타데이터(캡션·썸네일)만 쓰고 영상은 내려받지 않는다.'},
+ b2x:{name:'미리보기 실패',kind:'err',app:1,modal:1,url:'keepio.app/home',els:[h('링크 정보를 가져오지 못했어요'),p('인스타그램은 미리보기가 안 될 때가 있어요. 캡처를 넣으면 요약이 더 정확해져요.'),bs(b('그대로 저장','b3'),b('캡처 추가','b1','pri'))],
+  entry:'oEmbed·OG 태그 조회 실패, 또는 썸네일 없음.',rules:'저장은 막지 않는다. 링크 주소만으로 항목을 만든다.',open:'Meta oEmbed는 2025-11-03부터 썸네일·작성자를 주지 않음. 인스타 링크는 이 화면이 자주 뜰 수 있음'},
+ b3:{name:'AI 정리 중',app:1,modal:1,url:'keepio.app/home',els:[h('AI가 정리하고 있어요'),load('링크 내용 읽기',1),load('카테고리 고르는 중'),load('요약 쓰는 중'),b('결과 보기','b4','pri'),b('닫기 (계속 처리돼요)','c1'),b('⚠ 분류 실패','b3x','sim')],
+  entry:'저장을 누른 직후. 항목은 이미 저장된 상태.',rules:'링크가 있으면 링크 내용으로 분류하고 이미지는 쓰지 않는다. 이미지만 있으면 첫 장 썸네일 1장만 저가 비전 모델로 분류. 요약 재료는 링크 메타데이터 + 이미지 + 메모. 창을 닫아도 처리는 계속되고 홈 카드에 정리 중 표시.'},
+ b3x:{name:'AI 분류 실패',kind:'err',app:1,modal:1,url:'keepio.app/home',els:[h('자동 분류를 못 했어요'),p('항목은 미분류로 저장했어요. 직접 고르거나 나중에 정리할 수 있어요.'),bs(b('나중에','c1'),b('직접 분류','b5','pri'))],
+  entry:'AI 호출 실패 또는 시간 초과.',rules:'저장 자체는 실패로 치지 않는다. 홈의 미분류 필터에서 다시 찾을 수 있다.',open:'자동 재시도 횟수 (추천: 1회)'},
+ b4:{name:'저장 완료',app:1,modal:1,url:'keepio.app/home',els:[h('저장했어요'),row('카테고리','모션'),chips(['#전환','#타이포','#릴스']),p('AI 요약 · 컷 전환마다 타이포가 튀어나오는 3초 루프. 리듬 참고용.'),row('버킷','모션 레퍼런스'),bs(b('분류 바꾸기','b5'),b('확인','c2','pri'))],
+  entry:'AI 정리 완료 (창을 열어 둔 경우).',rules:'카테고리는 링크당 0~1개 (ADR-015). 카테고리·태그는 사용자 소유. 버킷은 카테고리 기준으로 제안만 하고 바꿀 수 있다.'},
+ b5:{name:'분류 바꾸기',app:1,modal:1,url:'keepio.app/home',els:[h('분류 바꾸기'),list(['모션','AI 영상','마케팅 화면','기획','+ 새 카테고리'],0),b('적용','b4','pri')],
+  entry:'저장 완료, AI 분류 실패, 항목 편집에서.',rules:'하나만 고를 수 있다. 선택을 풀면 미분류. 새 카테고리는 이름만 받는다.'},
+
+ c1:{name:'홈',app:1,nav:'홈',url:'keepio.app/home',els:[h('홈'),chips(['전체','모션','AI 영상','미분류']),grid(6,'c3','항목 열기','정리 중'),bs(b('모션 레퍼런스 ›','c2'),b('전체 링크 ›','c5'),b('+ 저장','b1','pri'))],
+  entry:'항목이 1개 이상일 때 로그인 후 첫 화면.',rules:'최근 저장순. 정리 중인 항목은 카드에 표시하고 끝나면 자동으로 바뀐다. 미분류 칩은 미분류 항목이 있을 때만 보인다.'},
+ c2:{name:'버킷 상세',app:1,nav:'버킷',url:'keepio.app/b/motion',els:[h('모션 레퍼런스'),s('항목 12 · AI 연결 꺼짐 · 비공개'),grid(6,'c3','항목 열기'),bs(b('AI 연결','d3'),b('발행하기','e1','pri'))],
+  entry:'홈·사이드바의 버킷, 저장 완료의 확인.',rules:'버킷은 워크스페이스 소유. 상태 줄에 AI 연결·발행 여부를 항상 보여 준다. AI 연결은 토큰이 없으면 설정(D1)으로 보낸다.'},
+ c3:{name:'항목 상세',app:1,nav:'버킷',url:'keepio.app/i/8213',els:[img('썸네일 · 캡처 2장'),h('모션 레퍼런스 릴스'),p('AI 요약 · 컷 전환마다 타이포가 튀어나오는 3초 루프.'),row('메모','전환 타이밍 참고'),bs(b('원본 ↗'),b('삭제','c3d'),b('편집','c4','pri'))],
+  entry:'홈·버킷에서 카드 클릭.',rules:'원본은 새 탭으로 연다. 이미지는 비공개 스토리지에 있고 서명 URL로만 보여 준다.'},
+ c4:{name:'항목 편집',app:1,nav:'버킷',url:'keepio.app/i/8213/edit',els:[h('항목 편집'),inp('https://instagram.com/reel/C9x…','fill'),drop('캡처 2/10 · 추가'),inp('메모: 전환 타이밍 참고','fill'),row('카테고리','모션 ›','b5'),bs(b('취소','c3'),b('저장','c3','pri'))],
+  entry:'항목 상세의 편집.',rules:'링크를 바꾸면 분류·요약을 다시 만든다. 메모·이미지만 바꾸면 요약만 다시 만든다.',off:'링크와 이미지를 둘 다 지우면 저장 비활성.'},
+ c5:{name:'전체 링크',app:1,nav:'링크',url:'keepio.app/links',els:[h('전체 링크'),inp('🔗 링크를 붙여넣으세요 (https://)'),bs(b('✦ 추가 정보 입력하기 ⌄','c5e'),b('저장','b3','pri')),row('정리한 링크','▤ 목록 · ▦ 카드로','c5g'),link('모바일 청첩장','pagesisters.cc · #결혼준비 #모바일청첩장'),b('⋯ 링크 메뉴','c5m')],
+  entry:'사이드바의 전체 링크, 홈의 전체 링크 ›.',rules:'2026-11-19 시안 반영(구현 완료, feature/links-design). 위: 저장 카드(왼쪽 색 번짐 · 링크 칸 · 저장). 제목·태그는 "추가 정보 입력하기"로 펼쳐야 보인다. 아래: 정리한 링크 목록형(썸네일 · 제목 · 도메인 · 태그 칩 · ⋯). 보기 방식은 화면 상태라 새로고침하면 목록형. 검색·알림·계정은 앱 틀 위쪽 막대.',
+  off:'링크 칸이 비어 있으면 서버가 저장을 거부하고 문구를 보여 준다.',open:'시안의 검색·정렬·태그 필터 칩·버킷 "지정 안 함"·개수 배지는 서버가 생기면 붙인다(FEAT-008·검색)'},
+ c5e:{name:'추가 정보 펼침',app:1,nav:'링크',url:'keepio.app/links',els:[h('전체 링크'),inp('https://instagram.com/p/C9x…','fill'),s('✦ 추가 정보 입력하기 (선택) ⌃'),inp('제목 (선택) · 비우면 링크의 제목'),chips(['#모션','#랜딩','태그 입력…']),s('Enter나 쉼표로 추가 · 최대 10개, 한 개에 30자까지'),bs(b('접기','c5'),b('저장','b3','pri'))],
+  entry:'저장 카드의 추가 정보 입력하기.',rules:'접어도 입력한 제목·태그는 남고 저장할 때 함께 보낸다. 입력 중인 태그 글자도 저장할 때 태그로 넣는다. 같은 이름(대소문자·공백 차이)은 하나로. 개수·길이 판정은 서버.'},
+ c5g:{name:'카드형 보기',app:1,nav:'링크',url:'keepio.app/links',els:[h('전체 링크'),row('정리한 링크','▦ 카드 · ▤ 목록으로','c5'),grid(6,'c3','항목 열기'),s('PC 3열 · 모바일 2열 · 썸네일 16:10 위, 제목·도메인·태그·⋯ 아래')],
+  entry:'정리한 링크의 카드로 보기.',rules:'목록형과 같은 데이터·같은 ⋯ 메뉴. 썸네일이 없거나 못 불러오면 링크 ID로 정한 아트워크(같은 링크는 늘 같은 그림), 가져오는 중이면 회색 상자, 실패면 아트 위에 캡처 올리기.'},
+ c5m:{name:'⋯ 링크 메뉴',app:1,modal:1,nav:'링크',url:'keepio.app/links',els:[link('모바일 청첩장','pagesisters.cc'),s('⋯ 메뉴'),b('🗑 삭제','c5','dgr'),s('바깥을 누르거나 Esc로 닫혀요')],
+  entry:'링크 줄 끝(카드형은 제목 옆)의 ⋯.',rules:'삭제하면 휴지통으로 가고(되돌릴 수 있음) 목록을 다시 받는다. Esc로 닫으면 ⋯ 버튼으로 포커스가 돌아간다. 휴지통 목록은 ⋯ 대신 [복구] 버튼.',open:'⋯ 메뉴에 제목·태그 편집 추가 예정 (FEAT-011, 수정 API 필요 · 승인 대기)'},
+ c3d:{name:'삭제 확인',kind:'err',app:1,modal:1,url:'keepio.app/i/8213',els:[h('이 항목을 삭제할까요?'),p('발행한 페이지에서도 사라지고 되돌릴 수 없어요.'),bs(b('취소','c3'),b('삭제','c2','dgr'))],
+  entry:'항목 상세의 삭제.',rules:'원본 이미지와 썸네일을 함께 지운다.'},
+
+ d1:{name:'AI 연결 설정',app:1,nav:'설정',url:'keepio.app/settings/ai',els:[h('AI 연결 (MCP)'),p('Claude 같은 AI가 내 버킷을 읽고 작업에 참고해요. 읽기만 하고 수정하지 않아요.'),row('연결 상태','없음'),row('허용한 버킷','0개'),b('토큰 만들기','d2','pri')],
+  entry:'사이드바 설정 › AI 연결, 토큰이 없을 때 버킷의 AI 연결.',rules:'MVP는 개인 API 토큰 인증, 읽기 전용, 대상은 버킷으로 한정. OAuth는 나중.'},
+ d2:{name:'토큰 발급',app:1,modal:1,nav:'설정',url:'keepio.app/settings/ai',els:[h('토큰이 만들어졌어요'),code('kp_live_8f2a••••••••3c1d'),s('이 창을 닫으면 다시 볼 수 없어요. 지금 복사해 두세요.','red'),bs(b('복사','d2'),b('다음: 버킷 고르기','d3','pri'))],
+  entry:'설정의 토큰 만들기.',rules:'토큰 원문은 이 화면에서 한 번만 보여 주고 서버에는 해시만 저장한다.',off:'복사를 누르기 전에는 다음 비활성.'},
+ d3:{name:'버킷별 허용',app:1,nav:'설정',url:'keepio.app/settings/ai',els:[h('어떤 버킷을 AI에 열까요?'),tog('모션 레퍼런스',1),tog('마케팅 화면',0),tog('기획 메모',0),s('기본값은 모두 꺼져 있어요'),b('저장','d4','pri')],
+  entry:'토큰 발급 직후, 버킷 상세의 AI 연결.',rules:'버킷마다 AI 연결 허용을 켠다. 기본값 꺼짐. AI에는 원본 대신 AI 요약을 전달한다.',open:'MCP에 메모를 포함할지 (추천: 포함)'},
+ d4:{name:'연결 확인',app:1,nav:'설정',url:'keepio.app/settings/ai',els:[h('연결됐어요'),p('Claude에서 이렇게 써 보세요'),code('keepio 모션 레퍼런스 참고해서\n오프닝 콘티 3개 짜줘'),row('열린 버킷','1개'),bs(b('토큰 폐기','d4x'),b('완료','c1','pri'))],
+  entry:'버킷별 허용 저장.',rules:'마지막 사용 시각을 보여 줘서 토큰이 쓰이고 있는지 알 수 있게 한다.'},
+ d4x:{name:'토큰 폐기 확인',kind:'err',app:1,modal:1,nav:'설정',url:'keepio.app/settings/ai',els:[h('토큰을 폐기할까요?'),p('연결된 AI가 바로 버킷을 읽지 못해요. 새 토큰을 만들면 다시 연결할 수 있어요.'),bs(b('취소','d4'),b('폐기','d1','dgr'))],
+  entry:'연결 확인·설정의 토큰 폐기.',rules:'폐기 즉시 서버에서 무효화한다. 버킷별 허용 설정은 남겨 둔다.'},
+
+ e1:{name:'발행 설정',app:1,nav:'버킷',url:'keepio.app/b/motion/publish',els:[h('발행하기'),row('템플릿','기본형'),inp('제목: 모션 레퍼런스 모음','fill'),inp('소개 한 줄 (선택)'),bs(b('취소','c2'),b('다음','e2','pri'))],
+  entry:'버킷 상세의 발행하기.',rules:'MVP 템플릿은 기본형 1개. 제목 기본값은 버킷 이름.',open:'공개 URL 형식. 되돌리기 어려우니 ADR로 정해야 함'},
+ e2:{name:'이미지 공개 선택',app:1,nav:'버킷',url:'keepio.app/b/motion/publish',els:[h('공개할 이미지 고르기'),tog('릴스 캡처 1',0),tog('릴스 캡처 2',1),tog('랜딩 화면 캡처',0),s('캡처에 개인정보가 섞일 수 있어 기본은 비공개예요'),bs(b('이전','e1'),b('다음','e3','pri'))],
+  entry:'발행 설정의 다음.',rules:'이미지는 기본 비공개, 사용자가 장마다 공개를 켠다. 링크·AI 요약은 공개 페이지에 그대로 나간다.',open:'메모 공개 여부 (추천: 기본 숨김)'},
+ e3:{name:'공개 페이지 미리보기',url:'keepio.app/p/…',els:[s('미리보기 · 아직 공개 전'),{t:'pub'},bs(b('이전','e2'),b('발행','e4','pri'))],
+  entry:'이미지 공개 선택의 다음.',rules:'비공개 이미지는 자리 없이 빠진다. 로그인하지 않은 사람이 보는 모습 그대로 보여 준다.'},
+ e4:{name:'발행 완료',app:1,modal:1,nav:'버킷',url:'keepio.app/b/motion',els:[h('발행했어요'),code('keepio.app/p/7Kx2mQ'),b('링크 복사','e4'),bs(b('발행 취소','e4x'),b('버킷으로','c2','pri'))],
+  entry:'미리보기의 발행.',rules:'버킷 상태 줄이 공개 중으로 바뀐다.',open:'발행 후 버킷에 추가한 항목을 바로 반영할지 (추천: 바로 반영, 이미지는 계속 장마다 선택)'},
+ e4x:{name:'발행 취소 확인',kind:'err',app:1,modal:1,nav:'버킷',url:'keepio.app/b/motion',els:[h('발행을 취소할까요?'),p('공유한 링크가 더 이상 열리지 않아요.'),bs(b('유지','e4'),b('발행 취소','c2','dgr'))],
+  entry:'발행 완료·버킷 상세의 발행 취소.',rules:'같은 버킷을 다시 발행하면 같은 주소를 쓴다.'},
+};
+
+// ───── 배치 ─────
+const W=320,H=224,COLW=440,ROWH=390,PAD=48,HEAD=118,SGAP=120;
+const pos={}, secRect={}, secOf={};
+let cy=0;
+SECTIONS.forEach((sec,i)=>{
+  const mc=Math.max(...sec.screens.map(x=>x[1])), mr=Math.max(...sec.screens.map(x=>x[2]));
+  const r={x:0,y:cy,w:PAD*2+mc*COLW+W,h:HEAD+mr*ROWH+H+70+PAD};
+  secRect[sec.id]=r;
+  sec.screens.forEach(([id,c,rw])=>{pos[id]={x:r.x+PAD+c*COLW,y:r.y+HEAD+rw*ROWH};secOf[id]=sec.id;});
+  cy+=r.h+SGAP;
+});
+
+// ───── 렌더 ─────
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+function el(e,id){
+  const to=e.to?` data-to="${e.to}" data-from="${id}"`:'';
+  switch(e.t){
+   case 'h':return `<div class="w-h">${esc(e.v)}</div>`;
+   case 'p':return `<div class="w-p">${esc(e.v)}</div>`;
+   case 's':return `<div class="w-s ${e.c||''}">${esc(e.v)}</div>`;
+   case 'in':return `<div class="w-in ${e.c||''}">${esc(e.v)}</div>`;
+   case 'btn':{const c={pri:'pri',dgr:'dgr',gh:'gh',sim:'sim'}[e.c]||'';return `<div class="w-btn ${c}"${to}>${esc(e.v)}</div>`;}
+   case 'btns':return `<div class="w-btns">${e.v.map(x=>el(x,id)).join('')}</div>`;
+   case 'row':return `<div class="w-row"${to}><span>${esc(e.k)}</span><b>${esc(e.v)}</b></div>`;
+   case 'chips':return `<div class="w-chips">${e.v.map((x,i)=>`<span class="${i?'':'on'}">${esc(x)}</span>`).join('')}</div>`;
+   case 'grid':return `<div class="w-grid"${to}>${Array.from({length:e.n},(_,i)=>`<i>${i===0&&e.mark?e.mark:''}</i>`).join('')}</div>`;
+   case 'tog':return `<div class="w-tog"><span>${esc(e.v)}</span><i class="${e.on?'on':''}"></i></div>`;
+   case 'code':return `<div class="w-code">${esc(e.v)}</div>`;
+   case 'list':return `<div class="w-list">${e.v.map((x,i)=>`<div class="${i===e.on?'on':''}">${esc(x)}</div>`).join('')}</div>`;
+   case 'load':return `<div class="w-load"><i class="${e.ok?'ok':''}"></i>${esc(e.v)}</div>`;
+   case 'link':return `<div class="w-link"><i></i><div><b>${esc(e.v)}</b><span>${esc(e.src)}</span></div></div>`;
+   case 'drop':return `<div class="w-drop ${e.c||''}">${esc(e.v)}</div>`;
+   case 'img':return `<div class="w-img">${esc(e.v)}</div>`;
+   case 'or':return `<div class="w-or">또는</div>`;
+   case 'pub':return `<div class="w-pub"><div class="w-h">모션 레퍼런스 모음</div><div class="w-s">hyeyeon · 항목 12</div><div class="w-grid"><i></i><i></i><i></i></div></div>`;
+  }
+  return '';
+}
+const side=nav=>`<aside><div class="logo">K</div>${['홈','링크','버킷','설정'].map(n=>`<div class="nv ${n===nav?'on':''}">${n}</div>`).join('')}</aside>`;
+function screenHTML(id){
+  const d=S[id], els=d.els.map(e=>el(e,id)).join('');
+  let body;
+  if(d.modal) body=`<div class="ghost">${side(d.nav)}<div class="main"><i style="width:50%"></i><div class="g"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div class="dim"></div><div class="modal">${els}</div>`;
+  else if(d.app) body=`${side(d.nav)}<div class="main">${els}</div>`;
+  else body=`<div class="main" style="padding:12px 14px">${els}</div>`;
+  return `<div class="chrome"><i></i><i></i><i></i><span>${esc(d.url)}</span>${d.kind==='err'?'<em>예외</em>':''}</div><div class="body">${body}</div>`;
+}
+
+const world=document.getElementById('world'), svg=document.getElementById('edges'), noteEl=document.getElementById('note');
+SECTIONS.forEach((sec,i)=>{
+  const r=secRect[sec.id], d=document.createElement('div');
+  d.className='sec';d.id='sec-'+sec.id;
+  Object.assign(d.style,{left:r.x+'px',top:r.y+'px',width:r.w+'px',height:r.h+'px'});
+  d.innerHTML=`<h2><small>${String(i+1).padStart(2,'0')}</small>${esc(sec.name)}</h2><p>${esc(sec.sub)}</p>`;
+  world.appendChild(d);
+});
+Object.keys(S).forEach(id=>{
+  const P=pos[id], d=document.createElement('div');
+  d.className='scr'+(S[id].kind==='err'?' err':'');d.dataset.id=id;
+  d.style.left=P.x+'px';d.style.top=P.y+'px';d.innerHTML=screenHTML(id);
+  world.appendChild(d);
+  const l=document.createElement('div');l.className='slab'+(S[id].kind==='err'?' err':'');
+  l.style.left=P.x+'px';l.style.top=(P.y+H+12)+'px';
+  l.innerHTML=`<i>${id.toUpperCase()}</i>${esc(S[id].name)}`;
+  world.appendChild(l);
+});
+
+// 화면별 버튼 목록
+function actions(id){
+  const out=[];const walk=a=>a.forEach(e=>{if(e.t==='btns')walk(e.v);else if(e.to)out.push({to:e.to,label:e.t==='grid'?e.lab:e.t==='row'?e.k+' 변경':e.v,sim:e.c==='sim'});});
+  walk(S[id].els);return out;
+}
+// 엣지 (같은 출발·도착은 하나로)
+const EM={};
+Object.keys(S).forEach(id=>actions(id).forEach(a=>{
+  if(a.to===id)return;const k=id+'>'+a.to;
+  (EM[k]=EM[k]||{from:id,to:a.to,labels:[]}).labels.push(a.label.replace(/^⚠ /,''));
+}));
+const EDGES=Object.values(EM);
+function geom(a,b){
+  const A=pos[a],B=pos[b],acx=A.x+W/2,acy=A.y+H/2,bcx=B.x+W/2,bcy=B.y+H/2,dx=bcx-acx,dy=bcy-acy;
+  let p1,p2,c1,c2;
+  if(Math.abs(dy)<10&&Math.abs(dx)>COLW*1.5){ // 같은 줄에서 건너뛰는 이동은 위로 돌아감
+    const r=dx>0;p1={x:A.x+W*(r?.72:.28),y:A.y};p2={x:B.x+W*(r?.28:.72),y:B.y};const k=r?120:80;
+    c1={x:p1.x,y:p1.y-k};c2={x:p2.x,y:p2.y-k};
+  }else if(Math.abs(dx)>=W+20){
+    const d=dx>0?1:-1,off=d>0?-24:24;
+    p1={x:d>0?A.x+W:A.x,y:acy+off};p2={x:d>0?B.x:B.x+W,y:bcy+off};
+    const k=Math.max(60,Math.abs(p2.x-p1.x)*.45);c1={x:p1.x+d*k,y:p1.y};c2={x:p2.x-d*k,y:p2.y};
+  }else{
+    const d=dy>0?1:-1,ox=d>0?115:-115;
+    p1={x:acx+ox,y:d>0?A.y+H:A.y};p2={x:bcx+ox,y:d>0?B.y:B.y+H};
+    const k=Math.max(50,Math.abs(p2.y-p1.y)*.4);c1={x:p1.x,y:p1.y+d*k};c2={x:p2.x,y:p2.y-d*k};
+  }
+  const m={x:(p1.x+3*c1.x+3*c2.x+p2.x)/8,y:(p1.y+3*c1.y+3*c2.y+p2.y)/8};
+  return {d:`M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`,m};
+}
+const NS='http://www.w3.org/2000/svg';
+const defs=svg.querySelector('defs');
+[['g','var(--faint)'],['r','var(--accent)'],['a','var(--hot)']].forEach(([k,c])=>{
+  const mk=document.createElementNS(NS,'marker');
+  mk.setAttribute('id','m'+k);mk.setAttribute('viewBox','0 0 10 10');mk.setAttribute('refX','9');mk.setAttribute('refY','5');
+  mk.setAttribute('markerWidth','7');mk.setAttribute('markerHeight','7');mk.setAttribute('orient','auto-start-reverse');
+  mk.innerHTML=`<path d="M0,0 L10,5 L0,10 z" style="fill:${c}"/>`;defs.appendChild(mk);
+});
+EDGES.forEach(e=>{
+  const g=geom(e.from,e.to);e.cross=secOf[e.from]!==secOf[e.to];
+  e.path=document.createElementNS(NS,'path');e.path.setAttribute('d',g.d);svg.appendChild(e.path);
+  let t=e.labels.filter((x,i,a)=>a.indexOf(x)===i).join(' · ');if(t.length>26)t=t.slice(0,25)+'…';
+  e.lab=document.createElement('div');e.lab.className='elab';e.lab.textContent=t;
+  e.lab.style.left=g.m.x+'px';e.lab.style.top=g.m.y+'px';world.appendChild(e.lab);
+});
+
+// ───── 상태 ─────
+let sel=null, active=null, showNotes=true; const hist=[];
+function paintEdges(){
+  EDGES.forEach(e=>{
+    const k=e.from+'>'+e.to, isAct=k===active, isRel=sel&&(e.from===sel||e.to===sel);
+    e.path.setAttribute('class',(e.cross?'cross ':'')+(isAct?'act':isRel?'rel':''));
+    e.path.setAttribute('marker-end',`url(#m${isAct?'a':isRel?'r':'g'})`);
+    e.lab.className='elab'+(isAct?' act':isRel?' rel':'');
+    e.lab.style.display=(e.cross&&!isAct&&!isRel)?'none':'';
+    if(isAct||isRel){svg.appendChild(e.path);}
+  });
+}
+function renderNote(){
+  if(!sel||!showNotes){noteEl.classList.remove('show');return;}
+  const d=S[sel],P=pos[sel],acts=actions(sel);
+  noteEl.style.left=(P.x-20)+'px';noteEl.style.top=(P.y+H+52)+'px';
+  noteEl.innerHTML=`<h3>${esc(d.name)}</h3><dl>
+   <dt>진입 조건</dt><dd>${esc(d.entry)}</dd>
+   <dt>상태·규칙</dt><dd>${esc(d.rules)}</dd>
+   <dt>활성 버튼</dt><dd><div class="acts">${acts.map(a=>`<button class="${a.sim?'sim':''}" data-to="${a.to}" data-from="${sel}">${esc(a.label.replace(/^⚠ /,''))} → ${esc(S[a.to].name)}</button>`).join('')||'없음'}</div></dd>
+   ${d.off?`<dt>비활성 조건</dt><dd>${esc(d.off)}</dd>`:''}</dl>
+   ${d.open?`<div class="open"><b>미결정</b> · ${esc(d.open)}</div>`:''}`;
+  noteEl.classList.add('show');
+}
+function select(id){
+  sel=id;document.querySelectorAll('.scr.sel').forEach(x=>x.classList.remove('sel'));
+  if(id){document.querySelector(`.scr[data-id="${id}"]`).classList.add('sel');
+    if(location.hash!=='#'+id){skipHash=true;location.hash=id;}
+    document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.sec===secOf[id]));}
+  paintEdges();renderNote();
+}
+function go(from,to,elx){
+  if(elx){elx.classList.add('flash');setTimeout(()=>elx.classList.remove('flash'),350);}
+  if(from===to){toast('복사했어요 (시연)');return;}
+  hist.push(from);document.getElementById('back').disabled=false;
+  active=from+'>'+to;select(to);focusScreen(to,true);
+}
+
+// ───── 카메라 ─────
+const vp=document.getElementById('vp');let cam={x:0,y:0,s:1},tw=null;
+function apply(){
+  world.style.transform=`translate(${cam.x}px,${cam.y}px) scale(${cam.s})`;
+  vp.style.backgroundSize=`${26*cam.s}px ${26*cam.s}px`;vp.style.backgroundPosition=`${cam.x}px ${cam.y}px`;
+  document.getElementById('zoomv').textContent=Math.round(cam.s*100)+'%';
+}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fly(t,dur=520){
+  cancelAnimationFrame(tw);if(reduce){cam=t;apply();return;}
+  const f={...cam},t0=performance.now();
+  const step=n=>{const k=Math.min(1,(n-t0)/dur),e=1-Math.pow(1-k,3);
+    cam={x:f.x+(t.x-f.x)*e,y:f.y+(t.y-f.y)*e,s:f.s+(t.s-f.s)*e};apply();if(k<1)tw=requestAnimationFrame(step);};
+  tw=requestAnimationFrame(step);
+}
+function rectFor(r,maxS=1,pad=.9){
+  const vw=vp.clientWidth,vh=vp.clientHeight,s=Math.min(vw*pad/r.w,vh*pad/r.h,maxS);
+  return {s,x:vw/2-(r.x+r.w/2)*s,y:vh/2-(r.y+r.h/2)*s};
+}
+function screenBox(id){const P=pos[id];return {x:P.x-30,y:P.y-20,w:W+100,h:H+(showNotes?(noteEl.offsetHeight||300)+70:60)};}
+function focusScreen(id,keep){
+  const r=screenBox(id);let t=rectFor(r);
+  if(keep&&cam.s>=.45&&cam.s<=1.8){const vw=vp.clientWidth,vh=vp.clientHeight;
+    t={s:cam.s,x:vw/2-(r.x+r.w/2)*cam.s,y:Math.min(vh/2-(r.y+r.h/2)*cam.s,40-r.y*cam.s)};}
+  fly(t);
+}
+function fitAll(){let x2=0,y2=0;Object.values(secRect).forEach(r=>{x2=Math.max(x2,r.x+r.w);y2=Math.max(y2,r.y+r.h);});fly(rectFor({x:0,y:0,w:x2,h:y2},1,.96));}
+function zoomAt(f,px,py){const s=Math.max(.08,Math.min(2.5,cam.s*f));cam.x=px-(px-cam.x)*s/cam.s;cam.y=py-(py-cam.y)*s/cam.s;cam.s=s;apply();}
+
+// ───── 입력 ─────
+const pts=new Map();let down=null,moved=false,pinch=null;
+const rel=e=>{const r=vp.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
+vp.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  cancelAnimationFrame(tw);vp.setPointerCapture(e.pointerId);pts.set(e.pointerId,rel(e));
+  if(pts.size===1){const q=rel(e);down={x:q.x,y:q.y,cx:cam.x,cy:cam.y,target:e.target};moved=false;}
+  else if(pts.size===2){const [a,c]=[...pts.values()];pinch={d:Math.hypot(a.x-c.x,a.y-c.y),m:{x:(a.x+c.x)/2,y:(a.y+c.y)/2},cam:{...cam}};moved=true;}
+});
+vp.addEventListener('pointermove',e=>{
+  if(!pts.has(e.pointerId))return;pts.set(e.pointerId,rel(e));
+  if(pinch&&pts.size>=2){const [a,c]=[...pts.values()],d=Math.hypot(a.x-c.x,a.y-c.y),m={x:(a.x+c.x)/2,y:(a.y+c.y)/2};
+    const s=Math.max(.08,Math.min(2.5,pinch.cam.s*d/pinch.d)),wx=(pinch.m.x-pinch.cam.x)/pinch.cam.s,wy=(pinch.m.y-pinch.cam.y)/pinch.cam.s;
+    cam={s,x:m.x-wx*s,y:m.y-wy*s};apply();return;}
+  if(down){const q=rel(e),dx=q.x-down.x,dy=q.y-down.y;if(!moved&&Math.hypot(dx,dy)>6){moved=true;vp.classList.add('drag');}
+    if(moved){cam.x=down.cx+dx;cam.y=down.cy+dy;apply();}}
+});
+function up(e,tap){
+  pts.delete(e.pointerId);
+  if(pts.size===0){if(tap&&down&&!moved)onTap(down.target);down=null;pinch=null;vp.classList.remove('drag');}
+  else if(pts.size===1){pinch=null;const q=[...pts.values()][0];down={x:q.x,y:q.y,cx:cam.x,cy:cam.y,target:null};moved=true;}
+}
+vp.addEventListener('pointerup',e=>up(e,true));vp.addEventListener('pointercancel',e=>up(e,false));
+vp.addEventListener('wheel',e=>{e.preventDefault();cancelAnimationFrame(tw);const q=rel(e);
+  if(e.ctrlKey||e.metaKey)zoomAt(Math.exp(-e.deltaY*.01),q.x,q.y);else{cam.x-=e.deltaX;cam.y-=e.deltaY;apply();}},{passive:false});
+function onTap(t){
+  if(!t||!t.closest)return;
+  const a=t.closest('[data-to]');if(a){go(a.dataset.from,a.dataset.to,a.classList.contains('w-btn')||a.classList.contains('w-grid')||a.classList.contains('w-row')?a:null);return;}
+  const sc=t.closest('.scr');if(sc){active=null;select(sc.dataset.id);return;}
+  if(!t.closest('#note')){active=null;select(null);}
+}
+
+// ───── 툴바 ─────
+const chipsEl=document.getElementById('chips');
+SECTIONS.forEach((sec,i)=>{const c=document.createElement('button');c.className='chip';c.dataset.sec=sec.id;
+  c.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span>${esc(sec.name)}`;
+  c.onclick=()=>{active=null;select(sec.screens[0][0]);fly(rectFor(secRect[sec.id],1,.94));};chipsEl.appendChild(c);});
+document.getElementById('fit').onclick=fitAll;
+document.getElementById('focus').onclick=()=>{if(sel)focusScreen(sel);else toast('먼저 화면을 눌러 선택하세요');};
+document.getElementById('zin').onclick=()=>zoomAt(1.25,vp.clientWidth/2,vp.clientHeight/2);
+document.getElementById('zout').onclick=()=>zoomAt(.8,vp.clientWidth/2,vp.clientHeight/2);
+document.getElementById('zoomv').onclick=()=>zoomAt(1/cam.s,vp.clientWidth/2,vp.clientHeight/2);
+const nb=document.getElementById('notes');
+nb.onclick=()=>{showNotes=!showNotes;nb.setAttribute('aria-pressed',showNotes);renderNote();};
+const bk=document.getElementById('back');
+bk.onclick=()=>{const prev=hist.pop();if(!prev)return;active=null;select(prev);focusScreen(prev,true);bk.disabled=!hist.length;};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){active=null;select(null);}});
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1400);}
+let skipHash=false;
+addEventListener('hashchange',()=>{if(skipHash){skipHash=false;return;}const id=location.hash.slice(1);if(S[id]){active=null;select(id);focusScreen(id);}});
+function layoutTop(){vp.style.top=document.querySelector('.top').offsetHeight+'px';}
+addEventListener('resize',layoutTop);layoutTop();
+
+// 시작: 주소의 화면, 없으면 랜딩
+const start=S[location.hash.slice(1)]?location.hash.slice(1):'a1';
+select(start);const t0=rectFor(screenBox(start));cam=t0;apply();
+</script>
+</body>
+</html>

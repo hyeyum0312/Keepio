@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { isPreviewEnabled } from "@/shared/lib/preview";
 
 // 로그인 전 첫 화면(02-DESIGN 정보 구조). 기능 위주 최소 UI(D-09 전).
 // 명세의 "실제 발행물 예시"는 발행 기능 이후에 넣는다
@@ -33,6 +34,14 @@ export function Landing() {
           로그인
         </Link>
       </nav>
+      {isPreviewEnabled() && (
+        <Link
+          href="/preview/design"
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          기획·디자인 보기 (개발용)
+        </Link>
+      )}
     </main>
   );
 }

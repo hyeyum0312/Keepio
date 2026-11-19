@@ -40,11 +40,14 @@ const TABS: NavItem[] = [
 export function AppShell({
   account,
   categories = [],
+  sidebarExtra,
   children,
 }: {
   // 계정 버튼. 사이드바에서는 위로, 모바일 머리에서는 아래로 열린다
   account?: { up: React.ReactNode; down: React.ReactNode };
   categories?: SidebarCategory[];
+  // 사이드바 카테고리 아래에 붙일 내용(개발용 링크 등). 접힘·좁은 폭에서는 숨긴다
+  sidebarExtra?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -131,6 +134,13 @@ export function AppShell({
               </span>
             ))}
           </nav>
+        )}
+        {sidebarExtra && (
+          <div
+            className={`flex-col gap-1 ${collapsed ? "hidden" : "hidden lg:flex"}`}
+          >
+            {sidebarExtra}
+          </div>
         )}
         <nav
           aria-label="더보기"
