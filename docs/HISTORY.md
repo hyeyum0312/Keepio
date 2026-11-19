@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | chore(web): dev 테스트 배포에서 기획·디자인 보기 열기
+
+- Feature: N/A
+- 목적: 기획·디자인 보기(`/preview/design`, `/preview/wireflow`)는 `NODE_ENV`로 막아 Vercel 배포(늘 production)에서는 볼 수 없었다. dev 테스트 배포에서도 보고 싶다(사용자 요청). 운영에서는 계속 숨긴다.
+- 변경: `shared/lib/preview.ts` — 배포 빌드라도 `NEXT_PUBLIC_SHOW_DEV_TOOLS=true`면 연다(테스트 3개로 갱신). `/preview/wireflow` 라우트를 `force-static`으로(빌드 때 `docs/design/wireflow.html`을 읽어 정적 파일로, 배포 서버에는 docs/가 없음). `turbo.json` build env에 변수 추가. `docs/SETUP.md` 10장에 한 줄.
+- 영향: 값을 넣은 Vercel 프로젝트(dev)에서만 랜딩·사이드바 링크와 `/preview/*`가 보인다. 값이 없는 배포·운영은 지금처럼 404. 로컬 개발은 변화 없음. API·데이터 변경 없음.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest·`next build`는 커밋 hook(사용자 Mac)과 PR CI, 배포 확인은 merge 후 Vercel에서.
+- 주의/롤백: revert하거나 Vercel 값을 지우면 다시 숨겨진다. 이 값은 빌드할 때 들어가므로 바꾸면 Redeploy. wireflow 사본을 고치면 다시 배포해야 반영된다.
+
 ## 2026-11-19 | fix(api): 태그 정렬을 DB collation과 무관하게
 
 - Feature: FEAT-010

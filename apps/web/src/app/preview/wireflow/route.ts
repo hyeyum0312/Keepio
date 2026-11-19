@@ -13,7 +13,8 @@ const WIREFLOW = path.join(
   "wireflow.html",
 );
 
-export const dynamic = "force-dynamic";
+// 빌드할 때 HTML을 읽어 정적 파일로 만든다. 배포 서버에는 docs/ 폴더가 없어 실행 중에는 읽을 수 없다
+export const dynamic = "force-static";
 
 export async function GET() {
   if (!isPreviewEnabled()) return new Response("Not Found", { status: 404 });
