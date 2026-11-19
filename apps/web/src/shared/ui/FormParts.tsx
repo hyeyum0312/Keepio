@@ -29,6 +29,7 @@ export function TextField({
   autoFocus,
   value,
   onChange,
+  compact = false,
 }: {
   label: string;
   name: string;
@@ -44,6 +45,8 @@ export function TextField({
   autoFocus?: boolean;
   value?: string;
   onChange?: (value: string) => void;
+  // 선택 입력처럼 짧은 칸: 높이 44px, 라벨 간격을 줄인다
+  compact?: boolean;
 }) {
   const id = `field-${name}`;
   const helpId = helpText ? `${id}-help` : undefined;
@@ -53,7 +56,7 @@ export function TextField({
   const [revealed, setRevealed] = useState(false);
   const isPassword = type === "password";
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col ${compact ? "gap-1.5" : "gap-2"}`}>
       <label htmlFor={id} className="text-sm font-semibold">
         {label}
       </label>
@@ -72,7 +75,7 @@ export function TextField({
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           aria-invalid={hasError || undefined}
           aria-describedby={describedBy}
-          className={`h-12 w-full rounded-xl border bg-surface px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:focus-ring ${
+          className={`${compact ? "h-11 md:text-sm" : "h-12"} w-full rounded-xl border bg-surface px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:focus-ring ${
             hasError ? "border-destructive" : "border-input"
           } ${isPassword ? "pr-16" : ""}`}
         />

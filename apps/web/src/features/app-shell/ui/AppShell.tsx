@@ -165,7 +165,7 @@ export function AppShell({
           >
             <KeepioWordmark size={24} />
           </Link>
-          <div className="relative hidden max-w-xl flex-1 md:block">
+          <div className="relative hidden max-w-md flex-1 md:block">
             <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-foreground">
               <NavIcon name="search" />
             </span>
@@ -178,7 +178,7 @@ export function AppShell({
               disabled
               title="준비 중"
               placeholder="링크, 버킷, 태그 검색"
-              className="h-12 w-full rounded-full border border-border-subtle bg-surface pr-5 pl-12 text-[15px] placeholder:text-muted-foreground disabled:cursor-default"
+              className="h-10 w-full rounded-full border border-border-subtle bg-surface pr-4 pl-11 text-sm placeholder:text-muted-foreground disabled:cursor-default"
             />
           </div>
           <div className="ml-auto flex items-center gap-2">

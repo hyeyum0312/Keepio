@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BookmarkList, type ListView } from "./BookmarkList";
 import { LinkIcon } from "./LinkIcons";
-import { SaveBookmarkForm } from "./SaveBookmarkForm";
+import { SaveLinkCard } from "./SaveLinkCard";
 
 const VIEWS: { view: ListView; label: string; icon: "list" | "grid" }[] = [
   { view: "list", label: "목록으로 보기", icon: "list" },
@@ -18,18 +18,7 @@ export function AllLinks() {
 
   return (
     <div className="flex flex-col gap-10">
-      <section
-        aria-label="링크 저장"
-        className="relative overflow-hidden rounded-3xl border border-border-subtle bg-muted/60"
-      >
-        <div
-          aria-hidden="true"
-          className="kp-save-art absolute inset-y-0 left-0 hidden w-56 md:block"
-        />
-        <div className="relative p-4 md:py-7 md:pr-7 md:pl-40">
-          <SaveBookmarkForm />
-        </div>
-      </section>
+      <SaveLinkCard />
 
       <section aria-labelledby="links-list" className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">

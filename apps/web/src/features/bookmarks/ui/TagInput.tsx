@@ -36,12 +36,12 @@ export function TagInput({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       <label htmlFor="field-tags" className="text-sm font-semibold">
         태그 <span className="font-normal text-muted-foreground">(선택)</span>
       </label>
       <div
-        className={`flex min-h-12 flex-wrap items-center gap-2 rounded-xl border bg-surface px-3 py-2 ${
+        className={`flex min-h-11 flex-wrap items-center gap-2 rounded-xl border bg-surface px-3 py-1.5 ${
           focused ? "border-foreground" : "border-border"
         }`}
       >
@@ -83,7 +83,7 @@ export function TagInput({
           onBlur={() => setFocused(false)}
           aria-describedby="field-tags-help"
           placeholder={value.length === 0 ? "모션, 랜딩" : undefined}
-          className="min-w-24 flex-1 bg-transparent py-1 outline-none"
+          className="min-w-24 flex-1 bg-transparent py-1 outline-none md:text-sm"
         />
       </div>
       <p id="field-tags-help" className="text-caption text-muted-foreground">

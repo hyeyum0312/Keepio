@@ -167,7 +167,7 @@ function LinkText({ bookmark: b }: { bookmark: BookmarkResponse }) {
         href={b.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block truncate text-base font-bold tracking-tight hover:underline focus-visible:focus-ring md:text-lg"
+        className="block max-w-2xl truncate text-base font-bold tracking-tight hover:underline focus-visible:focus-ring"
       >
         {b.displayTitle}
       </a>

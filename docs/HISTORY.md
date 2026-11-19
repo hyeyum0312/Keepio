@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | feat(web): 예시 홈 저장 카드와 저장 폼 정리
+
+- Feature: FEAT-009
+- 목적: 예시 홈에서 할 일은 첫 링크 저장이다. "예시 숨기기" 버튼보다 바로 저장할 수 있는 입구가 낫다. 홈과 전체 링크의 저장 UI가 달라 하나로 맞춘다(사용자 결정).
+- 변경: 전체 링크의 저장 카드(아트워크 + 폼)를 `bookmarks/ui/SaveLinkCard.tsx`로 빼서 홈(`?save=1`·예시 홈)과 전체 링크가 함께 쓴다(`note`·`action` 슬롯). `Home.tsx` — 링크가 0개면 정리할 링크 위에 저장 카드(예시 안내 문구 포함)를 연다. 숨기기 버튼과 `model/useSampleHome.ts` 삭제. 저장 폼 입력칸·저장 버튼 글자를 PC(md 이상)에서 14px로 줄임(모바일은 iOS 확대 방지로 16px 유지). 위쪽 검색칸이 넓은 화면에서 너무 커서 최대 폭 576→448px, 높이 48→40px, 글자 14px로 줄임(`AppShell.tsx`). 저장 폼 정리(사용자 제안): URL·제목·태그 입력칸의 왼쪽 시작점을 한 세로축으로 맞추고(라벨은 입력칸 위), 안내 문구 13px 연회색, URL 입력·저장 버튼 52px, "추가 정보"는 13px 텍스트 + 화살표(반짝이 아이콘 제거), 제목·태그 입력 44px(`TextField`에 `compact`), 폼 안 간격 12px로 통일. 저장 카드 내용의 왼쪽 여백을 160→28px로 당김(그라데이션은 뒤에 그대로). 전체 링크 목록형 제목이 너무 길게 이어져 PC 18px→16px, 최대 폭 672px에서 말줄임(`BookmarkList.tsx`). 예시 정리할 링크 제목 단축. 테스트 갱신(`?save=1` 닫기 테스트는 링크가 있는 상태로).
+- 영향: 화면만 바뀐다. 서버·DB 변경 없음. 홈 저장 칸이 "링크 저장" 제목 박스에서 전체 링크와 같은 카드로 바뀐다. 예시 홈에서는 닫기가 없다.
+- 검증: prettier PASS, `tsc --noEmit`(apps/web) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest는 커밋 hook(사용자 Mac)과 PR CI.
+- 주의/롤백: revert 한 번이면 된다.
+
+## 2026-11-19 | feat(web): 링크가 없을 때 홈을 예시로 채우기
+
+- Feature: FEAT-009
+- 목적: 처음 가입하면 홈이 텅 비어 보였다. 링크가 0개면 예시 정리할 링크 1장과 예시 버킷 3개로 채워 무엇을 하는 앱인지 보이게 한다(LINK-01 `Home-sample-pc` 시안, 사용자 승인).
+- 변경: `features/home/lib/sample-data.ts`(예시 데이터, 썸네일은 버킷 아트워크만), `model/useSampleHome.ts`("예시 숨기기" 상태를 localStorage에 기억, 저장소를 못 쓰면 이번 방문만), `Home.tsx` — 모든 페이지를 받았고 링크가 0개이며 숨기지 않았을 때 안내 배너와 예시를 그린다. 테스트 2개 추가.
+- 영향: 화면만 바뀐다. 서버·DB 저장 없음. 첫 링크를 저장하면 예시가 사라진다. 시안의 "최근 저장" 예시는 홈에 그 섹션이 생길 때 붙인다.
+- 검증: prettier PASS, `tsc --noEmit`(apps/web) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest는 VM에서 네이티브 바인딩이 없어 못 돌림 → 커밋 hook(사용자 Mac)과 PR CI.
+- 주의/롤백: revert 한 번이면 된다. 숨김 플래그 키는 `keepio.hideSampleHome`.
+
 ## 2026-11-19 | fix(web): 로그인 후 사이드바에서 기획·디자인 링크가 안 보이던 문제
 
 - Feature: N/A
