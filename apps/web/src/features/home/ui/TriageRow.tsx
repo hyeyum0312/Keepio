@@ -13,6 +13,8 @@ export type TriageLink = {
   displayTitle?: string;
   // 이미지로 바로 쓸 수 있는 주소(서명 포함). 없으면 아트워크로 대신한다
   thumbnailUrl?: string | null;
+  // 보관 파일을 못 쓸 때 불러 볼 링크 페이지의 원본 이미지(FEAT-010 AC-11)
+  thumbnailFallbackUrl?: string | null;
 };
 export type TriageCategory = { id: string; name: string };
 
@@ -34,12 +36,12 @@ export function TriageRow({
   onSave?: (categoryId: string) => void;
   onSkip: () => void;
 }) {
-  const [broken, setBroken] = useState<string | null>(null);
+  const [broken, setBroken] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
-  const thumb =
-    link.thumbnailUrl && broken !== link.thumbnailUrl
-      ? link.thumbnailUrl
-      : fallbackArtFor(link.id);
+  const source = [link.thumbnailUrl, link.thumbnailFallbackUrl].find(
+    (s): s is string => !!s && !broken.includes(s),
+  );
+  const thumb = source ?? fallbackArtFor(link.id);
   const title = link.displayTitle ?? link.title ?? origin(link.url);
 
   return (
@@ -56,7 +58,10 @@ export function TriageRow({
             fill
             sizes="112px"
             unoptimized
-            onError={() => setBroken(link.thumbnailUrl ?? null)}
+            referrerPolicy="no-referrer"
+            onError={() => {
+              if (source) setBroken((b) => [...b, source]);
+            }}
             className="object-cover"
           />
         </span>

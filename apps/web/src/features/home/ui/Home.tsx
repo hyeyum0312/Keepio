@@ -24,6 +24,7 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
       b.thumbnail.status === "ready" && b.thumbnail.url
         ? apiUrl(b.thumbnail.url)
         : null,
+    thumbnailFallbackUrl: b.thumbnail.sourceUrl,
   }));
   const queue = useTriageQueue(items);
   // 모든 페이지를 받았을 때만 개수를 보여 준다(일부로 세지 않는다)

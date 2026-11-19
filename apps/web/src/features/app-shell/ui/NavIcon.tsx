@@ -14,6 +14,7 @@ const PATHS = {
   settings:
     "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
   plus: "M12 5v14M5 12h14",
+  plug: "M9 3v5M15 3v5M7 8h10v4a5 5 0 0 1-10 0zM12 17v4",
   collapse: "M15 6l-6 6 6 6",
   expand: "M9 6l6 6-6 6",
 } as const;

@@ -1,5 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import type { Prisma, ThumbnailStatus } from "../generated/prisma/client.js";
+import type {
+  Prisma,
+  ThumbnailSource,
+  ThumbnailStatus,
+} from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import type { Cursor } from "./lib/cursor.js";
 import { MAX_TAGS_PER_USER, type TagName } from "./lib/normalize-tag.js";
@@ -15,6 +19,9 @@ export type BookmarkRecord = {
   pageTitle: string | null;
   thumbnailKey: string | null;
   thumbnailStatus: ThumbnailStatus;
+  thumbnailSource: ThumbnailSource | null;
+  // FEAT-010 AC-11. og:image 원본 주소
+  thumbnailSourceUrl: string | null;
   tags: { id: string; name: string }[];
 };
 
@@ -36,6 +43,8 @@ const RECORD_SELECT = {
   pageTitle: true,
   thumbnailKey: true,
   thumbnailStatus: true,
+  thumbnailSource: true,
+  thumbnailSourceUrl: true,
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const satisfies Prisma.BookmarkSelect;
 
@@ -145,6 +154,14 @@ export class BookmarksRepository {
     await this.prisma.bookmark.updateMany({
       where: { id, thumbnailStatus: "pending" },
       data: { thumbnailStatus: "failed" },
+    });
+  }
+
+  // FEAT-010 AC-11. og:image 원본 주소. 처음 받은 값만 둔다
+  async setThumbnailSourceUrl(id: string, url: string): Promise<void> {
+    await this.prisma.bookmark.updateMany({
+      where: { id, thumbnailSourceUrl: null },
+      data: { thumbnailSourceUrl: url },
     });
   }
 

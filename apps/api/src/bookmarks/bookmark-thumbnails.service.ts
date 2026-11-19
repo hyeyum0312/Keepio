@@ -21,6 +21,8 @@ const logger = new Logger("Thumbnail");
 const MAX_RUNNING = 4;
 const MAX_WAITING = 200;
 const STALE_PENDING_MS = 10 * 60 * 1000;
+// DB 칸 길이(VARCHAR 2048). 더 긴 주소는 남기지 않는다
+const MAX_SOURCE_URL_LENGTH = 2048;
 
 // docs/features/bookmark-meta.md 오류 표
 const UNSUPPORTED_IMAGE_MESSAGE = "JPG·PNG·WEBP·GIF 이미지만 올릴 수 있어요.";
@@ -101,6 +103,10 @@ export class BookmarkThumbnailsService
       const og = parseOpenGraph(page.html, page.finalUrl);
       if (og.title) await this.bookmarks.setPageTitle(bookmarkId, og.title);
       if (!og.image) return await this.fail(bookmarkId, "no og:image");
+      // 보관 파일이 사라지거나(무료 서버 디스크 초기화) 이미지를 못 받아도 화면이 원본으로 보여 줄 수 있게 먼저 남긴다
+      if (og.image.length <= MAX_SOURCE_URL_LENGTH) {
+        await this.bookmarks.setThumbnailSourceUrl(bookmarkId, og.image);
+      }
 
       const bytes = await this.fetcher.fetchImage(og.image);
       const type = sniffImageType(bytes);

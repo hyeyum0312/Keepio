@@ -34,13 +34,14 @@
 - [x] AC-08 인스타 주소 정리: `instagram.com/p/…`, `/reel/…` 주소는 쿼리(`img_index`, `jplx` 등)를 모두 떼고 저장해, 같은 게시물을 다른 장으로 공유해도 중복으로 묶는다.
 - [x] AC-09 권한: 남의 북마크 썸네일은 볼 수도 올릴 수도 없다(404). 썸네일 이미지 주소는 짧게(10~20분) 만료되는 서명 주소다.
 - [x] AC-10 SSRF 방어: 서버 요청은 http·https만, 사설·루프백·링크로컬 IP로 풀리는 주소 거부, 리다이렉트 3회·응답 5MB(페이지)·10MB(이미지)·5초 제한, 이미지는 실제 바이트로 형식 확인.
+- [ ] AC-11 원본 이미지 대체(2026-11-20): `og:image` 주소를 받으면 이미지 보관 전에 원본 주소를 남기고(`thumbnail.sourceUrl`, 직접 올린 썸네일이면 `null`), 화면은 보관 파일 → 원본 주소 → 아트워크 순으로 불러 본다. 보관 파일이 만료·삭제·서버 디스크 초기화(무료 호스팅)로 없어져도, 서버가 이미지를 못 받았어도 원본이 살아 있으면 보인다. 원본 사이트에는 리퍼러를 보내지 않는다(`referrerPolicy="no-referrer"`). 기존 행은 원본 주소가 없어 그대로.
 
 ## 데이터 계약
 
 - 서버 소유 값: 정규화된 태그 이름과 중복 판정, 태그 상한(링크당 10·사용자당 500), 썸네일 상태·출처, 기본 제목(`og:title`), 서명 주소 만료.
 - 프론트 전용 파생 값: 표시 제목 대체(사용자 제목 → `og:title` → 도메인)는 서버가 `displayTitle`로 준다. 프론트 계산 없음.
 - API:
-  - `POST /api/bookmarks` body `{ url, title?, tags?: string[] }` → 기존 응답 + `title`, `displayTitle`, `tags: [{ id, name }]`, `thumbnail: { status, url | null }`
+  - `POST /api/bookmarks` body `{ url, title?, tags?: string[] }` → 기존 응답 + `title`, `displayTitle`, `tags: [{ id, name }]`, `thumbnail: { status, url | null, sourceUrl | null }`(sourceUrl은 AC-11)
   - `GET /api/bookmarks` 각 항목에 같은 필드 추가
   - `PUT /api/bookmarks/:id/thumbnail` multipart `file` → 200 북마크
   - `GET /api/files/thumbnails/:key?exp&sig` → 이미지(서명 검증, 인증 헤더 불필요. `<img>`로 부르기 위함)
@@ -56,7 +57,7 @@
   | 404    | NOT_FOUND          | 없거나 남의 북마크             | 링크를 찾을 수 없어요.                          |
 
 - DB 변경/마이그레이션(모두 추가만, 기존 행 영향 없음):
-  - `bookmarks`: `title varchar(100) NULL`, `page_title varchar(300) NULL`(og:title), `thumbnail_key text NULL`, `thumbnail_status` enum(`pending`,`ready`,`failed`) NOT NULL DEFAULT `failed`(기존 행은 썸네일 없음으로), `thumbnail_source` enum(`auto`,`upload`) NULL
+  - `bookmarks`: `title varchar(100) NULL`, `page_title varchar(300) NULL`(og:title), `thumbnail_key text NULL`, `thumbnail_status` enum(`pending`,`ready`,`failed`) NOT NULL DEFAULT `failed`(기존 행은 썸네일 없음으로), `thumbnail_source` enum(`auto`,`upload`) NULL, `thumbnail_source_url varchar(2048) NULL`(AC-11, 마이그레이션 `20261120000000_add_bookmark_thumbnail_source_url`)
   - `tags(id, user_id, name, normalized_name, created_at)` UNIQUE `(user_id, normalized_name)` — FEAT-008 정의와 동일
   - `bookmark_tags(bookmark_id, tag_id)` PK 복합, 양쪽 CASCADE
 

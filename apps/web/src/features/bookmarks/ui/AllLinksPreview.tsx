@@ -24,7 +24,11 @@ function sample(
     title,
     displayTitle: title,
     tags: tags.map((name) => ({ id: `${n}-${name}`, name })),
-    thumbnail: { status: "ready" as const, url: `/bucket-art/${art}.webp` },
+    thumbnail: {
+      status: "ready" as const,
+      url: `/bucket-art/${art}.webp`,
+      sourceUrl: null,
+    },
   };
 }
 

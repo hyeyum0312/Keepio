@@ -8,7 +8,11 @@ function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status });
 }
 
-type Thumb = { status: "pending" | "ready" | "failed"; url: string | null };
+type Thumb = {
+  status: "pending" | "ready" | "failed";
+  url: string | null;
+  sourceUrl?: string | null;
+};
 
 function link(n: number): {
   id: string;
@@ -140,6 +144,30 @@ describe("홈 (FEAT-009)", () => {
     const card = await screen.findByRole("article", { name: "정리할 링크" });
     expect(card.querySelector("img")?.getAttribute("src")).toMatch(
       /\/api\/files\/thumbnails\/t\.jpg/,
+    );
+  });
+
+  it("보관 파일을 못 불러오면 링크 페이지의 원본 이미지로, 그것도 안 되면 아트워크로 바꾼다 (FEAT-010 AC-11)", async () => {
+    renderHome([
+      {
+        ...link(1),
+        thumbnail: {
+          status: "ready",
+          url: "/api/files/thumbnails/t.jpg?exp=1&sig=s",
+          sourceUrl: "https://i.ytimg.com/vi/x/hq.jpg",
+        },
+      },
+    ]);
+    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    fireEvent.error(card.querySelector("img")!);
+    const original = card.querySelector("img")!;
+    expect(original.getAttribute("src")).toBe(
+      "https://i.ytimg.com/vi/x/hq.jpg",
+    );
+    expect(original.getAttribute("referrerpolicy")).toBe("no-referrer");
+    fireEvent.error(original);
+    expect(card.querySelector("img")?.getAttribute("src")).toMatch(
+      /bucket-art/,
     );
   });
 });

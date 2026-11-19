@@ -14,4 +14,9 @@ export interface BookmarkThumbnailResponse {
    * @nullable
    */
   url: string | null;
+  /**
+   * 링크 페이지의 og:image 원본 주소(자동 수집, 직접 올렸으면 null). url을 못 쓰면(만료·파일 없음) 이 주소로 바로 불러온다
+   * @nullable
+   */
+  sourceUrl: string | null;
 }
