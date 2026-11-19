@@ -81,7 +81,7 @@ export function SaveBookmarkForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-2">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
           <label htmlFor="field-url" className="sr-only">
@@ -100,7 +100,7 @@ export function SaveBookmarkForm() {
             placeholder="링크를 붙여넣으세요 (https://)"
             aria-invalid={!!failure || undefined}
             aria-describedby={failure ? ERROR_ID : undefined}
-            className={`h-12 w-full rounded-xl border bg-surface pr-4 pl-12 text-base text-foreground placeholder:text-muted-foreground focus-visible:focus-ring ${
+            className={`h-[52px] w-full rounded-xl border bg-surface pr-4 pl-12 text-base text-foreground placeholder:text-muted-foreground focus-visible:focus-ring md:text-sm ${
               failure ? "border-destructive" : "border-input"
             }`}
           />
@@ -108,7 +108,7 @@ export function SaveBookmarkForm() {
         {/* 링크 입력칸이 폭을 차지하도록 버튼은 내용 폭(기본 폭 100%가 입력칸을 찌그러뜨렸다) */}
         <SubmitButton
           pending={save.isPending}
-          className="w-auto! shrink-0 px-5 md:px-7"
+          className="h-[52px]! w-auto! shrink-0 px-5 md:px-7 md:text-sm"
         >
           저장
         </SubmitButton>
@@ -118,24 +118,20 @@ export function SaveBookmarkForm() {
         aria-expanded={extraOpen}
         aria-controls={EXTRA_ID}
         onClick={() => setExtraOpen((v) => !v)}
-        className="inline-flex min-h-11 items-center gap-1.5 self-start rounded-lg px-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:focus-ring"
+        className="-my-2 inline-flex min-h-11 items-center gap-1 self-start rounded-lg text-[13px] font-medium text-muted-foreground hover:text-foreground focus-visible:focus-ring"
       >
-        <LinkIcon name="sparkle" size={16} />
         추가 정보 입력하기 (선택)
         <span
           className={`transition-transform ${extraOpen ? "rotate-180" : ""}`}
         >
-          <LinkIcon name="chevron" size={16} />
+          <LinkIcon name="chevron" size={14} />
         </span>
       </button>
       {/* 접어도 DOM에 남겨 입력값을 지킨다(hidden이라 화면·보조기기에서는 빠진다) */}
-      <div
-        id={EXTRA_ID}
-        hidden={!extraOpen}
-        className="flex flex-col gap-3 pb-1"
-      >
+      <div id={EXTRA_ID} hidden={!extraOpen} className="flex flex-col gap-3">
         <TextField
           label="제목 (선택)"
+          compact
           name="title"
           hasError={false}
           helpText="비워 두면 링크의 제목을 써요"

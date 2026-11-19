@@ -57,6 +57,21 @@ function renderHome(
 describe("홈 (FEAT-009)", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it("링크가 하나도 없으면 링크 저장을 열고 예시로 채운다", async () => {
+    renderHome([]);
+    expect(await screen.findByText(/아래는 예시예요/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "링크 저장" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("예시 · 여름 여행 레퍼런스")).toBeInTheDocument();
+  });
+
+  it("링크가 있으면 예시를 보여 주지 않는다", async () => {
+    renderHome([link(1)]);
+    await screen.findByRole("heading", { name: /정리할 링크/ });
+    expect(screen.queryByText(/아래는 예시예요/)).not.toBeInTheDocument();
+  });
+
   it("카테고리가 없는 링크를 정리할 링크로 한 장씩 보여 주고, 건너뛰면 다음 링크가 나온다", async () => {
     renderHome([link(1), link(2)]);
     expect(
@@ -104,7 +119,7 @@ describe("홈 (FEAT-009)", () => {
   });
 
   it("사이드바 링크 추가(/?save=1)로 들어오면 저장 칸을 열고, 닫기는 홈으로 돌아간다", async () => {
-    renderHome([], null, true);
+    renderHome([link(1)], null, true);
     expect(await screen.findByLabelText("링크 주소")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "닫기" })).toHaveAttribute(
       "href",
