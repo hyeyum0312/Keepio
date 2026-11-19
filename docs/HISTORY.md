@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | ci: Dependabot PR은 HISTORY 검사 건너뛰기
+
+- Feature: N/A
+- 목적: Dependabot은 HISTORY를 쓰지 않아 열린 PR 5개가 모두 HISTORY 검사에서 30초 만에 실패하고, 테스트·빌드는 한 번도 돌지 않았다. 매번 사람이 항목을 붙이는 수고를 없앤다(사용자 결정).
+- 변경: `ci.yml` HISTORY 보존 검사 단계에 `dependabot/` 브랜치 제외 조건. `docs/standards/HISTORY.md` 6번을 예외 규칙으로(메이저 업데이트는 merge 전 릴리스 노트 확인).
+- 영향: Dependabot PR의 CI 판정만. 사람이 올리는 PR은 그대로 검사. Dependabot 의존성 변경은 HISTORY에 남지 않고 Git 로그·PR로만 추적된다.
+- 검증: `python3 -c yaml.safe_load`로 `ci.yml` 문법 PASS, prettier(바뀐 파일) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. 실제 CI 동작은 이 PR이 dev에 들어간 뒤 Dependabot PR을 rebase해서 확인해야 한다(미실행).
+- 주의/롤백: revert로 롤백.
+
+## 2026-11-19 | chore: PR 올리기는 AI가 묻지 않고 하고, 설치 스크립트 허용 목록 추가
+
+- Feature: N/A
+- 목적: 작업마다 브랜치·커밋·push·PR 생성 승인을 묻는 것이 번거롭다(사용자 결정). PR 흐름과 CI 게이트는 그대로 두고 손작업만 AI가 맡는다. 또 npm이 install script를 `allowScripts` 허용 목록으로 관리하기 시작했고 npm 12부터 목록에 없는 스크립트를 막으므로, 지금 쓰는 패키지를 미리 허용한다.
+- 변경: `AGENTS.md`·`BRANCHING.md` — 지시받은 작업은 브랜치 생성~PR 생성까지 AI가 묻지 않고 진행, merge는 사용자, `stg`·`prod` PR은 지시 시에만. `package.json`에 `allowScripts`(@prisma/engines, prisma, @swc/core, argon2, esbuild, fsevents, unrs-resolver, @scarf/scarf, 버전 고정) 추가. `package-lock.json`은 npm이 `@types/react-dom`을 `devOptional`로 바꾼 한 줄.
+- 영향: 작업 절차와 설치. hook·CI·앱 코드 변경 없음. 버전 고정이라 해당 패키지를 올리면 `npm install-scripts approve <pkg>`를 다시 해야 한다.
+- 검증: `npx prettier --check`(바뀐 파일) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM(Node 22). 사용자 Mac에서 `npm install`·`npm install-scripts approve --all` 정상 완료. `npm run verify`는 미실행(VM Node 22가 engines 조건 미달, 문서·설정만 변경).
+- 주의/롤백: revert로 롤백. `@scarf/scarf`는 설치 통계 전송용이라 막으려면 `npm install-scripts deny @scarf/scarf`.
+
 ## 2026-11-17 | chore(web): Next.js와 eslint-config-next를 16.4.5로
 
 - Feature: N/A

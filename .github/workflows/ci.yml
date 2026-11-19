@@ -61,7 +61,8 @@ jobs:
             *) echo "$HEAD → $BASE 는 허용되지 않는 경로다(ADR-007)" >&2; exit 1 ;;
           esac
       - name: HISTORY 보존 검사 (PR)
-        if: github.event_name == 'pull_request'
+        # Dependabot PR은 HISTORY 항목 없이 테스트·빌드로만 판단한다(docs/standards/HISTORY.md 6)
+        if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'dependabot/')
         run: python3 scripts/check-history.py origin/${{ github.base_ref }}
       - name: AI 작성자 표시 검사 (PR)
         if: github.event_name == 'pull_request'
