@@ -26,6 +26,14 @@ export class BookmarkThumbnailResponse {
       "API 기준 경로(서명, 10~20분 유효). API 주소를 앞에 붙여 <img>에 쓴다",
   })
   url!: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description:
+      "링크 페이지의 og:image 원본 주소(자동 수집, 직접 올렸으면 null). url을 못 쓰면(만료·파일 없음) 이 주소로 바로 불러온다",
+  })
+  sourceUrl!: string | null;
 }
 
 export class BookmarkResponse {

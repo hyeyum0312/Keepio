@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-20 | feat: 썸네일을 못 불러오면 링크 페이지의 원본 이미지로 (FEAT-010 AC-11)
+
+- Feature: FEAT-010
+- 목적: dev 배포(Render 무료)는 15분 쉬면 디스크가 초기화돼 보관한 썸네일이 사라지고, 서명 주소도 10~20분 뒤 만료돼 화면이 아트워크로 바뀌었다. 원본(유튜브 등)이 살아 있으면 그걸 보여 준다(사용자 제안). 근본 해결(R2)은 보류 중.
+- 변경: DB `bookmarks.thumbnail_source_url varchar(2048)` 추가(마이그레이션 `20261120000000_add_bookmark_thumbnail_source_url`). 썸네일 수집이 og:image를 찾으면 이미지 받기 전에 원본 주소를 저장. 응답 `thumbnail.sourceUrl`(직접 올렸으면 null), OpenAPI·api-client 갱신(손으로 반영, Mac에서 `npm run openapi:generate`로 확인). 웹 `shared/lib/thumbnail-sources.ts` — 보관 파일 → 원본 → 아트워크 순서, `BookmarkThumb`(전체 링크 목록·카드)·`TriageRow`(홈 정리할 링크)가 깨질 때마다 다음 후보로. 다른 사이트에 리퍼러를 보내지 않음. 통합 테스트 3곳 기대값 갱신, 웹 테스트 1개 추가. FEAT-010 AC-11.
+- 영향: 저장 응답·목록 응답에 필드 추가(추가만). DB 마이그레이션 필요(Render 빌드의 `db:deploy`가 적용). 기존 링크는 원본 주소가 없어 전과 같다.
+- 검증: prettier PASS, `tsc --noEmit`(apps/web) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. prisma generate·API 빌드·vitest·통합 테스트는 VM에서 못 돌림(프리즈마 엔진 다운로드 차단·네이티브 바인딩) → 커밋 hook(사용자 Mac)과 PR CI.
+- 주의/롤백: 코드 revert 후 컬럼은 남아도 무해(NULL 허용). 원본 이미지는 사용자의 브라우저가 원본 사이트에서 직접 받는다(사이트가 핫링크를 막으면 아트워크).
+
 ## 2026-11-19 | feat(web): 사이드바에 MCP 연결 메뉴(준비 중), 전체 링크 화면 제목 숨김, 접힌 사이드바 로고
 
 - Feature: N/A (MCP 연결은 이후 기능)

@@ -85,7 +85,7 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       title: null,
       displayTitle: "example.com",
       tags: [],
-      thumbnail: { status: "pending", url: null },
+      thumbnail: { status: "pending", url: null, sourceUrl: null },
     });
     expect(await countBookmarks(userId)).toBe(1);
   });

@@ -160,6 +160,10 @@ export class BookmarksController {
           bookmark.thumbnailStatus === "ready"
             ? this.thumbnails.publicPath(bookmark.thumbnailKey)
             : null,
+        sourceUrl:
+          bookmark.thumbnailSource === "upload"
+            ? null
+            : bookmark.thumbnailSourceUrl,
       },
     };
   }

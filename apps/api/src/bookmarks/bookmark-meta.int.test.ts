@@ -126,7 +126,7 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     expect(res.body).toMatchObject({
       title: "랜딩 모션",
       displayTitle: "랜딩 모션",
-      thumbnail: { status: "pending", url: null },
+      thumbnail: { status: "pending", url: null, sourceUrl: null },
     });
     expect(res.body.tags.map((t: { name: string }) => t.name)).toEqual([
       "Landing",
@@ -247,8 +247,13 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
       "https://cdn.example.com/a.png",
     );
     expect(item.displayTitle).toBe('Studio on Instagram: "motion"');
-    const thumb = item.thumbnail as { status: string; url: string };
+    const thumb = item.thumbnail as {
+      status: string;
+      url: string;
+      sourceUrl: string;
+    };
     expect(thumb.status).toBe("ready");
+    expect(thumb.sourceUrl).toBe("https://cdn.example.com/a.png");
 
     const image = await request(app.getHttpServer()).get(thumb.url);
     expect(image.status).toBe(200);
@@ -279,7 +284,12 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     await thumbnails.drain();
     const [item] = await list(userId);
 
-    expect(item.thumbnail).toEqual({ status: "failed", url: null });
+    // 이미지는 못 받았어도 원본 주소는 남겨 화면이 바로 불러 볼 수 있다(AC-11)
+    expect(item.thumbnail).toEqual({
+      status: "failed",
+      url: null,
+      sourceUrl: "https://cdn.example.com/a.png",
+    });
     expect(item.title).toBe("유지");
     expect((item.tags as unknown[]).length).toBe(1);
   });
