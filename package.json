@@ -45,5 +45,15 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prisma": "7.10.1",
     "turbo": "2.11.8"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.10.1": true,
+    "@swc/core@1.16.18": true,
+    "argon2@0.45.2": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
+    "prisma@7.10.1": true,
+    "unrs-resolver@1.12.2": true,
+    "@scarf/scarf": false
   }
 }
