@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | chore(web): 테스트 배포에서 web 주소로 api를 부르도록 프록시
+
+- Feature: N/A
+- 목적: 지인 공유용 테스트 배포(Vercel web + Render api + Neon DB, dev 전용, 사용자 결정)에서 web과 api 도메인이 달라 refresh 쿠키(SameSite=Lax)가 실리지 않고, 소셜 로그인 콜백(`API_ORIGIN/api/auth/oauth/*/callback`)이 web 주소에서 404였다.
+- 변경: `apps/web/next.config.ts` — `API_PROXY_TARGET`이 있으면 `/api/:path*`를 api 서버로 rewrites. 없으면(로컬·CI) 그대로. `docs/SETUP.md` 10장 "테스트 배포" — 서비스 조합, 빌드·시작 명령, 환경 변수, 주의사항.
+- 영향: 배포 web만(환경 변수를 넣은 경우). 로컬 개발·CI 동작과 API·데이터 변경 없음. 브라우저 → Vercel → Render로 한 단계 늘어 api 응답이 그만큼 느려질 수 있다. 비용: Vercel·Render·Neon 무료 플랜, 프록시 요청은 Vercel 대역폭에 포함.
+- 검증: prettier(바뀐 파일) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. `next build`·`npm run verify`는 미실행(VM node_modules가 Mac용). 배포 확인은 merge 후 Vercel 환경 변수 설정·Redeploy에서.
+- 주의/롤백: revert하거나 Vercel의 `API_PROXY_TARGET`을 지우면 프록시가 꺼진다. 운영 호스팅을 정하면(D-12) 이 방식을 다시 판단한다.
+
 ## 2026-11-19 | ci: Dependabot PR은 HISTORY 검사 건너뛰기
 
 - Feature: N/A

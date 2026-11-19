@@ -180,3 +180,19 @@ npm run dev:api                       # api (다른 터미널에서 npm run dev:
 | 소셜 로그인 후 `{"code":"INTERNAL_ERROR"}` 화면              | 대개 DB가 꺼져 계정 저장에 실패 → 위와 같이 DB를 켜고 api를 재시작한 뒤 다시 로그인          |
 | `docker: command not found`                                  | OrbStack 미설치 또는 미실행 → 3-3대로 설치·실행, 초기 설정 후 **새 터미널 창**에서 다시 실행 |
 | 로컬 DB를 완전히 초기화하고 싶다                             | `docker compose down -v` → `npm run db:up` → `npm run db:deploy` (**로컬 데이터 전부 삭제**) |
+
+## 10. 테스트 배포 (dev, 지인 공유용)
+
+운영 호스팅은 아직 정하지 않았다(D-12). 그 전까지 `dev` 브랜치만 아래 조합으로 배포한다. 운영은 나중에 환경별로 프로젝트·서비스를 따로 만든다.
+
+| 대상 | 서비스                                            | 주소·설정                                                                                                                                                                            |
+| ---- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| web  | Vercel 프로젝트 `keepio`                          | `https://keepio-dev.vercel.app`. Root Directory `apps/web`, Production 브랜치 `dev`. 환경 변수 `API_PROXY_TARGET`(api 주소), `NEXT_PUBLIC_API_BASE_URL`(web 자기 주소, Sensitive 끔) |
+| api  | Render Web Service `keepio-api` (Singapore, Free) | Root 비움, Build `npm ci --include=dev && npm run db:generate && npm run db:deploy && npx turbo run build --filter=@keepio/api`, Start `npm run start --workspace=@keepio/api`       |
+| DB   | Neon (Singapore, Free)                            | 직접 연결 주소(`-pooler` 아님, `sslmode=require`)를 Render `DATABASE_URL`에                                                                                                          |
+
+- 브라우저는 web 주소의 `/api/*`만 부르고 Vercel이 api로 넘긴다(`next.config.ts` rewrites). 그래서 Render의 `WEB_ORIGIN`·`API_ORIGIN`은 둘 다 web 주소이고, Google 리디렉션 URI는 `https://keepio-dev.vercel.app/api/auth/oauth/google/callback`이다.
+- Render 환경 변수: `NODE_VERSION`(.nvmrc), `NODE_ENV=production`, `DATABASE_URL`, `DB_POOL_MAX=5`, `JWT_SECRET`, `TRUST_PROXY_HOPS=2`(Vercel → Render), `RESEND_API_KEY`, `MAIL_FROM`, `GOOGLE_*`, `WEB_ORIGIN`, `API_ORIGIN`. `PORT`는 Render가 넣는다.
+- 메일: 도메인 인증 전에는 Resend 테스트 발신 주소로 가입한 본인에게만 간다. 지인은 Google 로그인으로 들어온다(Google OAuth 동의 화면이 테스트 중이면 테스트 사용자로 추가).
+- Render Free는 15분 쉬면 잠들어 첫 요청이 30초쯤 걸린다. Neon Free도 쉬면 멈췄다 깬다.
+- `NEXT_PUBLIC_*`·`API_PROXY_TARGET`은 빌드할 때 들어가므로 바꾸면 Vercel에서 Redeploy한다.
