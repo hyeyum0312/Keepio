@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { KeepioMark } from "@/shared/ui/KeepioMark";
+import { KeepioIcon, KeepioWordmark } from "@/shared/ui/KeepioWordmark";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { useSidebarCollapsed } from "../model/useSidebarCollapsed";
 import { type IconName, NavIcon } from "./NavIcon";
@@ -99,10 +99,12 @@ export function AppShell({
             href="/"
             className="inline-flex items-center gap-2 rounded-lg focus-visible:focus-ring"
           >
-            <KeepioMark height={24} />
-            <span className={`text-lg font-semibold tracking-tight ${label}`}>
-              keepio
-            </span>
+            {/* 접힘·좁은 폭은 작은 마크, 펼친 넓은 폭은 워드마크 */}
+            <KeepioIcon size={28} className={collapsed ? "" : "lg:hidden"} />
+            <KeepioWordmark
+              size={26}
+              className={collapsed ? "hidden" : "hidden lg:inline-flex"}
+            />
           </Link>
         </div>
         <nav aria-label="주요 메뉴" className="flex flex-col gap-1">
@@ -174,8 +176,7 @@ export function AppShell({
             href="/"
             className="inline-flex items-center gap-2 rounded-lg focus-visible:focus-ring"
           >
-            <KeepioMark height={22} />
-            <span className="text-lg font-semibold tracking-tight">keepio</span>
+            <KeepioWordmark size={24} />
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />

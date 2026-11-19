@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { DesignNav, DesignViewer } from "@/features/design-preview";
-import { KeepioMark } from "@/shared/ui/KeepioMark";
+import { KeepioWordmark } from "@/shared/ui/KeepioWordmark";
 
 // 개발용 기획·디자인 화면. 앱 틀과 별개의 단독 페이지라 로그인 여부와 관계없이 열린다(dev 배포 전까지 임시)
 export function DesignHome() {
@@ -12,8 +12,7 @@ export function DesignHome() {
           href="/"
           className="inline-flex items-center gap-2 rounded-lg px-2 focus-visible:focus-ring"
         >
-          <KeepioMark height={24} />
-          <span className="text-lg font-semibold tracking-tight">keepio</span>
+          <KeepioWordmark size={24} />
         </Link>
         <Suspense>
           <DesignNav />

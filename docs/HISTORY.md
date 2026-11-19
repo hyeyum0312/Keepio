@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | feat(web): 로고를 keepio 워드마크로 교체 (ADR-016)
+
+- Feature: N/A
+- 목적: 캐릭터 심볼이 로고와 마스코트를 함께 맡아 작게 쓰기 어렵고 캐릭터 표현도 묶였다. 로고는 워드마크, 캐릭터는 회사 마스코트로 분리한다(사용자 결정, 시안 Y2).
+- 변경: `shared/ui/KeepioWordmark`(Young Serif `keepio`, i 점 레드 북마크, 마침표 없음 / 작은 마크: 잉크 타일 + 북마크) + 테스트 2개(next/font는 vitest.setup에서 목). `globals.css` `--logo-mark`(라이트 #EE5041·다크 #FB8070)·`--logo-tile`·`--logo-mark-on-tile`. 사이드바(펼침 워드마크, 접힘 작은 마크), 모바일 머리, 인증 화면 Lockup, 기획·디자인 페이지 로고 교체. `app/favicon.ico`·`icon.png`·`apple-icon.png` 새로. ADR-016, 07-BRAND 3·4·7장.
+- 영향: 로고가 보이는 모든 화면과 브라우저 탭 아이콘. 캐릭터 무대(랜딩·인증·빈 상태)는 그대로. Young Serif 폰트 파일이 로고용으로 추가 로드된다(next/font 자체 호스팅, 외부 요청 없음). API·데이터 변경 없음.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest·tsc·`next build`는 커밋 hook(사용자 Mac)과 PR CI. 화면은 배포 후 라이트·다크로 확인.
+- 주의/롤백: revert로 롤백. 북마크 위치는 글자 크기 비율(em)로 잡아 크기를 바꿔도 따라가지만, 폰트가 늦게 뜨는 순간에는 대체 글꼴 위에 잠깐 어긋날 수 있다.
+
 ## 2026-11-19 | fix(api): 썸네일 파일이 404로 나가던 문제
 
 - Feature: FEAT-010

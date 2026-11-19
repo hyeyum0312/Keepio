@@ -2,6 +2,7 @@
 // 라이트·다크 모두 같은 평면 심볼을 쓴다(07-BRAND 7장 v4: 다크의 유리알·발광 표현은 쓰지 않는다)
 import Image from "next/image";
 import { KeepioMark as KeepioSymbol } from "@/shared/ui/KeepioMark";
+import { KeepioWordmark } from "@/shared/ui/KeepioWordmark";
 
 type Color = "red" | "yellow" | "blue" | "tangerine" | "purple";
 
@@ -9,14 +10,9 @@ function src(color: Color) {
   return `/svg/keepio-${color}-symbol-light.svg`;
 }
 
-// 작은 로고: 대표 캐릭터 + keepio
+// 작은 로고: 워드마크(ADR-016). 캐릭터는 로고가 아니라 무대(StageCharacters)에만 둔다
 export function Lockup({ size = 28 }: { size?: number }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      <KeepioSymbol height={size} />
-      <span className="text-xl font-semibold tracking-tight">keepio</span>
-    </span>
-  );
+  return <KeepioWordmark size={size} />;
 }
 
 // 패밀리 심볼: 노랑·파랑 사이로 대표 캐릭터. celebrate면 축하 모션(07-BRAND 8장)
