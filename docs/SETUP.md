@@ -195,4 +195,5 @@ npm run dev:api                       # api (다른 터미널에서 npm run dev:
 - Render 환경 변수: `NODE_VERSION`(.nvmrc), `NODE_ENV=production`, `DATABASE_URL`, `DB_POOL_MAX=5`, `JWT_SECRET`, `TRUST_PROXY_HOPS=2`(Vercel → Render), `RESEND_API_KEY`, `MAIL_FROM`, `GOOGLE_*`, `WEB_ORIGIN`, `API_ORIGIN`. `PORT`는 Render가 넣는다.
 - 메일: 도메인 인증 전에는 Resend 테스트 발신 주소로 가입한 본인에게만 간다. 지인은 Google 로그인으로 들어온다(Google OAuth 동의 화면이 테스트 중이면 테스트 사용자로 추가).
 - Render Free는 15분 쉬면 잠들어 첫 요청이 30초쯤 걸린다. Neon Free도 쉬면 멈췄다 깬다.
+- 기획·디자인 보기(`/preview/design`)는 Vercel에 `NEXT_PUBLIC_SHOW_DEV_TOOLS=true`가 있을 때만 배포 사이트에 열린다(dev 프로젝트만, 운영에는 넣지 않음).
 - `NEXT_PUBLIC_*`·`API_PROXY_TARGET`은 빌드할 때 들어가므로 바꾸면 Vercel에서 Redeploy한다.
