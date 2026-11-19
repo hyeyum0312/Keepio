@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | fix(api): 썸네일 파일이 404로 나가던 문제
+
+- Feature: FEAT-010
+- 목적: 썸네일 파일이 저장돼 있는데도 `/api/files/thumbnails/:key`가 404였다(로컬·배포 모두 엑스박스). 저장 폴더 기본값 `.storage`가 점으로 시작해 Express `sendFile`의 기본 설정(dotfiles: ignore)이 숨김 경로로 보고 거부했다.
+- 변경: `bookmark-files.controller.ts` — `sendFile`에 `{ dotfiles: "allow" }`.
+- 영향: 썸네일 응답만. key는 서명 검증을 거친 값이라 다른 숨김 파일이 노출되지 않는다. API 형식·데이터 변경 없음.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. `apps/api/.storage/thumbnails/`에 파일이 있는데 404인 것을 확인(사용자 로컬). 통합 테스트는 커밋 hook(사용자 Mac)과 PR CI에서.
+- 주의/롤백: revert로 롤백. 기존 통합 테스트는 점 없는 임시 폴더를 써서 이 문제를 잡지 못했다. Render Free는 디스크가 재시작 때 지워지므로 그 전에 저장한 썸네일은 이 수정 뒤에도 없을 수 있다.
+
 ## 2026-11-19 | chore(web): dev 테스트 배포에서 기획·디자인 보기 열기
 
 - Feature: N/A
