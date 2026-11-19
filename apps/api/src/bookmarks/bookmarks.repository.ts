@@ -36,16 +36,18 @@ const RECORD_SELECT = {
   pageTitle: true,
   thumbnailKey: true,
   thumbnailStatus: true,
-  tags: {
-    select: { tag: { select: { id: true, name: true } } },
-    orderBy: { tag: { name: "asc" } },
-  },
+  tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const satisfies Prisma.BookmarkSelect;
 
 type Row = Prisma.BookmarkGetPayload<{ select: typeof RECORD_SELECT }>;
 
+// 태그는 이름의 유니코드 순서(영문·숫자 → 한글)로 준다. DB 정렬은 collation에 따라 달라져(로컬·CI·운영) 쓰지 않는다
+function byName(a: { name: string }, b: { name: string }) {
+  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+}
+
 function toRecord(row: Row): BookmarkRecord {
-  return { ...row, tags: row.tags.map((t) => t.tag) };
+  return { ...row, tags: row.tags.map((t) => t.tag).sort(byName) };
 }
 
 function toRecordOrNull(row: Row | null): BookmarkRecord | null {

@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | fix(api): 태그 정렬을 DB collation과 무관하게
+
+- Feature: FEAT-010
+- 목적: 태그 "이름순"을 DB `ORDER BY`에 맡겨, 로컬 DB에서는 `Landing, 모션`인데 CI PostgreSQL에서는 `모션, Landing`이 되어 AC-01 통합 테스트가 CI에서만 실패했다.
+- 변경: `bookmarks.repository.ts` — Prisma `orderBy` 제거, 응답 변환에서 이름의 유니코드 코드 포인트 순(영문·숫자 → 한글)으로 정렬.
+- 영향: 북마크 응답의 태그 순서가 모든 환경에서 같아진다. 링크당 태그 수가 적어(상한 있음) 정렬 비용은 무시할 수준. API 형식·데이터 변경 없음.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. 통합 테스트는 커밋 hook(사용자 Mac)과 PR CI에서 확인.
+- 주의/롤백: revert로 롤백. 한글 자모 순 등 사용자 기대 순서가 따로 정해지면 이 비교 함수만 바꾼다.
+
 ## 2026-11-18 | feat: 링크 저장 시 제목·태그와 썸네일 (FEAT-010)
 
 - Feature: FEAT-010
