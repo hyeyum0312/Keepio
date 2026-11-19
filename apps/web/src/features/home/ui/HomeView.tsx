@@ -1,26 +1,28 @@
+import Link from "next/link";
 import { BucketTiles, type BucketTile } from "./BucketTiles";
+import { HomeIcon } from "./HomeIcons";
 import { SharedPages, type SharedPage } from "./SharedPages";
 
 function Section({
   id,
   title,
   count,
-  more,
+  action,
   children,
 }: {
   id: string;
   title: string;
   // 서버가 준 정확한 개수만 넘긴다(일부 페이지로 세지 않는다)
   count?: number;
-  more?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-4">
-      <div className="flex items-baseline justify-between gap-3 px-6 md:px-0">
+      <div className="flex items-center justify-between gap-3 px-6 md:px-0">
         <h2
           id={id}
-          className="flex items-center gap-2 text-xl font-bold md:text-[22px]"
+          className="flex items-center gap-2.5 text-xl font-bold tracking-tight md:text-[22px]"
         >
           {title}
           {count !== undefined && (
@@ -29,50 +31,73 @@ function Section({
             </span>
           )}
         </h2>
-        {more && <span className="text-sm text-muted-foreground">{more}</span>}
+        {action}
       </div>
       <div className="px-6 md:px-0">{children}</div>
     </section>
   );
 }
 
-// 홈(FEAT-009, 와이어 E1·E3): 검색 → 정리할 링크 → 버킷 → 공유한 페이지. 비어 있는 섹션은 그리지 않는다.
-// 정리할 링크는 홈의 유일한 그림자 카드, 나머지는 상자 없이 여백·제목으로 구분(07-BRAND 6장)
+// "전체 보기 →": 목록 화면이 생기기 전에는 누를 수 없고 "준비 중"으로 읽힌다
+function SeeAll({ href }: { href?: string }) {
+  const body = (
+    <>
+      전체 보기 <HomeIcon name="arrow" size={16} />
+    </>
+  );
+  const cls =
+    "inline-flex min-h-11 items-center gap-1 rounded-lg text-sm text-foreground/80";
+  return href ? (
+    <Link
+      href={href}
+      className={`${cls} hover:text-foreground focus-visible:focus-ring`}
+    >
+      {body}
+    </Link>
+  ) : (
+    <span role="link" aria-disabled="true" title="준비 중" className={cls}>
+      {body}
+      <span className="sr-only">(준비 중)</span>
+    </span>
+  );
+}
+
+// 홈(FEAT-009, 2026-11-19 시안): 정리할 링크 → 버킷 → 공유한 페이지. 비어 있는 섹션은 그리지 않는다.
+// 검색·알림·계정은 앱 틀 위쪽 막대에 있다. 링크 저장 칸은 사이드바 "링크 추가"(/?save=1)로 연다
 export function HomeView({
   triage,
   triageCount,
   buckets,
   pages,
-  saveButton,
   savePanel,
 }: {
   triage: React.ReactNode;
   triageCount?: number;
   buckets: BucketTile[];
   pages: SharedPage[];
-  saveButton: React.ReactNode;
   savePanel?: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-11 pt-4 pb-16 md:gap-14 md:px-10 md:pt-6">
-      <div className="flex flex-col gap-3 px-6 md:px-0">
-        <div className="flex items-center gap-2">
-          <label htmlFor="home-search" className="sr-only">
-            검색
-          </label>
-          <input
-            id="home-search"
-            type="search"
-            disabled
-            placeholder="링크·버킷·태그 검색 (준비 중)"
-            className="h-12 min-w-0 flex-1 rounded-full border border-border bg-muted px-5 text-base placeholder:text-muted-foreground disabled:cursor-not-allowed"
-          />
-          {saveButton}
-        </div>
-        {savePanel}
-      </div>
+    // 위쪽 검색 막대와 왼쪽 끝을 맞춘다(시안). 아주 넓은 화면에서는 오른쪽에 여백이 남는다
+    <main className="flex w-full max-w-5xl flex-col gap-10 pt-6 pb-16 md:gap-12 md:px-10 md:pt-8">
+      {savePanel && <div className="px-6 md:px-0">{savePanel}</div>}
       {triage && (
-        <Section id="home-triage" title="정리할 링크" count={triageCount}>
+        <Section
+          id="home-triage"
+          title="정리할 링크"
+          count={triageCount}
+          action={
+            <span
+              role="button"
+              aria-disabled="true"
+              aria-label="정리할 링크 더보기 (준비 중)"
+              title="준비 중"
+              className="inline-flex size-11 items-center justify-center rounded-full text-muted-foreground"
+            >
+              <HomeIcon name="more" size={20} />
+            </span>
+          }
+        >
           {triage}
         </Section>
       )}
@@ -81,7 +106,7 @@ export function HomeView({
           id="home-buckets"
           title="버킷"
           count={buckets.length}
-          more="모두 보기 →"
+          action={<SeeAll />}
         >
           <BucketTiles buckets={buckets} />
         </Section>
@@ -91,7 +116,7 @@ export function HomeView({
           id="home-pages"
           title="공유한 페이지"
           count={pages.length}
-          more="모두 보기 →"
+          action={<SeeAll />}
         >
           <SharedPages pages={pages} />
         </Section>

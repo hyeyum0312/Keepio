@@ -1,7 +1,10 @@
 "use client";
 
 import { useAuthControllerLogout, useMeControllerMe } from "@keepio/api-client";
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { NETWORK_ERROR_MESSAGE } from "@/shared/lib/network-error";
 import { serverMessage, submit } from "@/shared/lib/server-message";
 import { FormError, Notice } from "@/shared/ui/FormParts";
@@ -10,9 +13,13 @@ import { displayName } from "./AccountHeader";
 
 const ERROR_ID = "account-menu-error";
 
-// 앱 틀(FEAT-009)의 계정 버튼: 동그란 버튼을 누르면 아이디·이메일 인증 안내·로그아웃이 열린다.
-// 사이드바(아래에서 위로 열림)와 모바일 머리(위에서 아래로 열림)에 같은 것을 쓴다
-export function AccountMenu({ open = "up" }: { open?: "up" | "down" }) {
+const AVATAR_ART = "/bucket-art/coral.webp";
+const ITEM =
+  "flex min-h-11 items-center rounded-xl px-3 text-left text-sm hover:bg-muted focus-visible:focus-ring";
+
+// 앱 틀(FEAT-009)의 계정 버튼: 동그란 버튼을 누르면 아이디·이메일 인증 안내·휴지통·설정·화면 모드·로그아웃이 열린다.
+// 위쪽 막대(PC)와 모바일 머리에 두고 아래로 연다. 사용자 아바타가 생기기 전에는 그라데이션 원
+export function AccountMenu({ open = "down" }: { open?: "up" | "down" }) {
   const me = useMeControllerMe();
   const logout = useAuthControllerLogout();
   const [error, setError] = useState<string | null>(null);
@@ -42,16 +49,22 @@ export function AccountMenu({ open = "up" }: { open?: "up" | "down" }) {
     <details className="relative">
       <summary
         aria-label="계정 메뉴"
-        className="inline-flex size-11 cursor-pointer list-none items-center justify-center rounded-full bg-muted text-sm font-semibold focus-visible:focus-ring [&::-webkit-details-marker]:hidden"
+        className="relative inline-flex size-11 cursor-pointer list-none items-center justify-center overflow-hidden rounded-full focus-visible:focus-ring [&::-webkit-details-marker]:hidden"
       >
-        {name ? name.charAt(3).toUpperCase() : "·"}
+        <Image
+          src={AVATAR_ART}
+          alt=""
+          fill
+          sizes="44px"
+          className="object-cover"
+        />
       </summary>
       <div
-        className={`absolute z-30 flex w-60 flex-col gap-2 rounded-2xl border border-border-subtle bg-surface p-3 ${
+        className={`absolute z-30 flex w-64 flex-col gap-1 rounded-2xl border border-border-subtle bg-surface p-2 shadow-[0_8px_24px_var(--shadow-soft)] ${
           open === "up" ? "bottom-13 left-0" : "top-13 right-0"
         }`}
       >
-        <p className="truncate text-sm font-semibold">
+        <p className="truncate px-3 pt-2 pb-1 text-sm font-semibold">
           {name ?? "불러오는 중이에요…"}
         </p>
         {profile && !profile.emailVerified && profile.email && (
@@ -59,11 +72,27 @@ export function AccountMenu({ open = "up" }: { open?: "up" | "down" }) {
             이메일 인증 전이에요. 받은 메일의 링크로 인증해 주세요.
           </Notice>
         )}
+        <Link href="/trash" className={ITEM}>
+          휴지통
+        </Link>
+        <span
+          role="link"
+          aria-disabled="true"
+          title="준비 중"
+          className={`${ITEM} cursor-default hover:bg-transparent`}
+        >
+          설정<span className="sr-only"> (준비 중)</span>
+        </span>
+        <div className="flex min-h-11 items-center justify-between gap-2 px-3 text-sm">
+          화면 모드
+          <ThemeToggle className="size-9!" />
+        </div>
+        <div className="my-1 border-t border-border-subtle" />
         <button
           type="button"
           onClick={onLogout}
           disabled={logout.isPending}
-          className="min-h-10 rounded-xl px-3 text-left text-sm hover:bg-muted focus-visible:focus-ring disabled:opacity-50"
+          className={`${ITEM} disabled:opacity-50`}
         >
           로그아웃
         </button>

@@ -52,6 +52,10 @@ describe("링크 저장 시 제목·태그와 썸네일 (FEAT-010)", () => {
       screen.getByLabelText("링크 주소"),
       "https://www.instagram.com/p/1/",
     );
+    // 제목·태그는 "추가 정보 입력하기"를 펼쳐야 보인다(LINK-01)
+    await userEvent.click(
+      screen.getByRole("button", { name: "추가 정보 입력하기 (선택)" }),
+    );
     await userEvent.type(screen.getByLabelText("제목 (선택)"), "랜딩 모션");
     const tagBox = screen.getByLabelText(/태그/, { selector: "input" });
     await userEvent.type(tagBox, "모션{Enter}Reel,reel,  REEL {Enter}랜딩");
@@ -79,6 +83,9 @@ describe("링크 저장 시 제목·태그와 썸네일 (FEAT-010)", () => {
 
   it("AC-01: 빈 입력에서 Backspace는 마지막 태그를 지우고, 칩의 삭제 버튼으로도 지운다", async () => {
     wrap(<SaveBookmarkForm />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "추가 정보 입력하기 (선택)" }),
+    );
     const tagBox = screen.getByLabelText(/태그/, { selector: "input" });
     await userEvent.type(tagBox, "a{Enter}b{Enter}c{Enter}{Backspace}");
     await userEvent.click(screen.getByRole("button", { name: "태그 a 삭제" }));
@@ -117,10 +124,10 @@ describe("링크 저장 시 제목·태그와 썸네일 (FEAT-010)", () => {
     const first = (
       await screen.findByRole("link", { name: "레퍼런스 1" })
     ).closest("li")!;
-    // 장식 이미지(alt="")라 역할이 없다. 표시 제목이 이름 역할을 한다
-    expect(first.querySelector("img")).toHaveAttribute(
-      "src",
-      "/api/files/thumbnails/a.jpg?exp=1&sig=s",
+    // 장식 이미지(alt="")라 역할이 없다. 표시 제목이 이름 역할을 한다.
+    // 불러오기 실패 감지(onError) 때문에 Next 이미지가 src를 절대 주소로 다시 쓴다
+    expect(first.querySelector("img")?.getAttribute("src")).toMatch(
+      /\/api\/files\/thumbnails\/a\.jpg\?exp=1&sig=s$/,
     );
     expect(within(first).getByText("www.instagram.com")).toBeInTheDocument();
     expect(within(first).getByText("#모션")).toBeInTheDocument();

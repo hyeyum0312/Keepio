@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Home } from "./Home";
 import { HomePreview } from "./HomePreview";
@@ -8,7 +8,19 @@ function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status });
 }
 
-function link(n: number) {
+type Thumb = { status: "pending" | "ready" | "failed"; url: string | null };
+
+function link(n: number): {
+  id: string;
+  url: string;
+  normalizedUrl: string;
+  createdAt: string;
+  deletedAt: null;
+  title: null;
+  displayTitle: string;
+  tags: never[];
+  thumbnail: Thumb;
+} {
   return {
     id: `id-${n}`,
     url: `https://site${n}.example/page`,
@@ -26,6 +38,7 @@ function link(n: number) {
 function renderHome(
   items: ReturnType<typeof link>[],
   nextCursor: string | null = null,
+  openSave = false,
 ) {
   vi.stubGlobal(
     "fetch",
@@ -36,7 +49,7 @@ function renderHome(
   });
   return render(
     <QueryClientProvider client={client}>
-      <Home />
+      <Home openSave={openSave} />
     </QueryClientProvider>,
   );
 }
@@ -90,24 +103,47 @@ describe("홈 (FEAT-009)", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("링크 저장을 누르면 저장 칸이 열린다", async () => {
-    renderHome([]);
-    await userEvent.click(screen.getByRole("button", { name: "+ 링크 저장" }));
-    expect(screen.getByLabelText("링크 주소")).toBeInTheDocument();
+  it("사이드바 링크 추가(/?save=1)로 들어오면 저장 칸을 열고, 닫기는 홈으로 돌아간다", async () => {
+    renderHome([], null, true);
+    expect(await screen.findByLabelText("링크 주소")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "닫기" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
+
+  it("썸네일이 있으면 그 이미지를, 없으면 링크마다 정해진 아트워크를 보여 준다", async () => {
+    renderHome([
+      {
+        ...link(1),
+        thumbnail: {
+          status: "ready",
+          url: "/api/files/thumbnails/t.jpg?exp=1&sig=s",
+        },
+      },
+    ]);
+    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    expect(card.querySelector("img")?.getAttribute("src")).toMatch(
+      /\/api\/files\/thumbnails\/t\.jpg/,
+    );
   });
 });
 
 describe("홈 미리보기", () => {
-  it("샘플로 세 섹션과 카테고리 칩을 그리고, 칩을 누르면 다음 카드로 넘어간다", async () => {
+  it("샘플로 세 섹션과 카테고리 선택을 그리고, 저장하면 다음 카드로 넘어간다. 썸네일을 못 불러오면 아트워크로 대신한다", async () => {
     render(<HomePreview />);
     expect(screen.getByRole("heading", { name: /버킷/ })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /공유한 페이지/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("[미리보기] 랜딩 페이지 레퍼런스"),
-    ).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "여행" }));
+    const card = screen.getByRole("article", { name: "정리할 링크" });
+    const img = card.querySelector("img")!;
+    fireEvent.error(img);
+    expect(card.querySelector("img")?.getAttribute("src")).toMatch(
+      /bucket-art/,
+    );
+    await userEvent.selectOptions(screen.getByLabelText("카테고리"), "개발");
+    await userEvent.click(screen.getByRole("button", { name: "저장" }));
     expect(screen.getByText("[미리보기] 모션 가이드")).toBeInTheDocument();
   });
 });
