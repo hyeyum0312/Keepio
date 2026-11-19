@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | feat(web): 비로그인으로 홈에 오면 로그인 화면으로
+
+- Feature: FEAT-006
+- 목적: 로그인 전 첫 화면(랜딩)이 기능 위주 최소 화면이라 지금은 보여 줄 이유가 없다. 랜딩 시안이 나오기 전까지 비로그인 방문은 바로 로그인 화면으로 보낸다(사용자 결정). FEAT-006 AC-12(비로그인 홈 = 랜딩)를 임시로 바꾼다.
+- 변경: `app/page.tsx` — `AuthSwitch`(랜딩/홈) 대신 `RequireAuth`(확인 중 로딩, 비로그인이면 `/login`으로 replace). `features/landing`은 지우지 않고 남겨 둔다(쓰는 곳 없음).
+- 영향: 비로그인 `/` 방문. 로그인 상태는 그대로. 랜딩 아래의 개발용 "기획·디자인 보기" 링크는 사라지고, `/preview/design` 주소로 직접 연다. API·데이터 변경 없음.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest·tsc는 커밋 hook(사용자 Mac)과 PR CI. RequireAuth 동작은 기존 테스트가 다룬다.
+- 주의/롤백: revert로 랜딩 복원. 랜딩 시안을 만들면 FEAT-006 AC-12와 함께 다시 정한다.
+
 ## 2026-11-19 | docs: 화면 목록에 전체 링크 디자인과 와이어플로우 연결
 
 - Feature: FEAT-009
