@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BucketTiles, type BucketTile } from "./BucketTiles";
 import { SharedPages, type SharedPage } from "./SharedPages";
 
@@ -6,6 +7,7 @@ function Section({
   title,
   count,
   more,
+  moreHref,
   children,
 }: {
   id: string;
@@ -13,6 +15,8 @@ function Section({
   // 서버가 준 정확한 개수만 넘긴다(일부 페이지로 세지 않는다)
   count?: number;
   more?: string;
+  // 있으면 more를 그 주소로 가는 링크로 그린다(없으면 준비 중 글자)
+  moreHref?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -29,7 +33,17 @@ function Section({
             </span>
           )}
         </h2>
-        {more && <span className="text-sm text-muted-foreground">{more}</span>}
+        {more &&
+          (moreHref ? (
+            <Link
+              href={moreHref}
+              className="text-sm text-muted-foreground hover:text-foreground focus-visible:focus-ring"
+            >
+              {more}
+            </Link>
+          ) : (
+            <span className="text-sm text-muted-foreground">{more}</span>
+          ))}
       </div>
       <div className="px-6 md:px-0">{children}</div>
     </section>
@@ -72,7 +86,13 @@ export function HomeView({
         {savePanel}
       </div>
       {triage && (
-        <Section id="home-triage" title="정리할 링크" count={triageCount}>
+        <Section
+          id="home-triage"
+          title="정리할 링크"
+          count={triageCount}
+          more="전체 보기 →"
+          moreHref="/links"
+        >
           {triage}
         </Section>
       )}

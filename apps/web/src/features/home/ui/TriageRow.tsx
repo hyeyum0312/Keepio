@@ -1,3 +1,4 @@
+import { apiUrl } from "@keepio/api-client";
 import Image from "next/image";
 
 // FEAT-010: 서버가 주는 표시 제목(넣은 제목 → 페이지 제목 → 도메인)이 있으면 그것을 쓴다
@@ -6,6 +7,8 @@ export type TriageLink = {
   url: string;
   title?: string | null;
   displayTitle?: string;
+  // FEAT-010 썸네일. 준비된 것만 이미지로, 나머지(가져오는 중·실패·없음)는 회색 상자
+  thumbnail?: { status: string; url?: string | null };
 };
 export type CategoryChip = {
   id: string;
@@ -51,8 +54,20 @@ export function TriageRow({
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
           aria-hidden="true"
-          className="h-12 w-16 shrink-0 rounded-xl bg-muted"
-        />
+          className="h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-muted"
+        >
+          {link.thumbnail?.status === "ready" && link.thumbnail.url && (
+            // 서명 주소라 Next 이미지 최적화(캐시 키)를 거치지 않는다
+            <Image
+              src={apiUrl(link.thumbnail.url)}
+              alt=""
+              width={64}
+              height={48}
+              unoptimized
+              className="size-full object-cover"
+            />
+          )}
+        </div>
         <div className="min-w-0">
           <a
             href={link.url}

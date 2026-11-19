@@ -44,6 +44,26 @@ function renderHome(
 describe("홈 (FEAT-009)", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it("정리할 링크에 썸네일을 보여 주고, 전체 보기는 전체 링크로 간다", async () => {
+    const ready = {
+      ...link(1),
+      thumbnail: {
+        status: "ready",
+        url: "/api/files/thumbnails/a.png?exp=1&sig=s",
+      },
+    };
+    renderHome([ready]);
+    await screen.findByRole("heading", { name: /정리할 링크/ });
+    const card = screen.getByRole("article", { name: "정리할 링크" });
+    expect(card.querySelector("img")?.getAttribute("src")).toContain(
+      "/api/files/thumbnails/a.png",
+    );
+    expect(screen.getByRole("link", { name: "전체 보기 →" })).toHaveAttribute(
+      "href",
+      "/links",
+    );
+  });
+
   it("카테고리가 없는 링크를 정리할 링크로 한 장씩 보여 주고, 건너뛰면 다음 링크가 나온다", async () => {
     renderHome([link(1), link(2)]);
     expect(
