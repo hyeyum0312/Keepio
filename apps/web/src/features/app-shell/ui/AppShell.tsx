@@ -21,6 +21,8 @@ const MAIN: NavItem[] = [
   { label: "카테고리", icon: "tag", soon: true },
   { label: "버킷", icon: "bucket", soon: true },
   { label: "공유한 페이지", icon: "pages", soon: true },
+  // AI 도구(MCP)에서 내 링크를 쓰게 하는 연결 설정. 기능은 나중에(목록만)
+  { label: "MCP 연결", icon: "plug", soon: true },
 ];
 const TABS: NavItem[] = [
   { label: "홈", icon: "home", href: "/" },
@@ -98,8 +100,12 @@ export function AppShell({
             href="/"
             className="inline-flex items-center gap-2 rounded-lg focus-visible:focus-ring"
           >
-            {/* 접힘·좁은 폭은 작은 마크, 펼친 넓은 폭은 워드마크(ADR-016) */}
-            <KeepioIcon size={28} className={collapsed ? "" : "lg:hidden"} />
+            {/* 접힘·좁은 폭은 북마크 마크(바탕 타일 없이), 펼친 넓은 폭은 워드마크(ADR-016) */}
+            <KeepioIcon
+              size={28}
+              tile={false}
+              className={collapsed ? "" : "lg:hidden"}
+            />
             <KeepioWordmark
               size={26}
               className={collapsed ? "hidden" : "hidden lg:inline-flex"}

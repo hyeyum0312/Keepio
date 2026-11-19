@@ -11,7 +11,7 @@ describe("앱 틀 (FEAT-009)", () => {
     render(<AppShell>본문</AppShell>);
     const nav = screen.getByRole("navigation", { name: "주요 메뉴" });
     expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent("홈");
-    for (const name of ["카테고리", "버킷", "공유한 페이지"]) {
+    for (const name of ["카테고리", "버킷", "공유한 페이지", "MCP 연결"]) {
       const item = within(nav).getByRole("link", {
         name: new RegExp(`^${name}\\s*\\(준비 중\\)$`),
       });

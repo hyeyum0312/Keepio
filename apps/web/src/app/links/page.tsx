@@ -9,7 +9,8 @@ export default function LinksPage() {
     <RequireAuth>
       <AppShell account={<AccountMenu />}>
         <main className="flex w-full max-w-5xl flex-col gap-6 px-6 pt-6 pb-16 md:gap-8 md:px-10 md:pt-8">
-          <h1 className="text-title font-bold tracking-tight">전체 링크</h1>
+          {/* 사이드바에서 이미 "전체 링크"가 선택돼 있어 화면 제목은 보조기기용으로만 둔다 */}
+          <h1 className="sr-only">전체 링크</h1>
           <AllLinks />
         </main>
       </AppShell>
