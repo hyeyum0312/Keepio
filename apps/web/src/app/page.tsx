@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { AppShell } from "@/features/app-shell";
 import { AccountMenu, RequireAuth } from "@/features/auth";
@@ -12,15 +11,10 @@ export default function Page() {
     <RequireAuth>
       <AppShell
         account={<AccountMenu />}
-        sidebarExtra={
-          isPreviewEnabled() && (
-            <Link
-              href="/preview/design"
-              className="flex min-h-9 items-center rounded-xl px-3 text-sm text-muted-foreground hover:bg-muted focus-visible:focus-ring"
-            >
-              기획·디자인 (개발용)
-            </Link>
-          )
+        devLinks={
+          isPreviewEnabled()
+            ? [{ label: "기획·디자인", href: "/preview/design" }]
+            : []
         }
       >
         <Suspense>
