@@ -35,10 +35,13 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
   let tokens: AccessTokenService;
   let thumbnails: BookmarkThumbnailsService;
   let storageDir: string;
+  let tempRoot: string;
   const userIds: string[] = [];
 
   beforeAll(async () => {
-    storageDir = await mkdtemp(path.join(tmpdir(), "keepio-thumbs-"));
+    // 기본값(.storage)처럼 점으로 시작하는 폴더 아래에 둔다(점 폴더 경로에서 이미지가 404였던 회귀 방지)
+    tempRoot = await mkdtemp(path.join(tmpdir(), "keepio-thumbs-"));
+    storageDir = path.join(tempRoot, ".storage");
     vi.stubEnv("STORAGE_DIR", storageDir);
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(LinkPreviewFetcher)
@@ -62,7 +65,7 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     await prisma.bookmark.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
     await app.close();
-    await rm(storageDir, { recursive: true, force: true });
+    await rm(tempRoot, { recursive: true, force: true });
     vi.unstubAllEnvs();
   });
 
@@ -228,7 +231,7 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     );
   });
 
-  it("AC-04·07·09: og:image를 받아 보관하고, 서명 주소로만 이미지를 준다. 제목이 없으면 og:title을 보여 준다", async () => {
+  it("AC-04·07·09: og:image를 받아 보관하고(점 폴더 아래여도), 서명 주소로만 이미지를 준다. 제목이 없으면 og:title을 보여 준다", async () => {
     fetcher.fetchPage.mockResolvedValue({
       html: OG_PAGE,
       finalUrl: "https://www.instagram.com/p/X/",

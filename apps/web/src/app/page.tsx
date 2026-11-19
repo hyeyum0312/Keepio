@@ -12,10 +12,7 @@ export default function Page() {
     <AuthSwitch
       authenticated={
         <AppShell
-          account={{
-            up: <AccountMenu open="up" />,
-            down: <AccountMenu open="down" />,
-          }}
+          account={<AccountMenu />}
           sidebarExtra={
             isPreviewEnabled() && (
               <Link

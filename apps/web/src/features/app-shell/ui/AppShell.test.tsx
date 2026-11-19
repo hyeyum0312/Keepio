@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppShell } from "./AppShell";
 
@@ -7,15 +7,20 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 describe("앱 틀 (FEAT-009)", () => {
   afterEach(() => window.localStorage.clear());
 
-  it("현재 화면 메뉴를 표시하고, 기능이 없는 메뉴는 누를 수 없게 '준비 중'으로 둔다", () => {
+  it("현재 화면 메뉴를 표시하고, 기능이 없는 메뉴는 시안처럼 보이되 누를 수 없고 '준비 중'으로 읽힌다", () => {
     render(<AppShell>본문</AppShell>);
     const nav = screen.getByRole("navigation", { name: "주요 메뉴" });
     expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent("홈");
-    const soon = screen.getAllByText(/준비 중/);
-    expect(soon.length).toBeGreaterThan(0);
+    for (const name of ["카테고리", "버킷", "공유한 페이지"]) {
+      const item = within(nav).getByRole("link", {
+        name: new RegExp(`^${name}\\s*\\(준비 중\\)$`),
+      });
+      expect(item).toHaveAttribute("aria-disabled", "true");
+      expect(item).not.toHaveAttribute("href");
+    }
     expect(
-      screen.queryByRole("link", { name: /버킷/ }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "알림 (준비 중)" }),
+    ).toHaveAttribute("aria-disabled", "true");
   });
 
   it("사이드바를 접으면 상태가 남고 펼치기 버튼으로 바뀐다", async () => {
@@ -29,10 +34,14 @@ describe("앱 틀 (FEAT-009)", () => {
     ).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("서버가 준 카테고리가 없으면 카테고리 영역을 그리지 않는다", () => {
-    render(<AppShell>본문</AppShell>);
+  it("계정 버튼은 위쪽 막대에 둔다", () => {
+    render(
+      <AppShell account={<button type="button">계정 메뉴</button>}>
+        본문
+      </AppShell>,
+    );
     expect(
-      screen.queryByRole("navigation", { name: "카테고리" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "계정 메뉴" }),
+    ).toBeInTheDocument();
   });
 });

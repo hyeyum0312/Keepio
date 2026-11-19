@@ -6,12 +6,7 @@ import { BookmarkList } from "@/features/bookmarks";
 export default function TrashPage() {
   return (
     <RequireAuth>
-      <AppShell
-        account={{
-          up: <AccountMenu open="up" />,
-          down: <AccountMenu open="down" />,
-        }}
-      >
+      <AppShell account={<AccountMenu />}>
         <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 pt-4 pb-16 md:px-10 md:pt-8">
           <h1 className="text-title font-semibold tracking-tight">휴지통</h1>
           <BookmarkList status="deleted" />

@@ -129,17 +129,20 @@ export function SubmitButton({
   pending,
   disabled = false,
   children,
+  className = "",
 }: {
   pending: boolean;
   disabled?: boolean;
   children: React.ReactNode;
+  // 기본은 폭 100%(인증 폼). 입력칸 옆에 둘 때는 폭을 내용에 맞춘다
+  className?: string;
 }) {
   return (
     <button
       type="submit"
       disabled={pending || disabled}
       aria-busy={pending || undefined}
-      className={buttonClass.primary}
+      className={`${buttonClass.primary} ${className}`.trim()}
     >
       {children}
     </button>

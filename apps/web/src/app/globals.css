@@ -47,6 +47,9 @@
   --border-subtle: #e6e7ec;
   /* 홈(FEAT-009): 유일한 그림자 카드용 그림자, 카테고리 칩 캐릭터 얼굴 배경 */
   --shadow-soft: rgba(32, 33, 42, 0.08);
+  /* 밝은 아트워크(버킷 아트) 위 글자·아이콘. 테마와 무관하게 아트가 밝아서 라이트·다크 모두 같은 값 */
+  --on-art: #20212a;
+  --on-art-surface: #ffffff;
   --face-yellow: #fff4d6;
   --face-blue: #e6edff;
   --face-red: #ffe6e3;
@@ -172,6 +175,8 @@
   --color-accent: var(--accent);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
+  --color-on-art: var(--on-art);
+  --color-on-art-surface: var(--on-art-surface);
   --color-warning: var(--warning);
   --color-focus-ring: var(--focus-ring);
   --color-ai: var(--ai);
@@ -333,6 +338,17 @@ body {
   .kp-rise {
     animation: none;
   }
+}
+
+/* 전체 링크 저장 카드 왼쪽 색 번짐(LINK-01 시안). 색은 wash 토큰(라이트·다크가 알아서 바뀐다), 오른쪽은 카드 배경으로 사라진다 */
+.kp-save-art {
+  background:
+    radial-gradient(80% 70% at 25% 20%, var(--wash-pink), transparent 75%),
+    radial-gradient(90% 80% at 40% 85%, var(--wash-blue), transparent 80%),
+    radial-gradient(70% 90% at 70% 45%, var(--face-purple), transparent 80%);
+  filter: blur(28px);
+  opacity: calc(0.8 * var(--wash-strength));
+  mask-image: linear-gradient(to right, black 30%, transparent 95%);
 }
 
 /* 첫 화면 색 번짐(07-BRAND 7.1 v3·v4). 네 모서리 균등 대신 비대칭·불규칙, 중앙(제목·카드)은 배경색 그대로.

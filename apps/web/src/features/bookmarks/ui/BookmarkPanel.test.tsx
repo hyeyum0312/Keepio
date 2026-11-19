@@ -228,9 +228,11 @@ describe("북마크 화면 (FEAT-002)", () => {
     renderPanel();
     await screen.findByText("https://example.com/2");
 
+    // LINK-01: 삭제는 ⋯ 메뉴 안에 있다
     await userEvent.click(
-      screen.getByRole("button", { name: "삭제: https://example.com/2" }),
+      screen.getByRole("button", { name: "더보기: https://example.com/2" }),
     );
+    await userEvent.click(screen.getByRole("menuitem", { name: "삭제" }));
     await vi.waitFor(() => expect(links()).toEqual(["https://example.com/1"]));
 
     await userEvent.click(screen.getByRole("button", { name: "휴지통" }));

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { BUCKET_ART, type BucketArt } from "../lib/bucket-art";
+import { HomeIcon } from "./HomeIcons";
 
 export type BucketTile = {
   id: string;
@@ -10,27 +11,39 @@ export type BucketTile = {
   art: BucketArt;
 };
 
-// 홈 버킷 타일(07-BRAND: 이미지 + 이름, 상자 없음). 상태(공개·AI 연결)는 버킷 상세에서만 보여 준다
+// 홈 버킷 타일(2026-11-19 시안): 아트워크 + 왼쪽 위 책갈피 + 이름·더보기 + 링크 수·업데이트
 export function BucketTiles({ buckets }: { buckets: BucketTile[] }) {
   return (
-    <ul className="flex snap-x gap-3 overflow-x-auto md:grid md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] md:gap-4 md:overflow-visible">
+    <ul className="flex snap-x gap-3 overflow-x-auto md:grid md:grid-cols-4 md:gap-4 md:overflow-visible">
       {buckets.map((bucket) => (
-        <li key={bucket.id} className="w-36 shrink-0 snap-start md:w-auto">
+        <li key={bucket.id} className="w-40 shrink-0 snap-start md:w-auto">
           <div className="flex flex-col gap-1">
-            <span className="relative block h-26 overflow-hidden rounded-[18px] md:h-30 md:rounded-[20px]">
+            <span className="relative block aspect-[16/10] overflow-hidden rounded-[20px]">
               <Image
                 src={BUCKET_ART[bucket.art]}
                 alt=""
                 fill
-                sizes="(min-width: 768px) 240px, 144px"
+                sizes="(min-width: 768px) 25vw, 160px"
                 className="object-cover"
               />
+              <span className="absolute top-3 left-3 text-white drop-shadow-sm">
+                <HomeIcon name="bookmark" size={18} filled />
+              </span>
             </span>
-            <span className="pt-2 text-[15px] font-semibold md:text-[17px]">
-              {bucket.name}
+            <span className="flex items-center justify-between gap-2 pt-2 pl-2">
+              <span className="truncate text-[15px] font-bold md:text-base">
+                {bucket.name}
+              </span>
+              <button
+                type="button"
+                aria-label={`${bucket.name} 더보기`}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus-visible:focus-ring"
+              >
+                <HomeIcon name="more" />
+              </button>
             </span>
-            <span className="text-caption text-muted-foreground">
-              링크 {bucket.linkCount}개 · {bucket.updatedLabel}
+            <span className="truncate pl-2 text-caption text-muted-foreground">
+              {bucket.linkCount}개 링크 · {bucket.updatedLabel}
             </span>
           </div>
         </li>
