@@ -48,9 +48,12 @@ export function KeepioWordmark({
 export function KeepioIcon({
   size = 24,
   className = "",
+  tile = true,
 }: {
   size?: number;
   className?: string;
+  // false면 바탕 타일 없이 북마크만(접힌 사이드바처럼 화면 안에 놓일 때)
+  tile?: boolean;
 }) {
   return (
     <svg
@@ -61,15 +64,19 @@ export function KeepioIcon({
       height={size}
       className={className}
     >
-      <rect
-        width="32"
-        height="32"
-        rx="7"
-        style={{ fill: "var(--logo-tile)" }}
-      />
+      {tile && (
+        <rect
+          width="32"
+          height="32"
+          rx="7"
+          style={{ fill: "var(--logo-tile)" }}
+        />
+      )}
       <path
         d="M10.5 7.5h11v17l-5.5-3.8-5.5 3.8z"
-        style={{ fill: "var(--logo-mark-on-tile)" }}
+        style={{
+          fill: tile ? "var(--logo-mark-on-tile)" : "var(--logo-mark)",
+        }}
       />
     </svg>
   );
