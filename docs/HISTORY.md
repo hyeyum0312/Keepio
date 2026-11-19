@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-19 | ci: Dependabot PR은 HISTORY 검사 건너뛰기
+
+- Feature: N/A
+- 목적: Dependabot은 HISTORY를 쓰지 않아 열린 PR 5개가 모두 HISTORY 검사에서 30초 만에 실패하고, 테스트·빌드는 한 번도 돌지 않았다. 매번 사람이 항목을 붙이는 수고를 없앤다(사용자 결정).
+- 변경: `ci.yml` HISTORY 보존 검사 단계에 `dependabot/` 브랜치 제외 조건. `docs/standards/HISTORY.md` 6번을 예외 규칙으로(메이저 업데이트는 merge 전 릴리스 노트 확인).
+- 영향: Dependabot PR의 CI 판정만. 사람이 올리는 PR은 그대로 검사. Dependabot 의존성 변경은 HISTORY에 남지 않고 Git 로그·PR로만 추적된다.
+- 검증: `python3 -c yaml.safe_load`로 `ci.yml` 문법 PASS, prettier(바뀐 파일) PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. 실제 CI 동작은 이 PR이 dev에 들어간 뒤 Dependabot PR을 rebase해서 확인해야 한다(미실행).
+- 주의/롤백: revert로 롤백.
+
 ## 2026-11-19 | chore: PR 올리기는 AI가 묻지 않고 하고, 설치 스크립트 허용 목록 추가
 
 - Feature: N/A
