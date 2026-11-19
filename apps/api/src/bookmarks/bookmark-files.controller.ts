@@ -53,7 +53,9 @@ export class BookmarkFilesController {
     // 서명 주소가 바뀌면 새로 받는다. 공유 캐시에는 두지 않는다
     res.setHeader("cache-control", "private, max-age=600");
     res.setHeader("x-content-type-options", "nosniff");
-    res.sendFile(this.storage.filePath(key), (err) => {
+    // 저장 폴더 기본값이 `.storage`라 경로에 점으로 시작하는 폴더가 있다. 기본값(dotfiles: ignore)이면 404가 난다.
+    // key는 서명으로 확인한 값이고 파일명 형식은 저장소가 정한다
+    res.sendFile(this.storage.filePath(key), { dotfiles: "allow" }, (err) => {
       if (err && !res.headersSent) {
         res.status(HttpStatus.NOT_FOUND).end();
       }
