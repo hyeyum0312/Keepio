@@ -653,6 +653,77 @@
       }
     },
     "/api/bookmarks/{id}": {
+      "patch": {
+        "operationId": "BookmarksController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookmarkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Bookmarks"]
+      },
       "delete": {
         "operationId": "BookmarksController_remove",
         "parameters": [
@@ -1143,6 +1214,11 @@
             "type": "string",
             "description": "보여 줄 제목: 넣은 제목 → 페이지 제목(og:title) → 도메인"
           },
+          "titleSource": {
+            "type": "string",
+            "enum": ["user", "page", "site"],
+            "description": "displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음)"
+          },
           "tags": {
             "description": "이름순",
             "type": "array",
@@ -1167,6 +1243,7 @@
           "deletedAt",
           "title",
           "displayTitle",
+          "titleSource",
           "tags",
           "thumbnail",
           "faviconUrl"
@@ -1215,6 +1292,19 @@
           }
         },
         "required": ["items", "nextCursor"]
+      },
+      "UpdateBookmarkDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100,
+            "example": "다이어리 데이 체크 다이어리",
+            "description": "비우거나 null이면 사용자 제목을 지운다"
+          }
+        },
+        "required": ["title"]
       }
     }
   }

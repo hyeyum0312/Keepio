@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -47,6 +48,7 @@ import {
 } from "./dto/bookmark-response.dto.js";
 import { ListBookmarksQuery } from "./dto/list-bookmarks.dto.js";
 import { SaveBookmarkDto } from "./dto/save-bookmark.dto.js";
+import { UpdateBookmarkDto } from "./dto/update-bookmark.dto.js";
 
 @Controller("api/bookmarks")
 @UseGuards(UserGuard)
@@ -93,6 +95,21 @@ export class BookmarksController {
       items: page.items.map((b) => this.toResponse(b)),
       nextCursor: page.nextCursor,
     };
+  }
+
+  // FEAT-011 AC-01~03. 제목 수정(비우면 사용자 제목 삭제). 휴지통·남의 링크는 404
+  @Patch(":id")
+  @ApiOkResponse({ type: BookmarkResponse })
+  @ApiBadRequestResponse({ type: ApiErrorResponse })
+  @ApiNotFoundResponse({ type: ApiErrorResponse })
+  async update(
+    @CurrentUser() user: AuthUser,
+    @Param("id") id: string,
+    @Body() dto: UpdateBookmarkDto,
+  ): Promise<BookmarkResponse> {
+    return this.toResponse(
+      await this.bookmarks.updateTitle(user.id, id, dto.title),
+    );
   }
 
   @Delete(":id")
@@ -154,6 +171,7 @@ export class BookmarksController {
       deletedAt: bookmark.deletedAt?.toISOString() ?? null,
       title: bookmark.title,
       displayTitle: displayTitle(bookmark),
+      titleSource: titleSource(bookmark),
       tags: bookmark.tags,
       thumbnail: {
         status: bookmark.thumbnailStatus,
@@ -169,6 +187,12 @@ export class BookmarksController {
       faviconUrl: bookmark.faviconUrl,
     };
   }
+}
+
+// FEAT-011 AC-04. 표시 제목을 무엇으로 만들었는지(사이트 이름이면 화면이 "제목 넣기"를 보여 준다)
+function titleSource(bookmark: BookmarkRecord): "user" | "page" | "site" {
+  if (bookmark.title) return "user";
+  return bookmark.pageTitle ? "page" : "site";
 }
 
 // FEAT-010 AC-07·17·18·19. 넣은 제목 → og:title → 사이트 이름(짧은 주소면 따라간 마지막 주소 기준)

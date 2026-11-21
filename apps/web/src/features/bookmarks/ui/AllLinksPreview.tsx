@@ -23,6 +23,7 @@ function sample(
     deletedAt: null,
     title,
     displayTitle: title,
+    titleSource: "user" as const,
     tags: tags.map((name) => ({ id: `${n}-${name}`, name })),
     thumbnail: {
       status: "ready" as const,

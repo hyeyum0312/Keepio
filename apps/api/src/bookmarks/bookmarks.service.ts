@@ -27,6 +27,7 @@ const NOT_FOUND_MESSAGE = "링크를 찾을 수 없어요.";
 const ALREADY_SAVED_MESSAGE = "같은 링크가 이미 저장되어 있어요.";
 // docs/features/bookmark-meta.md 오류 표(FEAT-010)
 const META_INVALID_MESSAGE = "제목은 100자, 태그는 30자까지 입력할 수 있어요.";
+const TITLE_INVALID_MESSAGE = "제목은 100자까지 입력할 수 있어요.";
 const BOOKMARK_TAG_LIMIT_MESSAGE = "링크 하나에 태그는 10개까지 달 수 있어요.";
 const TAG_LIMIT_MESSAGE = "태그는 500개까지 만들 수 있어요.";
 export const MAX_TITLE_LENGTH = 100;
@@ -165,6 +166,26 @@ export class BookmarksService {
     return owned;
   }
 
+  // FEAT-011 AC-01~03. 활성 북마크의 제목만. 정규화는 저장할 때와 같다(FEAT-010 AC-01)
+  async updateTitle(
+    userId: string,
+    id: string,
+    input: string | null,
+  ): Promise<BookmarkRecord> {
+    if (!isUuid(id)) throw notFound();
+    const title = normalizeTitle(input);
+    if (title && title.length > MAX_TITLE_LENGTH) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        "VALIDATION_FAILED",
+        TITLE_INVALID_MESSAGE,
+      );
+    }
+    const updated = await this.bookmarks.updateTitle(userId, id, title);
+    if (!updated) throw notFound();
+    return updated;
+  }
+
   // FEAT-002 AC-04·07. 이미 삭제됐어도 성공(멱등)
   async remove(userId: string, id: string): Promise<void> {
     if (!isUuid(id)) throw notFound();
@@ -204,8 +225,7 @@ function parseMeta(input: SaveBookmarkInput): {
   title: string | null;
   tags: TagName[];
 } {
-  const title =
-    input.title?.normalize("NFC").trim().replace(/\s+/g, " ") || null;
+  const title = normalizeTitle(input.title);
   if (title && title.length > MAX_TITLE_LENGTH) throw metaInvalid();
   const tags = uniqueTagNames(input.tags ?? []);
   if (!tags) throw metaInvalid();
@@ -217,6 +237,11 @@ function parseMeta(input: SaveBookmarkInput): {
     );
   }
   return { title, tags };
+}
+
+// 앞뒤 공백 제거·연속 공백 1칸·NFC. 비면 없음(null)
+export function normalizeTitle(raw: string | null | undefined): string | null {
+  return raw?.normalize("NFC").trim().replace(/\s+/g, " ") || null;
 }
 
 function metaInvalid() {

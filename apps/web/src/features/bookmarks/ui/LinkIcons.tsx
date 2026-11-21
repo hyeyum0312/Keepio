@@ -8,6 +8,9 @@ const PATHS = {
   list: "M4 6h16M4 12h16M4 18h16",
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13",
+  pencil: "M4 20h4L19 9l-4-4L4 16zM13 7l4 4",
+  image: "M4 5h16v14H4zM4 15l4-4 5 5 3-3 4 4",
+  close: "M6 6l12 12M18 6L6 18",
 } as const;
 
 export function LinkIcon({

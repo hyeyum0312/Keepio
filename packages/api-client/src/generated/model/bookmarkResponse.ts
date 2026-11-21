@@ -4,6 +4,7 @@
  * keepio API
  * OpenAPI spec version: 0.1.0
  */
+import type { BookmarkResponseTitleSource } from "./bookmarkResponseTitleSource";
 import type { BookmarkTagResponse } from "./bookmarkTagResponse";
 import type { BookmarkThumbnailResponse } from "./bookmarkThumbnailResponse";
 
@@ -22,6 +23,8 @@ export interface BookmarkResponse {
   title: string | null;
   /** 보여 줄 제목: 넣은 제목 → 페이지 제목(og:title) → 도메인 */
   displayTitle: string;
+  /** displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음) */
+  titleSource: BookmarkResponseTitleSource;
   /** 이름순 */
   tags: BookmarkTagResponse[];
   thumbnail: BookmarkThumbnailResponse;

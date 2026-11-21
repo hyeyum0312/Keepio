@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | feat: 링크 제목 수정과 여러 개 선택 (FEAT-011)
+
+- Feature: FEAT-011 (`docs/features/bookmark-edit-select.md` 신규), FEAT-010 AC-05·06 후속
+- 목적: 스마트스토어·쿠팡처럼 제목을 못 받는 링크를 저장한 뒤에 고칠 수 있게 하고, 여러 링크를 한 번에 고르고 지울 수 있게 한다(사용자 결정, 2026-11-21 시안).
+- 변경: api `PATCH /api/bookmarks/:id { title }`(공백 정리, 1~100자, 비우면 null, 활성·본인만), 응답 `titleSource`(user·page·site). OpenAPI·api-client 재생성. web: ⋯ 메뉴 수정 → 줄 안 입력칸(Enter 저장·Esc 취소), 사이트 이름으로 보이는 링크에 "제목 넣기", 이미지 바꾸기를 ⋯ 메뉴로(썸네일 누르기는 선택), 썸네일 안 체크박스·모두 선택(중간 상태)·작업 막대(버킷·공유 페이지·카테고리는 준비 중)·여러 개 삭제(기존 DELETE 4개씩, 부분 실패는 고른 채로)·Esc 해제·모바일 "선택" 모드.
+- 영향: 전체 링크 목록·카드. 휴지통은 그대로(복구만). 북마크 응답에 필드 추가(추가만). DB 변경 없음. 썸네일 위 "캡처 올리기/이미지 바꾸기" 버튼은 없어지고 메뉴로.
+- 검증: 클라우드 복사본에서 api 단위 vitest 169 PASS, api `tsc`·eslint PASS, `nest build`→`openapi-export`→orval 재생성. web vitest 92 PASS(신규 9건), `tsc`·eslint·prettier PASS. api 통합 테스트(`bookmark-edit.int.test.ts` 4건)·`next build`·화면 확인·`openapi:check`는 사용자 Mac.
+- 주의/롤백: revert. 모바일 뒤로 가기로 선택 모드 나가기는 아직(완료·Esc만).
+
 ## 2026-11-21 | feat(api): 쿠팡 링크 사이트 이름·주소 정리 (FEAT-010 AC-20)
 
 - Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-20), spec 04 URL 정책

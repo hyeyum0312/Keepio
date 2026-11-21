@@ -64,6 +64,13 @@ export class BookmarkResponse {
   })
   displayTitle!: string;
 
+  @ApiProperty({
+    enum: ["user", "page", "site"],
+    description:
+      "displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음)",
+  })
+  titleSource!: "user" | "page" | "site";
+
   @ApiProperty({ type: [BookmarkTagResponse], description: "이름순" })
   tags!: BookmarkTagResponse[];
 

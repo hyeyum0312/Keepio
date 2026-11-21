@@ -98,7 +98,7 @@ describe("전체 링크 화면 (LINK-01 시안, FEAT-009 후속)", () => {
     });
     await userEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("menuitem", { name: "삭제" })).toHaveFocus();
+    expect(screen.getByRole("menuitem", { name: "수정" })).toHaveFocus();
 
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();

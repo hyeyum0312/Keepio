@@ -294,6 +294,19 @@ export class BookmarksRepository {
     return count === 1;
   }
 
+  // FEAT-011 AC-01·02. 활성이고 본인 것일 때만 제목을 바꾼다. 없으면 null
+  async updateTitle(
+    userId: string,
+    id: string,
+    title: string | null,
+  ): Promise<BookmarkRecord | null> {
+    const { count } = await this.prisma.bookmark.updateMany({
+      where: { id, userId, deletedAt: null },
+      data: { title },
+    });
+    return count === 1 ? this.findOwned(userId, id) : null;
+  }
+
   // 삭제된 것만 되살린다. 같은 URL의 활성 북마크가 있으면 부분 UNIQUE가 거부한다(P2002, AC-06의 최종 권위)
   async restore(userId: string, id: string): Promise<BookmarkRecord | null> {
     const [restored] = await this.prisma.bookmark.updateManyAndReturn({

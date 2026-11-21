@@ -354,6 +354,37 @@ body {
     rgba(0, 0, 0, 0.6) 100%
   );
 }
+/* 썸네일 안 체크박스(FEAT-011 AC-06). 이미지 색을 모르는 전제라 라이트·다크 같은 값:
+   흰 바탕 + 옅은 그림자, 고르면 잉크 바탕 + 흰 체크 */
+.kp-thumb-check {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(32, 33, 42, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+}
+input:checked + .kp-thumb-check {
+  background: #20212a
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / 16px no-repeat;
+  border-color: #20212a;
+}
+input:indeterminate + .kp-thumb-check {
+  background: #20212a
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E")
+    center / 16px no-repeat;
+  border-color: #20212a;
+}
+/* 선택 막대(잉크 바탕, 다크는 밝은 바탕) 위 삭제 글자 */
+.kp-delete-on-primary {
+  color: #ffb4aa;
+}
+:root[data-theme="dark"] .kp-delete-on-primary {
+  color: #c62828;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .kp-delete-on-primary {
+    color: #c62828;
+  }
+}
 /* 모바일 시트 뒤 어둡게(라이트·다크 같은 값) */
 .kp-backdrop {
   background: rgba(20, 21, 28, 0.45);
