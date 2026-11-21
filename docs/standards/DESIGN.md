@@ -6,6 +6,7 @@
 4. Semantic tokens: `background`, `foreground`, `surface`, `muted`, `border`, `primary`, `primary-foreground`, `destructive`, `success`, `warning`, `focus-ring` (define light/dark states if supported). Token names describe role, not a particular hue.
 5. New token requires usage rationale, accessibility contrast check, impact search, and design-system update. ESLint blocks hex/rgb/hsl/oklch literals and Tailwind arbitrary colors (`bg-[#fff]`) in `src/**/*.{ts,tsx}`. Not covered: Tailwind palette utilities (`text-red-500`), spacing/radius/z-index, CSS files — manual review still required.
 6. Component contract: variants, size, loading/empty/error/disabled, keyboard focus, screen reader labels, mobile touch target, responsive behavior.
+   - Text inputs: focus and error **replace the border color** (`focus-ring`, `destructive`) instead of adding an outer focus ring; error wins over focus and always comes with an error message linked by `aria-describedby`. Values and details: `docs/spec/07-BRAND.md` §6 "입력창 상태".
 7. Screens: library (all/unclassified/classified), categories N:M, bucket, template, editor, public page. AI recommendation must be distinguishable from applied state.
 8. Publication preview and published page must share rendering primitives; editor state must not leak into public renderer.
 9. Change visual tokens/components only if requested or required by acceptance criteria; do not redesign UI for domain-logic changes.

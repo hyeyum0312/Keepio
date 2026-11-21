@@ -34,7 +34,7 @@
   --destructive: #c62828;
   --success: #1e7d3a;
   --warning: #8f5200;
-  --focus-ring: #e8392b;
+  --focus-ring: #20212a;
   /* AI 기능 전용 강조색. 흰 배경 대비를 위해 #7f77dd → #6b63d6(07-BRAND) */
   --ai: #6b63d6;
   /* 첫 화면 색 번짐(라이트 전용, 07-BRAND 7.1 v3): 맑은 블러시 핑크·코랄 피치·페일 블루·버터 옐로 */
@@ -97,7 +97,7 @@
   --destructive: #ff8a80;
   --success: #6fd08c;
   --warning: #f5b54a;
-  --focus-ring: #fb8070;
+  --focus-ring: #f3f3f7;
   --ai: #a9a3f0;
   --border-subtle: #2a2e3a;
   --shadow-soft: rgba(0, 0, 0, 0.35);
@@ -134,7 +134,7 @@
     --destructive: #ff8a80;
     --success: #6fd08c;
     --warning: #f5b54a;
-    --focus-ring: #fb8070;
+    --focus-ring: #f3f3f7;
     --ai: #a9a3f0;
     --border-subtle: #2a2e3a;
     --shadow-soft: rgba(0, 0, 0, 0.35);
@@ -201,7 +201,7 @@ body {
   font-family: var(--font-sans);
 }
 
-/* 키보드 포커스(07-BRAND focus-ring, 2px + 2px 간격) */
+/* 키보드 포커스(07-BRAND focus-ring = 잉크, 2px + 2px 간격) */
 @utility focus-ring {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
