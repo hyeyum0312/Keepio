@@ -86,6 +86,8 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       displayTitle: "example.com",
       tags: [],
       thumbnail: { status: "pending", url: null, sourceUrl: null },
+      // FEAT-010 AC-15(페이지를 받기 전이라 없음)
+      faviconUrl: null,
     });
     expect(await countBookmarks(userId)).toBe(1);
   });

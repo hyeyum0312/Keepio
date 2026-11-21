@@ -29,6 +29,7 @@ function sample(
       url: `/bucket-art/${art}.webp`,
       sourceUrl: null,
     },
+    faviconUrl: null,
   };
 }
 

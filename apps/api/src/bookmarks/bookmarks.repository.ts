@@ -22,6 +22,8 @@ export type BookmarkRecord = {
   thumbnailSource: ThumbnailSource | null;
   // FEAT-010 AC-11. og:image 원본 주소
   thumbnailSourceUrl: string | null;
+  // FEAT-010 AC-15. 사이트 아이콘 주소
+  faviconUrl: string | null;
   tags: { id: string; name: string }[];
 };
 
@@ -45,6 +47,7 @@ const RECORD_SELECT = {
   thumbnailStatus: true,
   thumbnailSource: true,
   thumbnailSourceUrl: true,
+  faviconUrl: true,
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const satisfies Prisma.BookmarkSelect;
 
@@ -162,6 +165,14 @@ export class BookmarksRepository {
     await this.prisma.bookmark.updateMany({
       where: { id, thumbnailSourceUrl: null },
       data: { thumbnailSourceUrl: url },
+    });
+  }
+
+  // FEAT-010 AC-15. 사이트 아이콘 주소. 처음 받은 값만 둔다
+  async setFaviconUrl(id: string, url: string): Promise<void> {
+    await this.prisma.bookmark.updateMany({
+      where: { id, faviconUrl: null },
+      data: { faviconUrl: url },
     });
   }
 

@@ -165,6 +165,7 @@ export class BookmarksController {
             ? null
             : bookmark.thumbnailSourceUrl,
       },
+      faviconUrl: bookmark.faviconUrl,
     };
   }
 }

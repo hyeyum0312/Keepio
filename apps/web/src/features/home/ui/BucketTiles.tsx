@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { BUCKET_ART, type BucketArt } from "../lib/bucket-art";
+import { type BucketArt, bucketArtFor } from "../lib/bucket-art";
 import { HomeIcon } from "./HomeIcons";
 
 export type BucketTile = {
@@ -7,7 +7,8 @@ export type BucketTile = {
   name: string;
   // 한 줄 설명(선택). 버킷 명세(BKT-02)에서 `description`으로 정한다. 없으면 줄을 그리지 않는다
   description?: string;
-  art: BucketArt;
+  // 사용자가 고른 썸네일. 없으면 중성 톤 8장 중 버킷 ID로 정한 그림
+  art?: BucketArt;
 };
 
 // 홈 버킷 카드(07-BRAND §7 "버킷 카드", 2026-11-21): 카드 틀 없이 썸네일 하나.
@@ -20,7 +21,7 @@ export function BucketTiles({ buckets }: { buckets: BucketTile[] }) {
         <li key={bucket.id} className="w-[220px] shrink-0 snap-start md:w-auto">
           <span className="relative block aspect-[16/10] overflow-hidden rounded-2xl bg-muted">
             <Image
-              src={BUCKET_ART[bucket.art]}
+              src={bucketArtFor(bucket)}
               alt=""
               fill
               sizes="(min-width: 768px) 33vw, 220px"

@@ -25,4 +25,9 @@ export interface BookmarkResponse {
   /** 이름순 */
   tags: BookmarkTagResponse[];
   thumbnail: BookmarkThumbnailResponse;
+  /**
+   * 링크 페이지가 알려 준 사이트 아이콘 주소(apple-touch-icon → icon). 없으면 null이고 화면은 사이트 주소/favicon.ico를 불러 본다. 보여 줄 썸네일이 없을 때 아트워크 위에 올린다
+   * @nullable
+   */
+  faviconUrl: string | null;
 }

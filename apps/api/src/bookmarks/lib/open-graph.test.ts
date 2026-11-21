@@ -3,7 +3,7 @@ import { parseOpenGraph } from "./open-graph.js";
 
 const PAGE = "https://www.instagram.com/p/Df4Gbo2kYej/";
 
-describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
+describe("parseOpenGraph (FEAT-010 AC-04·07·12·15)", () => {
   it("AC-04: og:image와 og:title을 읽는다(속성 순서·따옴표 무관)", () => {
     const html = `<head>
       <meta content='Studio on Instagram: &quot;new reel&quot;' property='og:title'>
@@ -12,6 +12,7 @@ describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
     expect(parseOpenGraph(html, PAGE)).toEqual({
       image: "https://scontent.cdninstagram.com/v/a.jpg?stp=1&oh=2",
       title: 'Studio on Instagram: "new reel"',
+      icon: null,
     });
   });
 
@@ -39,6 +40,7 @@ describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
     expect(parseOpenGraph("<html><body><p>x</p></body></html>", PAGE)).toEqual({
       image: null,
       title: null,
+      icon: null,
     });
   });
 
@@ -49,6 +51,7 @@ describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
     expect(parseOpenGraph(twitter, PAGE)).toEqual({
       image: "https://cdn.example.com/t.jpg",
       title: "T 제목",
+      icon: null,
     });
 
     const plain = `<head><title>
@@ -57,6 +60,7 @@ describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
     expect(parseOpenGraph(plain, PAGE)).toEqual({
       image: "https://www.instagram.com/thumb.png",
       title: "뉴스 & 이야기 | 사이트",
+      icon: null,
     });
   });
 
@@ -69,6 +73,7 @@ describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
     expect(parseOpenGraph(html, PAGE)).toEqual({
       image: "https://cdn.example.com/og.jpg",
       title: "OG 제목",
+      icon: null,
     });
   });
 
@@ -80,6 +85,38 @@ describe("parseOpenGraph (FEAT-010 AC-04·07)", () => {
     expect(parseOpenGraph(html, PAGE)).toEqual({
       image: "https://cdn.example.com/t.jpg",
       title: "문서 제목",
+      icon: null,
     });
+  });
+
+  it("AC-15: apple-touch-icon을 먼저, 없으면 icon 중 sizes가 큰 것을 고른다", () => {
+    const html = `<link rel="icon" href="/favicon-16.png" sizes="16x16">
+      <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+      <link rel="mask-icon" href="/mask.svg">
+      <link rel="apple-touch-icon" href="/apple.png" sizes="180x180">`;
+    expect(parseOpenGraph(html, PAGE).icon).toBe(
+      "https://www.instagram.com/apple.png",
+    );
+    const icons = `<link rel="shortcut icon" href="/favicon.ico">
+      <link rel="icon" href="https://cdn.example.com/i-192.png" sizes="32x32 192x192">
+      <link rel="icon" href="/favicon-32.png" sizes="32x32">`;
+    expect(parseOpenGraph(icons, PAGE).icon).toBe(
+      "https://cdn.example.com/i-192.png",
+    );
+  });
+
+  it("AC-15: 크기 표기가 없으면 처음 것을, http(s)가 아니거나 mask-icon뿐이면 null", () => {
+    expect(
+      parseOpenGraph(
+        `<link rel="shortcut icon" href="/favicon.ico"><link rel="icon" href="/b.png">`,
+        PAGE,
+      ).icon,
+    ).toBe("https://www.instagram.com/favicon.ico");
+    expect(
+      parseOpenGraph(
+        `<link rel="icon" href="data:image/png;base64,AAAA"><link rel="mask-icon" href="/m.svg">`,
+        PAGE,
+      ).icon,
+    ).toBeNull();
   });
 });

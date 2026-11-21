@@ -15,11 +15,11 @@ export const SAMPLE_TRIAGE: TriageLink = {
   thumbnailUrl: BUCKET_ART.botanical,
 };
 
-// 예시 버킷은 설명 줄 없이 이름만(시안)
+// 예시 버킷은 설명 줄 없이 이름만(시안). 썸네일은 실제 버킷처럼 ID로 정한 기본 그림(세 ID는 서로 다른 그림이 나오게 골랐다)
 export const SAMPLE_BUCKETS: BucketTile[] = [
-  { id: "sample-trip", name: "여름 여행 레퍼런스", art: "liquid-blue" },
-  { id: "sample-brand", name: "브랜딩 무드보드", art: "soft-coral" },
-  { id: "sample-read", name: "읽을거리", art: "warm-light" },
+  { id: "sample-bucket-1", name: "여름 여행 레퍼런스" },
+  { id: "sample-bucket-2", name: "브랜딩 무드보드" },
+  { id: "sample-bucket-3", name: "읽을거리" },
 ];
 
 export const SAMPLE_PAGES: SharedPage[] = [

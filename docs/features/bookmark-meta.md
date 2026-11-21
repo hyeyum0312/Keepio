@@ -38,6 +38,17 @@
 - [ ] AC-12 대체 태그(2026-11-21): 대표 이미지는 `og:image` → `twitter:image` → `<link rel="image_src">`, 제목은 `og:title` → `twitter:title` → `<title>` 순으로 고른다. HTML 안 순서와 관계없이 이 순위를 따르고, 값이 비었거나 http(s) 주소가 아니면 다음 순위로 넘어간다. og 태그가 없는 사이트도 제목·썸네일이 보인다.
 - [ ] AC-13 큰 페이지(2026-11-21): 페이지가 3MB를 넘으면 실패로 끝내지 않고 앞 3MB만 읽어 AC-12로 파싱한다(대표 태그는 `<head>`에 있다). 이미지 상한(10MB 넘으면 거부)은 그대로.
 - [ ] AC-14 재시도(2026-11-21): 페이지·이미지 요청이 일시적으로 실패하면(시간 초과, 연결 끊김·일시적 DNS 실패, HTTP 5xx·429) 1초 뒤 한 번만 다시 받는다. 차단(403)·없음(404)·주소 거부·크기 초과는 다시 시도하지 않는다. 서버 종료 중에는 다시 시도하지 않는다.
+- [x] AC-15 파비콘(2026-11-21): 보여 줄 썸네일이 하나도 없을 때(보관 파일·원본 주소 모두 없거나 불러오지 못함) 아트워크 가운데에 그 사이트의 파비콘을 흰 둥근 타일(40px, 아이콘 24px)로 올린다. 파비콘 주소는 서버가 같은 HTML에서 `apple-touch-icon` → `<link rel="icon">`(가장 큰 `sizes`) → `shortcut icon` 순으로 고르고(`faviconUrl`), 없거나 HTML을 못 받았으면 화면이 `사이트 주소/favicon.ico`를 불러 본다. 파비콘도 못 불러오면 아트워크만 보인다. 서버는 파비콘을 받거나 보관하지 않고(요청 추가 없음), 화면은 원본 사이트에 리퍼러를 보내지 않는다. 외부 파비콘 서비스는 쓰지 않는다(D-16). 기존 행은 `faviconUrl`이 없어 `/favicon.ico`부터.
+
+## 검토한 대안 — 파비콘(AC-15)
+
+| 선택지                                    | 장점                                                 | 단점                                                      |
+| ----------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------- |
+| A. 화면만: 항상 `사이트 주소/favicon.ico` | API·DB 변경 없음, 바로 적용                          | 아이콘을 다른 곳에 두는 사이트는 못 찾는다, 작고 흐릿함   |
+| B. 서버가 HTML에서 주소만 읽음 + A로 대체 | 큰 아이콘(apple-touch-icon)을 찾는다, 요청 추가 없음 | DB 컬럼·API 필드 1개 추가, 주소는 원본 사이트에서 불러옴  |
+| C. 서버가 파비콘을 받아 보관              | 원본이 사라져도 보인다                               | 요청·저장 추가(SSRF 경로 늘어남), 작은 아이콘에 과한 처리 |
+
+- 추천 및 근거: B(사용자 결정 2026-11-21). 썸네일 원본 주소(AC-11)와 같은 방식이라 서버 요청이 늘지 않는다.
 
 ## 데이터 계약
 
@@ -47,6 +58,7 @@
   - `POST /api/bookmarks` body `{ url, title?, tags?: string[] }` → 기존 응답 + `title`, `displayTitle`, `tags: [{ id, name }]`, `thumbnail: { status, url | null, sourceUrl | null }`(sourceUrl은 AC-11)
   - `GET /api/bookmarks` 각 항목에 같은 필드 추가
   - `PUT /api/bookmarks/:id/thumbnail` multipart `file` → 200 북마크
+  - (AC-15) 북마크 응답에 `faviconUrl: string | null` 추가
   - `GET /api/files/thumbnails/:key?exp&sig` → 이미지(서명 검증, 인증 헤더 불필요. `<img>`로 부르기 위함)
 - 오류 문구(ADR-009):
 
@@ -61,6 +73,7 @@
 
 - DB 변경/마이그레이션(모두 추가만, 기존 행 영향 없음):
   - `bookmarks`: `title varchar(100) NULL`, `page_title varchar(300) NULL`(og:title), `thumbnail_key text NULL`, `thumbnail_status` enum(`pending`,`ready`,`failed`) NOT NULL DEFAULT `failed`(기존 행은 썸네일 없음으로), `thumbnail_source` enum(`auto`,`upload`) NULL, `thumbnail_source_url varchar(2048) NULL`(AC-11, 마이그레이션 `20261120000000_add_bookmark_thumbnail_source_url`)
+  - (AC-15) `bookmarks.favicon_url varchar(2048) NULL`(마이그레이션 `20261121000000_add_bookmark_favicon_url`)
   - `tags(id, user_id, name, normalized_name, created_at)` UNIQUE `(user_id, normalized_name)` — FEAT-008 정의와 동일
   - `bookmark_tags(bookmark_id, tag_id)` PK 복합, 양쪽 CASCADE
 
@@ -100,3 +113,10 @@
   - 마이그레이션 SQL은 손으로 썼다(이 환경에서 `prisma migrate dev` 불가). Mac에서 `npm run db:deploy` 후 `npm run db:migrate -- --create-only`로 차이가 없는지 확인 필요.
   - 실제 인스타 링크의 자동 썸네일은 사용자 Mac에서 확인 필요(이 환경은 instagram.com 접근 불가). og:image는 `facebookexternalhit` UA로 받아지는 것을 사용자가 확인했고, 기본 UA(KeepioBot)는 미확인.
   - 썸네일 작업은 프로세스 안 비동기(큐 전). 서버 재시작 시 pending은 10분 뒤 failed로 정리.
+
+## 후속 변경 (2026-11-21, AC-15 파비콘)
+
+- 서버: `lib/open-graph.ts`가 `icon`(apple-touch-icon → icon·shortcut icon, 같은 순위는 큰 `sizes`, mask-icon 제외)을 고르고, 썸네일 작업이 대표 이미지 유무와 관계없이 `favicon_url`에 처음 값만 남긴다(`setFaviconUrl`). 응답 `faviconUrl`.
+- 웹: `shared/lib/favicon-sources.ts`(faviconUrl → 사이트 주소/favicon.ico), `shared/ui/FaviconTile.tsx`(흰 둥근 타일, 불러온 뒤에만 보임, 모두 실패하면 그리지 않음, no-referrer). `BookmarkThumb`(목록·카드의 아트워크 상태)와 `TriageRow`(정리할 링크)에 올린다.
+- 테스트: `open-graph.test.ts` AC-15 2건, `bookmark-meta.int.test.ts` AC-15 2건(아이콘 주소 저장·아이콘 받지 않음, 태그 없으면 null), `bookmarks.int.test.ts` 응답에 `faviconUrl`, 웹 `Home.test.tsx` 파비콘 2건.
+- 남은 위험: 마이그레이션 SQL·Prisma 생성물·OpenAPI·api-client는 이 환경에서 생성 도구를 못 돌려 손으로 맞췄다(엔진 다운로드 차단). 사용자 Mac에서 `npm run db:generate`·`npm run db:deploy`·`npm run openapi:check`로 확인 필요. 통합 테스트도 Mac에서.

@@ -9,6 +9,7 @@ import { useRef, useState } from "react";
 import { fallbackArtFor } from "@/shared/lib/fallback-art";
 import { submit } from "@/shared/lib/server-message";
 import { thumbnailSources } from "@/shared/lib/thumbnail-sources";
+import { FaviconTile } from "@/shared/ui/FaviconTile";
 
 const ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
 // row: 5:3 모바일 120×72, PC 160×96(LINK-01 시안. 64×48은 인스타 썸네일 내용을 알아보기 어려웠다)
@@ -21,10 +22,12 @@ export type ThumbVariant = keyof typeof BOXES;
 
 // FEAT-010 AC-04~06. ready는 이미지, pending은 회색 상자, failed는 아트워크 + 캡처 올리기(활성 목록만).
 // 보관 파일을 못 불러오면(만료·삭제·서버 디스크 초기화) 링크 페이지의 원본 이미지(AC-11)를, 그것도 안 되면
-// 링크 ID로 정한 아트워크를 보여 준다(같은 링크는 늘 같은 그림)
+// 링크 ID로 정한 아트워크를 보여 준다(같은 링크는 늘 같은 그림). 아트워크 가운데에는 사이트 파비콘을 올린다(AC-15)
 export function BookmarkThumb({
   bookmarkId,
   title,
+  pageUrl,
+  faviconUrl,
   thumbnail,
   canUpload,
   onUploaded,
@@ -33,6 +36,9 @@ export function BookmarkThumb({
 }: {
   bookmarkId: string;
   title: string;
+  // 파비콘 대체(사이트 주소/favicon.ico)를 만들 링크 주소
+  pageUrl: string;
+  faviconUrl?: string | null;
   thumbnail: BookmarkThumbnailResponse;
   canUpload: boolean;
   onUploaded: () => void;
@@ -106,10 +112,18 @@ export function BookmarkThumb({
       className="object-cover"
     />
   );
+  const favicon = (
+    <FaviconTile
+      faviconUrl={faviconUrl}
+      pageUrl={pageUrl}
+      size={variant === "row" ? "sm" : "md"}
+    />
+  );
   if (!canUpload || thumbnail.status === "ready") {
     return (
       <div aria-hidden="true" className={`${BOX} relative`}>
         {artImage}
+        {favicon}
       </div>
     );
   }
@@ -123,6 +137,7 @@ export function BookmarkThumb({
         className={`${BOX} group relative focus-visible:focus-ring disabled:opacity-50`}
       >
         {artImage}
+        {favicon}
         <span className="absolute inset-x-1.5 bottom-1.5 rounded-lg bg-surface/90 py-1 text-caption font-medium text-foreground group-hover:bg-surface">
           {upload.isPending ? "올리는 중" : "캡처 올리기"}
         </span>

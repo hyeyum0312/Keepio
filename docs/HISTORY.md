@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | feat: 썸네일이 없으면 아트워크 위에 사이트 파비콘 (FEAT-010 AC-15)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-15)
+- 목적: 보여 줄 썸네일이 없는 링크도 어느 사이트인지 알아보게 아트워크 가운데에 파비콘을 올린다(사용자 결정, 대안 B).
+- 변경: 파서가 페이지 HTML에서 아이콘 주소를 고르고(`open-graph.ts`), `bookmarks.favicon_url` 칸(마이그레이션 `20261121000000_add_bookmark_favicon_url`)에 저장, 응답 `faviconUrl`(OpenAPI·api-client 갱신). 웹은 `FaviconTile`(faviconUrl → /favicon.ico → 없음)을 목록·카드·정리할 링크의 아트워크 위에.
+- 영향: 북마크 응답에 필드 추가(추가만). 서버 요청 수는 그대로(파비콘을 받지 않음), 화면이 원본 사이트에서 아이콘을 불러온다(리퍼러 없음). 외부 파비콘 서비스 없음(D-16). 기존 링크는 `/favicon.ico`부터.
+- 검증: 클라우드 복사본에서 api 단위 vitest 161 PASS(esbuild 설정), api `tsc`(Prisma 생성물을 손으로 맞춘 상태)·eslint PASS, web vitest 83 PASS·`tsc`·eslint PASS, prettier PASS. 통합 테스트·`prisma generate`·`openapi:check`는 실행하지 못함(엔진 다운로드 차단) — 사용자 Mac.
+- 주의/롤백: revert + `favicon_url` 칸 제거. 마이그레이션 SQL·OpenAPI·api-client는 손으로 썼으므로 Mac에서 재생성 결과와 같은지 확인.
+
+## 2026-11-21 | feat(web): 버킷 기본 썸네일 — 중성 톤 8장 중 하나
+
+- Feature: FEAT-009 (홈 버킷), 07-BRAND §7 버킷 썸네일
+- 목적: 기존 아트워크가 밝은 파스텔에 치우쳐 있어, 누구나 무난하게 쓸 중성 톤 8장(너무 어둡지 않게, 사용자 피드백)을 더하고 썸네일을 고르지 않은 버킷에 랜덤으로 보여 준다(사용자 결정).
+- 변경: `public/bucket-art`에 8장(1200×750 WebP, 코드로 만든 원본), `bucket-art.ts`에 프리셋 8개·`DEFAULT_BUCKET_ART`·`bucketArtFor`, `BucketTile.art`를 선택으로, `fallback-art.ts`에 `pickBySeed`(기존 해시를 꺼냄). 예시·미리보기 버킷은 고정 그림 대신 기본 규칙. 07-BRAND·`app-shell-home.md` 갱신.
+- 영향: 홈 버킷 썸네일(지금은 예시·미리보기만). 링크 썸네일 대체 그림은 그대로. API·데이터 변경 없음.
+- 검증: 클라우드 복사본에서 web vitest 81 PASS(17 파일, 기본 그림·같은 ID 같은 그림·예시 3개 서로 다름 추가), `tsc --noEmit`·eslint PASS. 화면 확인은 사용자 Mac.
+- 주의/롤백: revert. 이미지 8장 합계 약 0.95MB(장당 83~170KB).
+
 ## 2026-11-21 | feat(web): 홈을 확정 시안에 맞춤 — 버킷 카드·전체 보기·모바일 + 버튼
 
 - Feature: FEAT-009 (`docs/features/app-shell-home.md` AC-06·07 갱신, AC-10~12 추가)

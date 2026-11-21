@@ -36,25 +36,21 @@ export const PREVIEW_BUCKETS: BucketTile[] = [
     id: "b1",
     name: "[미리보기] 개발 레퍼런스",
     description: "프레임워크 문서와 좋은 예제 모음",
-    art: "liquid-blue",
   },
   {
     id: "b2",
     name: "[미리보기] 디자인 인스피레이션",
     description: "마음에 드는 화면과 무드",
-    art: "soft-coral",
   },
   {
     id: "b3",
     name: "[미리보기] 여행 기록과 준비",
     description: "숙소·맛집·동선을 한곳에",
-    art: "warm-light",
   },
   {
     // 설명이 없는 버킷: 설명 줄을 그리지 않는다
     id: "b4",
     name: "[미리보기] 생산성 도구 모음",
-    art: "botanical",
   },
 ];
 

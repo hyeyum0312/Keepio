@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { fallbackArtFor } from "@/shared/lib/fallback-art";
+import { FaviconTile } from "@/shared/ui/FaviconTile";
 import { HomeIcon } from "./HomeIcons";
 
 // FEAT-010: 서버가 주는 표시 제목(넣은 제목 → 페이지 제목 → 도메인)과 썸네일 주소가 있으면 쓴다
@@ -17,6 +18,8 @@ export type TriageLink = {
   thumbnailFallbackUrl?: string | null;
   // 주소 대신 보여 줄 보조 문구(예시 카드의 안내)
   meta?: string;
+  // FEAT-010 AC-15. 썸네일이 없을 때 아트워크 위에 올릴 사이트 아이콘
+  faviconUrl?: string | null;
 };
 export type TriageCategory = { id: string; name: string };
 
@@ -70,6 +73,13 @@ export function TriageRow({
             }}
             className="object-cover"
           />
+          {!source && (
+            <FaviconTile
+              faviconUrl={link.faviconUrl}
+              pageUrl={link.url}
+              size="sm"
+            />
+          )}
         </span>
         <div className="min-w-0">
           <a

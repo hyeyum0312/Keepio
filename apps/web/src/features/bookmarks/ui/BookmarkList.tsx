@@ -103,6 +103,8 @@ export function BookmarkList({
       <BookmarkThumb
         bookmarkId={b.id}
         title={b.displayTitle}
+        pageUrl={b.url}
+        faviconUrl={b.faviconUrl}
         thumbnail={b.thumbnail}
         canUpload={status === "active"}
         onUploaded={() => void invalidate()}

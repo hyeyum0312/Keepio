@@ -109,6 +109,10 @@ export class BookmarkThumbnailsService
       const page = await this.withRetry(() => this.fetcher.fetchPage(url));
       const og = parseOpenGraph(page.html, page.finalUrl);
       if (og.title) await this.bookmarks.setPageTitle(bookmarkId, og.title);
+      // AC-15. 대표 이미지가 없어도 파비콘 주소는 남긴다(서버는 파비콘을 받지 않는다)
+      if (og.icon && og.icon.length <= MAX_SOURCE_URL_LENGTH) {
+        await this.bookmarks.setFaviconUrl(bookmarkId, og.icon);
+      }
       if (!og.image) return await this.fail(bookmarkId, "no og:image");
       // 보관 파일이 사라지거나(무료 서버 디스크 초기화) 이미지를 못 받아도 화면이 원본으로 보여 줄 수 있게 먼저 남긴다
       if (og.image.length <= MAX_SOURCE_URL_LENGTH) {

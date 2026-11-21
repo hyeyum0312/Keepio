@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Home } from "./Home";
 import { HomePreview } from "./HomePreview";
@@ -24,6 +24,7 @@ function link(n: number): {
   displayTitle: string;
   tags: never[];
   thumbnail: Thumb;
+  faviconUrl?: string | null;
 } {
   return {
     id: `id-${n}`,
@@ -262,6 +263,53 @@ describe("홈 (FEAT-009)", () => {
   });
 });
 
+describe("파비콘 (FEAT-010 AC-15)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("보여 줄 썸네일이 없으면 아트워크 위에 페이지 아이콘을, 못 불러오면 /favicon.ico를, 그것도 안 되면 아이콘 없이 보여 준다", async () => {
+    renderHome([
+      { ...link(1), faviconUrl: "https://cdn.site1.example/apple.png" },
+    ]);
+    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    const tile = () => card.querySelector('[data-testid="favicon-tile"]');
+    const icon = () => tile()?.querySelector("img");
+    expect(icon()?.getAttribute("src")).toBe(
+      "https://cdn.site1.example/apple.png",
+    );
+    expect(icon()?.getAttribute("referrerpolicy")).toBe("no-referrer");
+    // 불러오기 전에는 보이지 않는다
+    expect(tile()?.className).toContain("opacity-0");
+    fireEvent.load(icon()!);
+    await waitFor(() => expect(tile()?.className).toContain("opacity-100"));
+
+    fireEvent.error(icon()!);
+    expect(icon()?.getAttribute("src")).toBe(
+      "https://site1.example/favicon.ico",
+    );
+    fireEvent.error(icon()!);
+    expect(tile()).toBeNull();
+    // 아트워크는 그대로
+    expect(card.querySelector("img")?.getAttribute("src")).toMatch(
+      /bucket-art/,
+    );
+  });
+
+  it("썸네일이 보이면 파비콘을 올리지 않는다", async () => {
+    renderHome([
+      {
+        ...link(1),
+        faviconUrl: "https://cdn.site1.example/apple.png",
+        thumbnail: {
+          status: "ready",
+          url: "/api/files/thumbnails/t.jpg?exp=1&sig=s",
+        },
+      },
+    ]);
+    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    expect(card.querySelector('[data-testid="favicon-tile"]')).toBeNull();
+  });
+});
+
 describe("홈 미리보기", () => {
   it("샘플로 세 섹션과 카테고리 선택을 그리고, 저장하면 다음 카드로 넘어간다. 썸네일을 못 불러오면 아트워크로 대신한다", async () => {
     render(<HomePreview />);
@@ -290,5 +338,25 @@ describe("홈 미리보기", () => {
     await userEvent.selectOptions(screen.getByLabelText("카테고리"), "개발");
     await userEvent.click(screen.getByRole("button", { name: "저장" }));
     expect(screen.getByText("[미리보기] 모션 가이드")).toBeInTheDocument();
+  });
+});
+
+describe("버킷 기본 썸네일", () => {
+  it("고른 썸네일이 없으면 중성 톤 8장 중 버킷 ID로 정한 그림을, 같은 ID면 늘 같은 그림을 쓴다", async () => {
+    const { bucketArtFor, DEFAULT_BUCKET_ART, BUCKET_ART } =
+      await import("../lib/bucket-art");
+    const pool: string[] = DEFAULT_BUCKET_ART.map((k) => BUCKET_ART[k]);
+    const a = bucketArtFor({ id: "bucket-abc" });
+    expect(pool).toContain(a);
+    expect(bucketArtFor({ id: "bucket-abc" })).toBe(a);
+    expect(bucketArtFor({ id: "bucket-abc", art: "soft-coral" })).toBe(
+      BUCKET_ART["soft-coral"],
+    );
+  });
+
+  it("예시 버킷 3개는 서로 다른 그림이다", async () => {
+    const { bucketArtFor } = await import("../lib/bucket-art");
+    const { SAMPLE_BUCKETS } = await import("../lib/sample-data");
+    expect(new Set(SAMPLE_BUCKETS.map(bucketArtFor)).size).toBe(3);
   });
 });
