@@ -50,3 +50,4 @@ next-env.d.ts
 
 # FEAT-010 로컬 썸네일 파일(STORAGE_DIR 기본값)
 .storage/
+Claude outputs/

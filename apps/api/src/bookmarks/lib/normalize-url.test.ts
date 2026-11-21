@@ -113,4 +113,60 @@ describe("normalizeUrl", () => {
       normalizedUrl: "https://example.com/p/abc/?img_index=2",
     });
   });
+
+  it("FEAT-010 AC-16: 스마트스토어 상품 주소는 쿼리를 모두 떼고 모바일 주소를 PC 주소로 맞춘다", () => {
+    const pc =
+      "https://smartstore.naver.com/diaday/products/13854531009?NaPm=ct%3Dmwqe5ucw%7Cci%3DER16";
+    const mobile =
+      "https://m.smartstore.naver.com/diaday/products/13854531009?fbclid=PAV&n_media=27758";
+    const clean = {
+      ok: true,
+      normalizedUrl: "https://smartstore.naver.com/diaday/products/13854531009",
+    };
+    expect(normalizeUrl(pc)).toEqual(clean);
+    expect(normalizeUrl(mobile)).toEqual(clean);
+  });
+
+  it("FEAT-010 AC-16: 스마트스토어의 상품이 아닌 주소는 기존 규칙 그대로다", () => {
+    expect(
+      normalizeUrl(
+        "https://m.smartstore.naver.com/diaday/category/ALL?st=POPULAR",
+      ),
+    ).toEqual({
+      ok: true,
+      normalizedUrl:
+        "https://m.smartstore.naver.com/diaday/category/ALL?st=POPULAR",
+    });
+  });
+
+  it("FEAT-010 AC-16: 추가한 추적 값(NaPm·utm_id·gbraid·wbraid·msclkid)도 뗀다. 이름이 정확히 같을 때만", () => {
+    expect(
+      normalizeUrl(
+        "https://shop.example.com/item?id=7&NaPm=ct%3D1&utm_id=9&gbraid=a&wbraid=b&msclkid=c&napm=keep",
+      ),
+    ).toEqual({
+      ok: true,
+      normalizedUrl: "https://shop.example.com/item?id=7&napm=keep",
+    });
+  });
+
+  it("FEAT-010 AC-20: 쿠팡 상품 주소는 itemId·vendorItemId만 남기고 모바일 주소를 www로 맞춘다", () => {
+    const shared =
+      "https://www.coupang.com/vp/products/9410732411?itemId=27961894605&vendorItemId=94919932757&src=1191000&spec=10999999&addtag=400&ctag=9410732411&itime=20261121214653&wPcid=1795&mcid=52e0&sharesource=sharebutton&isshortened=Y";
+    const mobile =
+      "https://m.coupang.com/vp/products/9410732411?vendorItemId=94919932757&itemId=27961894605&src=other";
+    const clean = {
+      ok: true,
+      normalizedUrl:
+        "https://www.coupang.com/vp/products/9410732411?itemId=27961894605&vendorItemId=94919932757",
+    };
+    expect(normalizeUrl(shared)).toEqual(clean);
+    expect(normalizeUrl(mobile)).toEqual(clean);
+    expect(
+      normalizeUrl("https://www.coupang.com/vp/products/9410732411?src=1"),
+    ).toEqual({
+      ok: true,
+      normalizedUrl: "https://www.coupang.com/vp/products/9410732411",
+    });
+  });
 });

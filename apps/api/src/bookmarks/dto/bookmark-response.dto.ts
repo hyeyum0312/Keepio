@@ -64,11 +64,26 @@ export class BookmarkResponse {
   })
   displayTitle!: string;
 
+  @ApiProperty({
+    enum: ["user", "page", "site"],
+    description:
+      "displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음)",
+  })
+  titleSource!: "user" | "page" | "site";
+
   @ApiProperty({ type: [BookmarkTagResponse], description: "이름순" })
   tags!: BookmarkTagResponse[];
 
   @ApiProperty({ type: BookmarkThumbnailResponse })
   thumbnail!: BookmarkThumbnailResponse;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description:
+      "링크 페이지가 알려 준 사이트 아이콘 주소(apple-touch-icon → icon). 없으면 null이고 화면은 사이트 주소/favicon.ico를 불러 본다. 보여 줄 썸네일이 없을 때 아트워크 위에 올린다",
+  })
+  faviconUrl!: string | null;
 }
 
 export class BookmarkListResponse {

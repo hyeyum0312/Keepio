@@ -4,6 +4,7 @@
  * keepio API
  * OpenAPI spec version: 0.1.0
  */
+import type { BookmarkResponseTitleSource } from "./bookmarkResponseTitleSource";
 import type { BookmarkTagResponse } from "./bookmarkTagResponse";
 import type { BookmarkThumbnailResponse } from "./bookmarkThumbnailResponse";
 
@@ -22,7 +23,14 @@ export interface BookmarkResponse {
   title: string | null;
   /** 보여 줄 제목: 넣은 제목 → 페이지 제목(og:title) → 도메인 */
   displayTitle: string;
+  /** displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음) */
+  titleSource: BookmarkResponseTitleSource;
   /** 이름순 */
   tags: BookmarkTagResponse[];
   thumbnail: BookmarkThumbnailResponse;
+  /**
+   * 링크 페이지가 알려 준 사이트 아이콘 주소(apple-touch-icon → icon). 없으면 null이고 화면은 사이트 주소/favicon.ico를 불러 본다. 보여 줄 썸네일이 없을 때 아트워크 위에 올린다
+   * @nullable
+   */
+  faviconUrl: string | null;
 }

@@ -84,8 +84,12 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       // FEAT-010에서 추가된 필드(제목·태그 없이 저장)
       title: null,
       displayTitle: "example.com",
+      // FEAT-011 AC-04
+      titleSource: "site",
       tags: [],
       thumbnail: { status: "pending", url: null, sourceUrl: null },
+      // FEAT-010 AC-15(페이지를 받기 전이라 없음)
+      faviconUrl: null,
     });
     expect(await countBookmarks(userId)).toBe(1);
   });

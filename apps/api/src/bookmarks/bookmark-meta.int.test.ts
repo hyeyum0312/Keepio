@@ -272,6 +272,79 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     expect(unsigned.status).toBe(404);
   });
 
+  it("AC-16·18: 모바일·PC 스마트스토어 상품을 하나로 묶고, 제목을 못 받으면 가게 이름을 보여 준다", async () => {
+    const userId = await newUser();
+    const a = await save(userId, {
+      url: "https://m.smartstore.naver.com/nvnutra/products/13646818252?fbclid=PAV",
+    });
+    const b = await save(userId, {
+      url: "https://smartstore.naver.com/nvnutra/products/13646818252?NaPm=ct%3D1",
+    });
+
+    expect(a.status).toBe(201);
+    expect(b.status).toBe(200);
+    expect(b.body.id).toBe(a.body.id);
+    expect(a.body.normalizedUrl).toBe(
+      "https://smartstore.naver.com/nvnutra/products/13646818252",
+    );
+    expect(a.body.displayTitle).toBe("nvnutra · 스마트스토어");
+  });
+
+  it("AC-18·19: 짧은 주소가 스마트스토어로 가고 페이지가 막혀도(429) 따라간 주소의 가게 이름을 제목으로 보여 준다", async () => {
+    fetcher.fetchPage.mockRejectedValue(
+      new LinkPreviewHttpError(
+        429,
+        "https://smartstore.naver.com/diaday/products/13854531009?NaPm=ct%3D1",
+      ),
+    );
+    const userId = await newUser();
+
+    await save(userId, { url: "https://naver.me/5CCVAoip" });
+    await thumbnails.drain();
+    const [item] = await list(userId);
+
+    expect(item.displayTitle).toBe("diaday · 스마트스토어");
+    expect(item.url).toBe("https://naver.me/5CCVAoip");
+    expect((item.thumbnail as { status: string }).status).toBe("failed");
+  });
+
+  it("AC-15: 대표 이미지가 없어도 페이지가 알려 준 아이콘 주소(apple-touch-icon 우선)를 남기고, 서버는 아이콘을 받지 않는다", async () => {
+    fetcher.fetchPage.mockResolvedValue({
+      html: `<head><title>문서</title>
+        <link rel="icon" href="/favicon-32.png" sizes="32x32">
+        <link rel="apple-touch-icon" href="/apple.png"></head>`,
+      finalUrl: "https://example.com/icon",
+    });
+    const userId = await newUser();
+
+    await save(userId, { url: "https://example.com/icon" });
+    await thumbnails.drain();
+    const [item] = await list(userId);
+
+    expect(item.faviconUrl).toBe("https://example.com/apple.png");
+    expect(item.thumbnail).toEqual({
+      status: "failed",
+      url: null,
+      sourceUrl: null,
+    });
+    expect(fetcher.fetchImage).not.toHaveBeenCalled();
+  });
+
+  it("AC-15: 페이지에 아이콘 태그가 없으면 faviconUrl은 null(화면이 /favicon.ico로 대체)", async () => {
+    fetcher.fetchPage.mockResolvedValue({
+      html: OG_PAGE,
+      finalUrl: "https://example.com/noicon",
+    });
+    fetcher.fetchImage.mockResolvedValue(PNG);
+    const userId = await newUser();
+
+    await save(userId, { url: "https://example.com/noicon" });
+    await thumbnails.drain();
+    const [item] = await list(userId);
+
+    expect(item.faviconUrl).toBeNull();
+  });
+
   it("AC-05: 페이지나 이미지를 못 받으면 failed. 링크·제목·태그는 그대로다", async () => {
     fetcher.fetchPage.mockResolvedValue({
       html: OG_PAGE,

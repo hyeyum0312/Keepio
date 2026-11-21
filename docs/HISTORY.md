@@ -5,6 +5,213 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-22 | test(api): 스마트스토어 표시 제목 기대값을 AC-18에 맞춤
+
+- Feature: FEAT-010 AC-16·18
+- 목적: CI 통합 테스트가 AC-18에 명시된 스마트스토어 가게 이름 대신 이전 일반 도메인 규칙을 기대해 실패했다.
+- 변경: `bookmark-meta.int.test.ts` 설명과 기대값을 `nvnutra · 스마트스토어`로 정정했다. API 동작은 변경하지 않았다.
+- 영향: 테스트만 변경. API·DB 변경 없음.
+- 검증: `npm run test:integration -w @keepio/api -- src/bookmarks/bookmark-meta.int.test.ts` PASS(18 tests). `npm run verify` PASS. 초기 샌드박스 실행은 localhost 권한 제한으로 실패했으나, 승인된 로컬 실행에서 통과했다.
+- 주의/롤백: 테스트 기대값만 되돌리면 기존 CI 실패가 재발한다. 실제 CI에서 통합 테스트 재실행이 필요하다.
+
+## 2026-11-21 | docs(screens): 화면별 정책 문서 폴더 신설 (HOME-02·LINK-01·LINK-04·BKT-02)
+
+- Feature: N/A (문서 구조)
+- 목적: 화면을 보고 기획한 내용을 저장소 md로 읽고 개발할 수 있게 한다(사용자 결정). 지금까지 정책이 캔버스 메모와 artifact 기획서에 흩어져 있었다. 현재 구현된 동작을 최신 기준으로 두고, 확정 시안은 예정으로 적는다.
+- 변경: `docs/screens/` 추가 — README(읽고 쓰는 법, 공통 규칙, `[구현]`·`[예정]`·`[차이]` 표기), TEMPLATE, 화면 문서 4개(HOME-02 홈, LINK-01 내 링크, LINK-04 AI로 한 번에 정리, BKT-02 버킷 상세). 코드·테스트에서 읽은 동작은 `[구현]`, 확정 시안·ADR-018·D-17은 `[예정]`, 코드와 시안이 다른 곳은 `[차이]`로 적었다. `06-SCREENS.md`: HOME-02 행 추가(LINK-01에서 홈 분리), LINK-01 이름·경로·FEAT 정리, 기획서 칸을 `docs/screens` 링크로, LINK-04·BKT-02 상태 기획. `AGENTS.md`: 화면 작업 전 해당 화면 문서를 읽는 규칙 한 줄.
+- 영향: 문서만. 코드·API·DB 변경 없음. 이전 화면 기획서(artifact)·`02-DESIGN.md`와 다르면 `docs/screens`가 기준이다(내용 일괄 수정은 하지 않음).
+- 검증: 미실행(문서 전용 변경, prettier 통과).
+- 주의/롤백: revert. `[차이]` 항목(목록 제목 "정리한 링크" vs "전체", 모바일 + 버튼, 검색·정렬)은 아직 결정 전이다.
+
+## 2026-11-21 | feat(web): 링크가 0개면 모두 선택 체크박스·모바일 선택 버튼 숨김
+
+- Feature: FEAT-011 (`docs/features/bookmark-edit-select.md` AC-06 후속 변경)
+- 목적: 고를 게 없는데 체크박스가 보이면 눌러도 반응이 없어 고장처럼 보인다. 비활성 대신 그리지 않는다(사용자 결정). 버킷 상세도 같은 규칙을 따른다.
+- 변경: `AllLinks` 목록 제목 앞 모두 선택(전엔 비활성)과 모바일 "선택" 버튼을 링크 0개일 때 그리지 않음(선택 모드 중에는 "완료" 유지). 테스트 1건 추가. AC-06 문구 보강.
+- 영향: 빈 목록 화면만. API 변경 없음.
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
+## 2026-11-21 | style(web): 홈 버킷 카드 hover·이름 14px, 최근 추가한 링크 상세 12px
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 시안(홈 1-B)과 같은 hover 반응과 글자 크기로 맞춘다(사용자 요청).
+- 변경: `BucketTiles` 버킷 이름 `text-base` → `text-sm`(14px). `TriageRow` 제목 아래 상세 줄 `text-sm` → `text-xs`(12px), 제목과 4px 간격. `BucketTiles` 썸네일에 hover 시 `-translate-y-0.5`(2px), 0.15초 전환. `prefers-reduced-motion`이면 움직이지 않음. `.gitignore`에 작업 결과물 폴더 `Claude outputs/` 추가.
+- 영향: 화면 반응만. 동작·API 변경 없음. 카드는 아직 링크가 아니다(버킷 상세 미구현).
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
+## 2026-11-21 | style(web): 홈 최근 추가한 링크 줄 제목 14px
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 섹션 제목(16px)보다 한 단계 작게 해 위계를 분명히 한다(사용자 결정, 2026-11-21 시안).
+- 변경: `TriageRow` 링크 제목 `text-base` → `text-sm`(14px).
+- 영향: 글자 크기만. 동작·API 변경 없음.
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
+## 2026-11-21 | style(web): 페이지 제목 18px, 하위 제목 16px로 통일
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 화면 제목 크기를 시안(2026-11-21)과 같게 통일한다(사용자 결정).
+- 변경: 페이지 제목 `text-title`(28px) → `text-lg`(18px): `/links`, `/preview/links`, `/trash`. 하위 제목 `text-xl md:text-[22px]` → `text-base`(16px): `HomeView` 섹션 제목, `AllLinks` 목록 제목. `docs/standards/DESIGN.md`에 규칙 한 줄 추가. 인증 화면은 `text-title` 유지(토큰 값 변경 없음).
+- 영향: 글자 크기만. 동작·API 변경 없음.
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
+## 2026-11-21 | docs(decisions): ADR-018 링크 원본 하나·버킷은 참조·발행은 라이브, D-17 AI 일괄 정리, D-18 발행 스냅샷
+
+- Feature: N/A (버킷 기능 전 결정 기록)
+- 목적: 버킷 상세(BKT-02) 시안 작업 중 정한 내용을 저장소에 남긴다. 버킷 모델이 생기기 전에 데이터 구조를 정해 둔다(사용자 결정).
+- 변경: `docs/decisions/ADR-018-link-single-source-bucket-reference.md` 추가(원본 하나 + 버킷–링크 연결 테이블, 버킷별 순서는 연결 행, 삭제는 내 링크에서만·버킷은 빼기, 버킷 화면은 저장한 링크에서 고르기만, 공유 페이지는 라이브, 수정 시 안내 문구). `docs/OPEN-QUESTIONS.md`에 D-17(AI로 한 번에 정리: 카테고리만 제안·승인 후 적용·읽지 못한 링크는 사이트 기록 추천/직접 선택, 출시 후 1순위), D-18(발행 스냅샷, 보류) 추가.
+- 영향: 문서만. 코드·API·DB 변경 없음.
+- 검증: 미실행(문서 전용 변경).
+- 주의/롤백: revert. 버킷 Feature 문서 작성 시 ADR-018을 따른다.
+
+## 2026-11-21 | feat(web): 사이드바에서 카테고리 메뉴 제거, 최근 추가한 링크 전체 보기 → 내 링크
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` AC-12, 후속 변경)
+- 목적: 카테고리별 보기는 내 링크의 카테고리 칩이 맡으므로 사이드바 "카테고리"는 같은 일을 하는 두 번째 입구라 뺀다. 홈에서 최근 링크를 더 보려면 내 링크로 간다(사용자 결정).
+- 변경: `AppShell` 주요 메뉴에서 "카테고리"(준비 중) 삭제. `HomeView` 최근 추가한 링크의 "전체 보기"를 `/links` 링크로(버킷·공유용 링크는 준비 중 그대로). 테스트 갱신(카테고리·미분류 메뉴 없음, 전체 보기 주소).
+- 영향: 사이드바 메뉴 하나 줄어듦, 홈 전체 보기 하나가 눌린다. API 변경 없음.
+- 검증: 클라우드 복사본에서 web vitest 95 PASS, `tsc`·eslint PASS.
+- 주의/롤백: revert.
+
+## 2026-11-21 | feat(web): "전체 링크"를 "내 링크"로
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 이 화면은 저장·카테고리별 보기·수정·여러 개 선택(버킷 추가)까지 해서 "전체 링크"는 하는 일을 좁게 보이게 한다. 사용자 결정으로 "내 링크".
+- 변경: `AppShell` 사이드바 메뉴, `/links`·`/preview/links` 화면 제목(`/links`도 보조기기 전용이던 제목을 화면에 보이게, 시안), 관련 주석·테스트 이름. 주소 `/links`와 모바일 탭 "링크"는 그대로.
+- 영향: 화면 글자만. 동작·API 변경 없음.
+- 검증: 클라우드 복사본에서 web vitest 95 PASS, `tsc`·eslint·prettier PASS.
+- 주의/롤백: revert.
+
+## 2026-11-21 | feat(web): 홈 "최근 추가한 링크"와 버튼 순서 [저장] [건너뛰기]
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: "정리할 링크"는 기준이 모호해 이름을 "최근 추가한 링크"로 바꾸고, 시안대로 버튼 순서를 맞춘다(사용자 결정, 2026-11-21 시안).
+- 변경: `HomeView` 섹션 이름, `TriageRow` 순서 [카테고리 선택 | + 카테고리 만들기] [저장] [건너뛰기]와 카테고리 0개일 때 저장(준비 중), 실제 홈도 카테고리 0개면 카테고리 만들기 표시(`Home.tsx`), 카드 이름(화면 읽기) "최근 추가한 링크". 테스트 이름·조회 갱신과 순서 테스트 2건 추가.
+- 영향: 홈 첫 섹션 이름과 버튼. 동작(한 장씩·건너뛰기)·API 변경 없음. 카테고리 만들기·저장은 FEAT-008 전까지 누를 수 없다.
+- 검증: 클라우드 복사본에서 web vitest 95 PASS, `tsc`·eslint·prettier PASS. 화면 확인은 사용자 Mac.
+- 주의/롤백: revert.
+
+## 2026-11-21 | feat: 링크 제목 수정과 여러 개 선택 (FEAT-011)
+
+- Feature: FEAT-011 (`docs/features/bookmark-edit-select.md` 신규), FEAT-010 AC-05·06 후속
+- 목적: 스마트스토어·쿠팡처럼 제목을 못 받는 링크를 저장한 뒤에 고칠 수 있게 하고, 여러 링크를 한 번에 고르고 지울 수 있게 한다(사용자 결정, 2026-11-21 시안).
+- 변경: api `PATCH /api/bookmarks/:id { title }`(공백 정리, 1~100자, 비우면 null, 활성·본인만), 응답 `titleSource`(user·page·site). OpenAPI·api-client 재생성. web: ⋯ 메뉴 수정 → 줄 안 입력칸(Enter 저장·Esc 취소), 사이트 이름으로 보이는 링크에 "제목 넣기", 이미지 바꾸기를 ⋯ 메뉴로(썸네일 누르기는 선택), 썸네일 안 체크박스·모두 선택(중간 상태)·작업 막대(버킷·공유 페이지·카테고리는 준비 중)·여러 개 삭제(기존 DELETE 4개씩, 부분 실패는 고른 채로)·Esc 해제·모바일 "선택" 모드.
+- 영향: 전체 링크 목록·카드. 휴지통은 그대로(복구만). 북마크 응답에 필드 추가(추가만). DB 변경 없음. 썸네일 위 "캡처 올리기/이미지 바꾸기" 버튼은 없어지고 메뉴로.
+- 검증: 클라우드 복사본에서 api 단위 vitest 169 PASS, api `tsc`·eslint PASS, `nest build`→`openapi-export`→orval 재생성. web vitest 92 PASS(신규 9건), `tsc`·eslint·prettier PASS. api 통합 테스트(`bookmark-edit.int.test.ts` 4건)·`next build`·화면 확인·`openapi:check`는 사용자 Mac.
+- 주의/롤백: revert. 모바일 뒤로 가기로 선택 모드 나가기는 아직(완료·Esc만).
+
+## 2026-11-21 | feat(api): 쿠팡 링크 사이트 이름·주소 정리 (FEAT-010 AC-20)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-20), spec 04 URL 정책
+- 목적: 쿠팡도 서버 요청에 상품 페이지 대신 403을 줘 제목·사진을 못 받고, 짧은 주소(`link.coupang.com`)로 저장하면 무슨 링크인지 전혀 알 수 없었다(사용자 Mac에서 302 → 상품 주소 403 확인). 차단은 우회하지 않는다(D-16).
+- 변경: `lib/site-name.ts`에 쿠팡 규칙(상품 주소 `쿠팡 상품`, 그 밖 `쿠팡`), `lib/normalize-url.ts`에 쿠팡 상품 주소 정리(`itemId`·`vendorItemId`만, 호스트 `www.coupang.com`). 짧은 주소는 AC-19(마지막 주소 기억)로 `쿠팡 상품`이 된다.
+- 영향: 표시 제목과 새로 저장하는 쿠팡 상품 링크의 중복 판단. API·DB 형식 변경 없음. 기존 저장분은 다시 정규화하지 않는다.
+- 검증: 클라우드 복사본에서 api 단위 vitest 169 PASS(esbuild 설정, 쿠팡 2건 추가), api `tsc`·eslint PASS.
+- 주의/롤백: revert.
+
+## 2026-11-21 | feat(api): 스마트스토어 가게 이름 제목, 짧은 주소의 마지막 주소 기억 (FEAT-010 AC-18·19)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-18·19)
+- 목적: 스마트스토어는 서버 요청을 막아(429) 제목을 못 받는다. 주소에 든 가게 이름이라도 보여 주고, `naver.me` 짧은 주소로 저장해도 같은 이름이 나오게 한다(사용자 결정, `naver.me`는 KeepioBot에 307로 상품 주소를 알려 주는 것을 사용자 Mac에서 확인).
+- 변경: `lib/site-name.ts`(스마트스토어·브랜드스토어 가게 이름, 그 밖은 www.·m. 뺀 도메인), 표시 제목 대체를 `siteName(resolvedUrl ?? originalUrl)`로. `LinkPreviewHttpError`에 `finalUrl`, 썸네일 작업이 리다이렉트 마지막 주소를 `bookmarks.resolved_url`에 남김(마이그레이션 `20261121010000_add_bookmark_resolved_url`).
+- 영향: 표시 제목(`displayTitle`)만 바뀌고 API 형식은 그대로(`resolved_url`은 응답에 넣지 않음). 열 때 쓰는 주소·중복 판단은 그대로. 기존 링크는 마지막 주소가 없어 원래 주소 기준.
+- 검증: 클라우드 복사본에서 api 단위 vitest 167 PASS(esbuild 설정, `site-name.test.ts` 3건 추가), api `tsc`(Prisma 생성물을 손으로 맞춘 상태)·eslint PASS. 통합 테스트(AC-18·19 1건 추가)·`prisma generate`는 사용자 Mac.
+- 주의/롤백: revert + `resolved_url` 칸 제거.
+
+## 2026-11-21 | feat(web): 썸네일 이미지 바꾸기, "캡처 올리기"는 마우스를 올릴 때만
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-06, UX)
+- 목적: 이미지가 이미 있어도 사용자가 썸네일을 바꿀 수 있게 하고, 목록의 안내 글자가 늘 떠 있어 산만하지 않게 한다(사용자 결정).
+- 변경: `BookmarkThumb`이 활성 목록에서 어느 상태든 눌러 이미지를 올리거나 바꾼다(이미지가 있으면 "이미지 바꾸기", 없으면 "캡처 올리기"). 안내 글자는 마우스를 올리거나 키보드로 고를 때만 보이고, 올리는 중·마우스 없는 기기(터치)는 늘 보인다. 서버는 기존 업로드 API 그대로(어느 상태든 교체하고 이전 파일 삭제).
+- 영향: 전체 링크 목록·카드의 썸네일. 휴지통은 그대로 바꿀 수 없다. 2026-11-21 시안에서 썸네일 안에 체크박스를 두고 이미지 바꾸기를 ⋯ 메뉴로 옮기기로 해서, 이 썸네일 누르기 동작은 제목 수정·선택 구현 때 메뉴로 옮긴다.
+- 검증: 클라우드 복사본에서 web vitest 83 PASS(이미지 바꾸기 버튼 1건 추가), `tsc`·eslint PASS. 화면 확인은 사용자 Mac.
+- 주의/롤백: revert.
+
+## 2026-11-21 | feat(api): 추적 값 추가 제거·스마트스토어 주소 정리·사이트 이름 대체 제목 (FEAT-010 AC-16·17)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-07·16·17), FEAT-001 AC-05, spec 04 URL 정책
+- 목적: 스마트스토어 링크가 제목·썸네일 없이 `m.smartstore.naver.com`으로만 보였다. 원인은 스마트스토어가 서버 요청에 429 에러 페이지를 주는 것(사용자 Mac에서 KeepioBot·facebookexternalhit·브라우저 UA 모두 확인)이라 차단은 우회하지 않고(D-16), 같은 상품 중복 묶기와 대체 제목만 다듬는다(사용자 결정).
+- 변경: `normalize-url.ts` 추적 값에 `utm_id`·`NaPm`·`gbraid`·`wbraid`·`msclkid` 추가, 스마트스토어 상품 주소는 쿼리 전부 제거 + `m.` 호스트를 PC로. `bookmarks.controller.ts` 표시 제목 대체에서 앞의 `www.`·`m.` 제거. FEAT-001·FEAT-010·spec 04 문서 갱신.
+- 영향: 새로 저장하는 링크의 중복 판단(정규화 주소). 기존 저장분은 다시 정규화하지 않는다(개발 데이터뿐이라 마이그레이션 없음) — 같은 상품이 예전 주소로 이미 있으면 한 번은 따로 저장될 수 있다. 표시 제목 대체는 기존 링크에도 바로 반영. API·DB 형식 변경 없음.
+- 검증: 클라우드 복사본에서 api 단위 vitest 164 PASS(esbuild 설정, 정규화 3건 추가), api `tsc`·eslint PASS. 통합 테스트(AC-16·17 1건 추가)는 사용자 Mac.
+- 주의/롤백: revert.
+
+## 2026-11-21 | feat: 썸네일이 없으면 아트워크 위에 사이트 파비콘 (FEAT-010 AC-15)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-15)
+- 목적: 보여 줄 썸네일이 없는 링크도 어느 사이트인지 알아보게 아트워크 가운데에 파비콘을 올린다(사용자 결정, 대안 B).
+- 변경: 파서가 페이지 HTML에서 아이콘 주소를 고르고(`open-graph.ts`), `bookmarks.favicon_url` 칸(마이그레이션 `20261121000000_add_bookmark_favicon_url`)에 저장, 응답 `faviconUrl`(OpenAPI·api-client 갱신). 웹은 `FaviconTile`(faviconUrl → /favicon.ico → 없음)을 목록·카드·정리할 링크의 아트워크 위에.
+- 영향: 북마크 응답에 필드 추가(추가만). 서버 요청 수는 그대로(파비콘을 받지 않음), 화면이 원본 사이트에서 아이콘을 불러온다(리퍼러 없음). 외부 파비콘 서비스 없음(D-16). 기존 링크는 `/favicon.ico`부터.
+- 검증: 클라우드 복사본에서 api 단위 vitest 161 PASS(esbuild 설정), api `tsc`(Prisma 생성물을 손으로 맞춘 상태)·eslint PASS, web vitest 83 PASS·`tsc`·eslint PASS, prettier PASS. 통합 테스트·`prisma generate`·`openapi:check`는 실행하지 못함(엔진 다운로드 차단) — 사용자 Mac.
+- 주의/롤백: revert + `favicon_url` 칸 제거. 마이그레이션 SQL·OpenAPI·api-client는 손으로 썼으므로 Mac에서 재생성 결과와 같은지 확인.
+
+## 2026-11-21 | feat(web): 버킷 기본 썸네일 — 중성 톤 8장 중 하나
+
+- Feature: FEAT-009 (홈 버킷), 07-BRAND §7 버킷 썸네일
+- 목적: 기존 아트워크가 밝은 파스텔에 치우쳐 있어, 누구나 무난하게 쓸 중성 톤 8장(너무 어둡지 않게, 사용자 피드백)을 더하고 썸네일을 고르지 않은 버킷에 랜덤으로 보여 준다(사용자 결정).
+- 변경: `public/bucket-art`에 8장(1200×750 WebP, 코드로 만든 원본), `bucket-art.ts`에 프리셋 8개·`DEFAULT_BUCKET_ART`·`bucketArtFor`, `BucketTile.art`를 선택으로, `fallback-art.ts`에 `pickBySeed`(기존 해시를 꺼냄). 예시·미리보기 버킷은 고정 그림 대신 기본 규칙. 07-BRAND·`app-shell-home.md` 갱신.
+- 영향: 홈 버킷 썸네일(지금은 예시·미리보기만). 링크 썸네일 대체 그림은 그대로. API·데이터 변경 없음.
+- 검증: 클라우드 복사본에서 web vitest 81 PASS(17 파일, 기본 그림·같은 ID 같은 그림·예시 3개 서로 다름 추가), `tsc --noEmit`·eslint PASS. 화면 확인은 사용자 Mac.
+- 주의/롤백: revert. 이미지 8장 합계 약 0.95MB(장당 83~170KB).
+
+## 2026-11-21 | feat(web): 홈을 확정 시안에 맞춤 — 버킷 카드·전체 보기·모바일 + 버튼
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` AC-06·07 갱신, AC-10~12 추가)
+- 목적: 2026-11-21 확정한 홈 시안(LINK-01 홈 와이어프레임, 라이트·다크)과 구현을 맞춘다(사용자 요청).
+- 변경: 버킷 카드를 썸네일 위 이름 + 아래 그라데이션 + 왼쪽 위 책갈피로(`BucketTiles`, `.kp-bucket-scrim`, 07-BRAND §7 "버킷 카드"에 책갈피 추가), 세 섹션 제목 끝 "전체 보기"(준비 중), "공유한 페이지" → "공유용 링크", 예시 화면(회색 "예시", 카테고리 만들기, 공유용 링크 예시), 정리할 링크 카드 그림자, 공유용 링크 회색 아이콘, 저장 카드 색 번짐 제거·PC 상시 표시, 모바일 + 버튼·시트·첫 안내(`MobileAddLink`), 검색 막대 회색 면.
+- 영향: 홈과 `/links` 저장 카드 모양(공통 컴포넌트). `/?save=1`은 모바일에서 시트를 연다. API·데이터 변경 없음. 카테고리 만들기는 FEAT-008 전까지 준비 중.
+- 검증: 클라우드 복사본(Node, `--engine-strict=false`)에서 web vitest 79 PASS(17 파일), `tsc --noEmit`·eslint·prettier PASS. `next build`·화면 확인은 실행하지 않음(네이티브 SWC 불가) — 사용자 Mac.
+- 주의/롤백: revert. 시트의 클립보드 붙여넣기·저장 토스트·입력창 테두리 전환은 별도 작업.
+
+## 2026-11-21 | docs: 버킷 카드 — 썸네일 위에 이름
+
+- Feature: N/A (디자인 기준, 홈 LINK-01·BKT)
+- 목적: 버킷 카드를 썸네일 + 이름으로 단순하게 하고, 아트워크 색이 늘거나 사용자 사진이 들어와도 이름이 읽히게 한다. 라이트·다크 모두 색 번짐은 넣지 않는다(사용자 결정, UI 무채색 유지).
+- 변경: `docs/spec/07-BRAND.md` §7 "버킷 카드" 항목 추가(카드 틀 없음, 이름은 썸네일 안 아래쪽에 흰 글자 + 아래 62%만 완만한 검정 그라데이션, 설명 한 줄은 썸네일 아래·예시에서는 생략, 링크 개수·칩 없음, 번짐 없음, 설명 필드는 BKT-02에서), 버킷 썸네일 규칙의 "UI 그라데이션 없음"에 썸네일 안 그라데이션 예외 표시. 시안: 홈 PC·모바일, 1-B, 상태 시트(정리할 링크·버킷·공유용 링크 제목 줄 끝에 "전체 보기"도 맞춤).
+- 영향: 문서만. 앱의 버킷 타일(`BucketTiles`)은 아직 이전 모양.
+- 검증: `prettier --check`. `check-history.py`는 커밋 hook(사용자 Mac).
+- 주의/롤백: revert.
+
+## 2026-11-21 | style(web): 포커스 색을 레드에서 잉크로
+
+- Feature: N/A (디자인 기준, D-09)
+- 목적: 입력창 포커스를 테두리 색으로 바꾸기로 하면서(07-BRAND §6) 포커스 레드(`#E8392B`)와 오류 빨강(`#C62828`)이 둘 다 빨강 테두리가 돼, 칸을 누르기만 해도 오류처럼 보였다. "UI는 무채색" 원칙에 맞춰 포커스를 잉크로 바꾼다(사용자 결정).
+- 변경: `globals.css` `--focus-ring` 라이트 `#e8392b` → `#20212a`, 다크 `#fb8070` → `#f3f3f7`(`primary`와 같은 값). `07-BRAND.md` 원칙 8·토큰 표(`neutral-800`/`neutral-100`, 대비 16.0/16.7)·레드 사용처·입력창 상태 값 갱신. `accent`(레드)는 그대로.
+- 영향: 앱 전체 키보드 포커스 링 색(`focus-ring` 유틸리티를 쓰는 모든 요소). 잉크 주 버튼 둘레의 링은 2px 간격 덕분에 구분된다. 입력창 테두리 방식 전환은 아직(코드 별도 작업).
+- 검증: `prettier --check`. 화면 확인·vitest·verify는 커밋 hook·사용자 Mac.
+- 주의/롤백: revert 또는 두 값을 원래대로.
+
+## 2026-11-21 | docs: 정리할 링크에서 카테고리 바로 만들기 (FEAT-008 AC-13)
+
+- Feature: FEAT-008
+- 목적: 카테고리가 하나도 없으면 홈 "정리할 링크"에서 고를 것이 없어 건너뛰기만 남았다. 그 자리에서 만들고 바로 적용하도록 한다(사용자 결정). 정리할 링크의 [저장] 버튼은 유지(카테고리를 정하는 영역).
+- 변경: `docs/features/category-tag.md` AC-13 추가(0개면 "카테고리 만들기", 있으면 고르기 맨 아래 "새 카테고리", 같은 이름은 기존 카테고리 사용, 1~20자 오류 상태), UX 절·테스트 계획 보강. 시안은 홈 와이어프레임 상태 시트 7번.
+- 영향: 문서만. 구현은 FEAT-008 승인 후.
+- 검증: `prettier --check`. `check-history.py`는 커밋 hook(사용자 Mac).
+- 주의/롤백: revert.
+
+## 2026-11-21 | docs: 입력창 포커스·오류는 테두리 색을 바꾸는 규칙
+
+- Feature: N/A (디자인 기준)
+- 목적: 입력창에 포커스 링(바깥 2px)이 테두리와 겹쳐 두 줄로 보였다. 포커스·오류 때 기본 테두리 색을 상태 색으로 바꾸도록 기준을 정한다(사용자 결정).
+- 변경: `docs/spec/07-BRAND.md` §6에 "입력창 상태"(기본 `input` → 포커스 `focus-ring` · 오류 `destructive`, 2px로 보이게 안쪽 1px 추가, 오류 우선, 오류 문구 필수). `docs/standards/DESIGN.md` 6번에 한 줄 연결. 버튼·링크의 포커스 링 규칙은 그대로.
+- 영향: 문서만. 앱 코드(`globals.css`·입력 컴포넌트)는 아직 바깥 포커스 링을 쓰고 있어 반영 작업이 따로 필요하다.
+- 검증: `prettier --check` (아래 커밋 hook), `check-history.py` — 커밋 hook(사용자 Mac).
+- 주의/롤백: revert.
+
+## 2026-11-21 | docs: 외부 링크 미리보기 API 도입 보류 (D-16)
+
+- Feature: FEAT-010
+- 목적: 봇 차단이 강한 사이트(쿠팡 등)는 서버 IP가 데이터센터라 호스팅을 바꿔도 막힌다. 외부 미리보기 API(주거용 프록시)를 검토했으나 막히면 제공하지 않기로 함(사용자 결정).
+- 변경: `docs/OPEN-QUESTIONS.md`에 D-16(보류, 재검토 조건·후보) 추가.
+- 영향: 문서만. 동작·비용 변화 없음.
+- 검증: `prettier --check docs/OPEN-QUESTIONS.md docs/HISTORY.md` PASS(리눅스 VM). `check-history.py`는 커밋 hook(사용자 Mac)에서 실행.
+- 주의/롤백: revert.
+
 ## 2026-11-21 | fix(api): 링크 미리보기에서 제목·썸네일을 더 자주 가져오기
 
 - Feature: FEAT-010 (AC-12~14)

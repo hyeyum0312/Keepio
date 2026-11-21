@@ -29,8 +29,8 @@
 - [x] AC-03 중복 링크: 이미 저장된 링크면(FEAT-001 AC-02) 기존 링크를 돌려주고, 입력한 제목·태그는 덮어쓰지 않는다(응답 `200`). 수정은 이후 편집 기능에서.
 - [x] AC-04 썸네일 자동: 저장 직후 서버가 링크 페이지의 `og:image`를 받아 보관한다. 상태는 `pending → ready | failed`. 저장 응답은 기다리지 않는다(`thumbnailStatus: "pending"`).
 - [x] AC-05 썸네일 실패: 페이지·이미지를 못 받으면 `failed`. 목록에 빈 썸네일과 "캡처 올리기"가 보인다. 실패해도 링크·제목·태그는 그대로다.
-- [x] AC-06 직접 올리기: JPG·PNG·WEBP·GIF, 10MB 이하 이미지를 올리면 썸네일을 바꾼다(`ready`, 출처 `upload`). 이후 자동 결과가 늦게 와도 올린 이미지를 덮어쓰지 않는다.
-- [x] AC-07 제목 기본값: 제목을 비워 두면 목록에는 페이지의 `og:title`(받았을 때), 그것도 없으면 도메인을 보여 준다. 사용자가 넣은 제목이 항상 우선한다.
+- [x] AC-06 직접 올리기: JPG·PNG·WEBP·GIF, 10MB 이하 이미지를 올리면 썸네일을 바꾼다(`ready`, 출처 `upload`). 이후 자동 결과가 늦게 와도 올린 이미지를 덮어쓰지 않는다. 이미지가 이미 있어도(자동 썸네일·전에 올린 캡처) 바꿀 수 있다(2026-11-21). 활성 목록의 ⋯ 메뉴에서 이미지가 있으면 "이미지 바꾸기", 없으면 "캡처 올리기"(FEAT-011 AC-05, 썸네일 누르기는 선택).
+- [x] AC-07 제목 기본값: 제목을 비워 두면 목록에는 페이지의 `og:title`(받았을 때), 그것도 없으면 도메인을 보여 준다(앞의 `www.`·`m.`은 뺀다, AC-17). 사용자가 넣은 제목이 항상 우선한다.
 - [x] AC-08 인스타 주소 정리: `instagram.com/p/…`, `/reel/…` 주소는 쿼리(`img_index`, `jplx` 등)를 모두 떼고 저장해, 같은 게시물을 다른 장으로 공유해도 중복으로 묶는다.
 - [x] AC-09 권한: 남의 북마크 썸네일은 볼 수도 올릴 수도 없다(404). 썸네일 이미지 주소는 짧게(10~20분) 만료되는 서명 주소다.
 - [x] AC-10 SSRF 방어: 서버 요청은 http·https만, 사설·루프백·링크로컬 IP로 풀리는 주소 거부, 리다이렉트 3회·응답 3MB(페이지, 넘으면 앞부분만 읽음 — AC-13)·10MB(이미지, 넘으면 거부)·5초 제한, 이미지는 실제 바이트로 형식 확인.
@@ -38,6 +38,23 @@
 - [ ] AC-12 대체 태그(2026-11-21): 대표 이미지는 `og:image` → `twitter:image` → `<link rel="image_src">`, 제목은 `og:title` → `twitter:title` → `<title>` 순으로 고른다. HTML 안 순서와 관계없이 이 순위를 따르고, 값이 비었거나 http(s) 주소가 아니면 다음 순위로 넘어간다. og 태그가 없는 사이트도 제목·썸네일이 보인다.
 - [ ] AC-13 큰 페이지(2026-11-21): 페이지가 3MB를 넘으면 실패로 끝내지 않고 앞 3MB만 읽어 AC-12로 파싱한다(대표 태그는 `<head>`에 있다). 이미지 상한(10MB 넘으면 거부)은 그대로.
 - [ ] AC-14 재시도(2026-11-21): 페이지·이미지 요청이 일시적으로 실패하면(시간 초과, 연결 끊김·일시적 DNS 실패, HTTP 5xx·429) 1초 뒤 한 번만 다시 받는다. 차단(403)·없음(404)·주소 거부·크기 초과는 다시 시도하지 않는다. 서버 종료 중에는 다시 시도하지 않는다.
+- [x] AC-15 파비콘(2026-11-21): 보여 줄 썸네일이 하나도 없을 때(보관 파일·원본 주소 모두 없거나 불러오지 못함) 아트워크 가운데에 그 사이트의 파비콘을 흰 둥근 타일(40px, 아이콘 24px)로 올린다. 파비콘 주소는 서버가 같은 HTML에서 `apple-touch-icon` → `<link rel="icon">`(가장 큰 `sizes`) → `shortcut icon` 순으로 고르고(`faviconUrl`), 없거나 HTML을 못 받았으면 화면이 `사이트 주소/favicon.ico`를 불러 본다. 파비콘도 못 불러오면 아트워크만 보인다. 서버는 파비콘을 받거나 보관하지 않고(요청 추가 없음), 화면은 원본 사이트에 리퍼러를 보내지 않는다. 외부 파비콘 서비스는 쓰지 않는다(D-16). 기존 행은 `faviconUrl`이 없어 `/favicon.ico`부터.
+- [x] AC-16 추적 값·스마트스토어 주소(2026-11-21): 중복 판단용 정규화에서 `utm_id`·`NaPm`(네이버 광고·쇼핑 경로)·`gbraid`·`wbraid`(구글 광고)·`msclkid`(빙 광고)도 뗀다(이름 정확히 일치). 스마트스토어 상품 주소(`/{가게}/products/{번호}`)는 쿼리를 모두 떼고 `m.smartstore.naver.com`을 `smartstore.naver.com`으로 맞춰, 모바일·PC와 광고·검색 경로가 달라도 같은 상품은 하나로 묶는다. 사용자가 넣은 원래 주소(`url`)는 그대로 둔다.
+- [x] AC-17 사이트 이름(2026-11-21): 제목도 페이지 제목도 없으면 도메인에서 앞의 `www.`·`m.`을 뺀 이름을 보여 준다(`m.smartstore.naver.com` → `smartstore.naver.com`).
+- [x] AC-18 가게 이름(2026-11-21): 스마트스토어(`smartstore.naver.com/{가게}/…`)·브랜드스토어(`brand.naver.com/{브랜드}/…`) 링크는 제목을 못 받으면 주소의 첫 경로로 `diaday · 스마트스토어`처럼 보여 준다(모바일 주소 포함). 첫 경로가 목록·검색 화면(`main`·`search`·`category` 등)이거나 영문·숫자·`_`·`-` 1~50자가 아니면 AC-17(사이트 이름)로.
+- [x] AC-19 짧은 주소(2026-11-21): 썸네일 작업이 리다이렉트로 다른 주소에 닿으면 그 마지막 주소를 남기고(`resolved_url`, 처음 값만, 페이지가 막혀도), 표시 제목의 사이트 이름(AC-17·18)은 이 주소로 만든다. `naver.me/…`처럼 정보 없는 짧은 주소도 `diaday · 스마트스토어`로 보인다. 응답 `url`(열 때 쓰는 주소)과 중복 판단(정규화 주소)은 그대로 — 짧은 주소와 상품 주소는 다른 링크로 저장된다.
+- [x] AC-20 쿠팡(2026-11-21): 쿠팡도 서버 요청에 상품 페이지 대신 403을 준다(`link.coupang.com` 짧은 주소는 302로 상품 주소를 알려 줌, 사용자 Mac 확인). 주소에 상품 번호뿐이라 제목을 못 받으면 상품 주소는 `쿠팡 상품`, 그 밖(짧은 주소 등)은 `쿠팡`으로 보인다(AC-19의 마지막 주소 기준). 중복 판단에서 쿠팡 상품 주소(`/vp/products/{번호}`)는 `itemId`·`vendorItemId`만 남기고(이 순서) `m.`·맨 도메인을 `www.coupang.com`으로 맞춘다.
+- 참고(2026-11-21 확인): 스마트스토어는 서버 요청에 상품 페이지 대신 429 "에러페이지 - 시스템오류"를 준다(KeepioBot·facebookexternalhit·브라우저 User-Agent 모두 같음). 사용자 브라우저 확인 방식이라 이름만 바꿔서는 받을 수 없고, 차단을 우회하지 않는다(D-16). 스마트스토어 링크는 사이트 이름 + 아트워크·파비콘으로 보이고, 캡처 올리기·제목 수정으로 채운다.
+
+## 검토한 대안 — 파비콘(AC-15)
+
+| 선택지                                    | 장점                                                 | 단점                                                      |
+| ----------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------- |
+| A. 화면만: 항상 `사이트 주소/favicon.ico` | API·DB 변경 없음, 바로 적용                          | 아이콘을 다른 곳에 두는 사이트는 못 찾는다, 작고 흐릿함   |
+| B. 서버가 HTML에서 주소만 읽음 + A로 대체 | 큰 아이콘(apple-touch-icon)을 찾는다, 요청 추가 없음 | DB 컬럼·API 필드 1개 추가, 주소는 원본 사이트에서 불러옴  |
+| C. 서버가 파비콘을 받아 보관              | 원본이 사라져도 보인다                               | 요청·저장 추가(SSRF 경로 늘어남), 작은 아이콘에 과한 처리 |
+
+- 추천 및 근거: B(사용자 결정 2026-11-21). 썸네일 원본 주소(AC-11)와 같은 방식이라 서버 요청이 늘지 않는다.
 
 ## 데이터 계약
 
@@ -47,6 +64,7 @@
   - `POST /api/bookmarks` body `{ url, title?, tags?: string[] }` → 기존 응답 + `title`, `displayTitle`, `tags: [{ id, name }]`, `thumbnail: { status, url | null, sourceUrl | null }`(sourceUrl은 AC-11)
   - `GET /api/bookmarks` 각 항목에 같은 필드 추가
   - `PUT /api/bookmarks/:id/thumbnail` multipart `file` → 200 북마크
+  - (AC-15) 북마크 응답에 `faviconUrl: string | null` 추가
   - `GET /api/files/thumbnails/:key?exp&sig` → 이미지(서명 검증, 인증 헤더 불필요. `<img>`로 부르기 위함)
 - 오류 문구(ADR-009):
 
@@ -61,13 +79,15 @@
 
 - DB 변경/마이그레이션(모두 추가만, 기존 행 영향 없음):
   - `bookmarks`: `title varchar(100) NULL`, `page_title varchar(300) NULL`(og:title), `thumbnail_key text NULL`, `thumbnail_status` enum(`pending`,`ready`,`failed`) NOT NULL DEFAULT `failed`(기존 행은 썸네일 없음으로), `thumbnail_source` enum(`auto`,`upload`) NULL, `thumbnail_source_url varchar(2048) NULL`(AC-11, 마이그레이션 `20261120000000_add_bookmark_thumbnail_source_url`)
+  - (AC-19) `bookmarks.resolved_url varchar(2048) NULL`(마이그레이션 `20261121010000_add_bookmark_resolved_url`, 응답에 넣지 않음)
+  - (AC-15) `bookmarks.favicon_url varchar(2048) NULL`(마이그레이션 `20261121000000_add_bookmark_favicon_url`)
   - `tags(id, user_id, name, normalized_name, created_at)` UNIQUE `(user_id, normalized_name)` — FEAT-008 정의와 동일
   - `bookmark_tags(bookmark_id, tag_id)` PK 복합, 양쪽 CASCADE
 
 ## UX 및 디자인
 
 - 저장 폼(홈 F1 저장창·`/links`): 링크 입력 아래 "제목(선택)"과 태그 입력. 태그는 Enter·쉼표로 칩이 되고 Backspace로 지운다. 키보드만으로 추가·삭제 가능, 칩 삭제 버튼은 `aria-label="태그 ○○ 삭제"`.
-- 목록 행: 썸네일(4:3, 둥근 모서리) · 표시 제목 · 도메인 · 태그 칩. `pending`은 회색 상자 + "썸네일 가져오는 중", `failed`는 빈 상자 + "캡처 올리기" 버튼.
+- 목록 행: 썸네일(4:3, 둥근 모서리) · 표시 제목 · 도메인 · 태그 칩. `pending`은 회색 상자 + "썸네일 가져오는 중", `failed`는 아트워크(+ 파비콘, AC-15) + ⋯ 메뉴의 "캡처 올리기"(FEAT-011 AC-05, 2026-11-21 썸네일 위 버튼에서 메뉴로 옮김).
 - 기존 컴포넌트·토큰 재사용: `SaveBookmarkForm`, `BookmarkList`, `FormParts`, 색 토큰(라이트·다크).
 
 ## 영향도 및 주의사항
@@ -100,3 +120,10 @@
   - 마이그레이션 SQL은 손으로 썼다(이 환경에서 `prisma migrate dev` 불가). Mac에서 `npm run db:deploy` 후 `npm run db:migrate -- --create-only`로 차이가 없는지 확인 필요.
   - 실제 인스타 링크의 자동 썸네일은 사용자 Mac에서 확인 필요(이 환경은 instagram.com 접근 불가). og:image는 `facebookexternalhit` UA로 받아지는 것을 사용자가 확인했고, 기본 UA(KeepioBot)는 미확인.
   - 썸네일 작업은 프로세스 안 비동기(큐 전). 서버 재시작 시 pending은 10분 뒤 failed로 정리.
+
+## 후속 변경 (2026-11-21, AC-15 파비콘)
+
+- 서버: `lib/open-graph.ts`가 `icon`(apple-touch-icon → icon·shortcut icon, 같은 순위는 큰 `sizes`, mask-icon 제외)을 고르고, 썸네일 작업이 대표 이미지 유무와 관계없이 `favicon_url`에 처음 값만 남긴다(`setFaviconUrl`). 응답 `faviconUrl`.
+- 웹: `shared/lib/favicon-sources.ts`(faviconUrl → 사이트 주소/favicon.ico), `shared/ui/FaviconTile.tsx`(흰 둥근 타일, 불러온 뒤에만 보임, 모두 실패하면 그리지 않음, no-referrer). `BookmarkThumb`(목록·카드의 아트워크 상태)와 `TriageRow`(정리할 링크)에 올린다.
+- 테스트: `open-graph.test.ts` AC-15 2건, `bookmark-meta.int.test.ts` AC-15 2건(아이콘 주소 저장·아이콘 받지 않음, 태그 없으면 null), `bookmarks.int.test.ts` 응답에 `faviconUrl`, 웹 `Home.test.tsx` 파비콘 2건.
+- 남은 위험: 마이그레이션 SQL·Prisma 생성물·OpenAPI·api-client는 이 환경에서 생성 도구를 못 돌려 손으로 맞췄다(엔진 다운로드 차단). 사용자 Mac에서 `npm run db:generate`·`npm run db:deploy`·`npm run openapi:check`로 확인 필요. 통합 테스트도 Mac에서.

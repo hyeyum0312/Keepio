@@ -7,6 +7,8 @@ const PATHS = {
   link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
   copy: "M9 9h11v11H9zM5 15H4V4h11v1",
   arrow: "M5 12h14M13 6l6 6-6 6",
+  plus: "M12 5v14M5 12h14",
+  close: "M6 6l12 12M18 6L6 18",
 } as const;
 
 export function HomeIcon({

@@ -11,13 +11,15 @@ describe("앱 틀 (FEAT-009)", () => {
     render(<AppShell>본문</AppShell>);
     const nav = screen.getByRole("navigation", { name: "주요 메뉴" });
     expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent("홈");
-    for (const name of ["카테고리", "버킷", "공유한 페이지", "MCP 연결"]) {
+    for (const name of ["버킷", "공유한 페이지", "MCP 연결"]) {
       const item = within(nav).getByRole("link", {
         name: new RegExp(`^${name}\\s*\\(준비 중\\)$`),
       });
       expect(item).toHaveAttribute("aria-disabled", "true");
       expect(item).not.toHaveAttribute("href");
     }
+    // 카테고리·미분류 메뉴는 두지 않는다(내 링크의 카테고리 칩, 2026-11-21)
+    expect(within(nav).queryByText(/카테고리|미분류/)).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "알림 (준비 중)" }),
     ).toHaveAttribute("aria-disabled", "true");

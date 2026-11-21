@@ -23,7 +23,7 @@ export const PREVIEW_LINKS: TriageLink[] = [
   },
 ];
 
-// 정리할 링크의 카테고리 선택(첫 항목이 AI 추천 자리)
+// 최근 추가한 링크의 카테고리 선택(첫 항목이 AI 추천 자리)
 export const PREVIEW_CATEGORIES: TriageCategory[] = [
   { id: "c4", name: "디자인" },
   { id: "c3", name: "개발" },
@@ -35,30 +35,22 @@ export const PREVIEW_BUCKETS: BucketTile[] = [
   {
     id: "b1",
     name: "[미리보기] 개발 레퍼런스",
-    linkCount: 42,
-    updatedLabel: "2일 전 업데이트",
-    art: "liquid-blue",
+    description: "프레임워크 문서와 좋은 예제 모음",
   },
   {
     id: "b2",
     name: "[미리보기] 디자인 인스피레이션",
-    linkCount: 58,
-    updatedLabel: "5일 전 업데이트",
-    art: "soft-coral",
+    description: "마음에 드는 화면과 무드",
   },
   {
     id: "b3",
     name: "[미리보기] 여행 기록과 준비",
-    linkCount: 27,
-    updatedLabel: "1주 전 업데이트",
-    art: "warm-light",
+    description: "숙소·맛집·동선을 한곳에",
   },
   {
+    // 설명이 없는 버킷: 설명 줄을 그리지 않는다
     id: "b4",
     name: "[미리보기] 생산성 도구 모음",
-    linkCount: 18,
-    updatedLabel: "3일 전 업데이트",
-    art: "botanical",
   },
 ];
 

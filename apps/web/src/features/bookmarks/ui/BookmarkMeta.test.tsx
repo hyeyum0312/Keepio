@@ -132,8 +132,19 @@ describe("링크 저장 시 제목·태그와 썸네일 (FEAT-010)", () => {
     expect(within(first).getByText("www.instagram.com")).toBeInTheDocument();
     expect(within(first).getByText("#모션")).toBeInTheDocument();
     expect(screen.getByText("썸네일 가져오는 중")).toBeInTheDocument();
+    // FEAT-011 AC-05: 이미지는 ⋯ 메뉴에서. 이미지가 없으면 "캡처 올리기", 있으면 "이미지 바꾸기"
+    await userEvent.click(
+      screen.getByRole("button", { name: "더보기: 레퍼런스 3" }),
+    );
     expect(
-      screen.getByRole("button", { name: "캡처 올리기: 레퍼런스 3" }),
+      screen.getByRole("menuitem", { name: "캡처 올리기" }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    await userEvent.click(
+      screen.getByRole("button", { name: "더보기: 레퍼런스 1" }),
+    );
+    expect(
+      screen.getByRole("menuitem", { name: "이미지 바꾸기" }),
     ).toBeInTheDocument();
   });
 
@@ -174,7 +185,12 @@ describe("링크 저장 시 제목·태그와 썸네일 (FEAT-010)", () => {
       }),
     );
     const { container } = wrap(<BookmarkList status="active" />);
-    await screen.findByRole("button", { name: "캡처 올리기: 레퍼런스 3" });
+    await userEvent.click(
+      await screen.findByRole("button", { name: "더보기: 레퍼런스 3" }),
+    );
+    await userEvent.click(
+      screen.getByRole("menuitem", { name: "캡처 올리기" }),
+    );
     const file = new File([new Uint8Array([0xff, 0xd8, 0xff])], "a.jpg", {
       type: "image/jpeg",
     });

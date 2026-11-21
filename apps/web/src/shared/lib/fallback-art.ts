@@ -7,10 +7,15 @@ export const FALLBACK_ART = [
   "/bucket-art/green.webp",
 ] as const;
 
-export function fallbackArtFor(seed: string): string {
+// 문자열(ID)로 목록에서 하나를 고른다. 같은 값이면 늘 같은 항목
+export function pickBySeed<T>(seed: string, items: readonly T[]): T {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
   }
-  return FALLBACK_ART[hash % FALLBACK_ART.length];
+  return items[hash % items.length];
+}
+
+export function fallbackArtFor(seed: string): string {
+  return pickBySeed(seed, FALLBACK_ART);
 }

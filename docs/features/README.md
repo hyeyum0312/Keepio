@@ -10,14 +10,15 @@
 
 ## 목록
 
-| ID       | 기능                                                    | Status      |
-| -------- | ------------------------------------------------------- | ----------- |
-| FEAT-001 | [링크 저장: URL 정규화와 중복 방지](bookmark-save.md)   | Implemented |
-| FEAT-002 | [링크 목록·삭제·복구](bookmark-list-delete.md)          | Implemented |
-| FEAT-003 | [이메일/비밀번호 인증과 세션](auth-email-password.md)   | Implemented |
-| FEAT-004 | [소셜 로그인(Google·Kakao)과 계정 연결](auth-social.md) | Implemented |
-| FEAT-006 | [웹 로그인 화면과 토큰 처리](auth-web.md)               | Implemented |
-| FEAT-007 | [인증 화면 디자인 적용](auth-screens-design.md)         | Implemented |
-| FEAT-008 | [카테고리·태그 CRUD와 링크 분류](category-tag.md)       | Draft       |
-| FEAT-009 | [앱 틀과 홈 화면 디자인](app-shell-home.md)             | Implemented |
-| FEAT-010 | [링크 저장 시 제목·태그와 썸네일](bookmark-meta.md)     | Draft       |
+| ID       | 기능                                                     | Status      |
+| -------- | -------------------------------------------------------- | ----------- |
+| FEAT-001 | [링크 저장: URL 정규화와 중복 방지](bookmark-save.md)    | Implemented |
+| FEAT-002 | [링크 목록·삭제·복구](bookmark-list-delete.md)           | Implemented |
+| FEAT-003 | [이메일/비밀번호 인증과 세션](auth-email-password.md)    | Implemented |
+| FEAT-004 | [소셜 로그인(Google·Kakao)과 계정 연결](auth-social.md)  | Implemented |
+| FEAT-006 | [웹 로그인 화면과 토큰 처리](auth-web.md)                | Implemented |
+| FEAT-007 | [인증 화면 디자인 적용](auth-screens-design.md)          | Implemented |
+| FEAT-008 | [카테고리·태그 CRUD와 링크 분류](category-tag.md)        | Draft       |
+| FEAT-009 | [앱 틀과 홈 화면 디자인](app-shell-home.md)              | Implemented |
+| FEAT-010 | [링크 저장 시 제목·태그와 썸네일](bookmark-meta.md)      | Draft       |
+| FEAT-011 | [링크 제목 수정과 여러 개 선택](bookmark-edit-select.md) | Approved    |

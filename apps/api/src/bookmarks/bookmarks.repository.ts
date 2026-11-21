@@ -22,6 +22,10 @@ export type BookmarkRecord = {
   thumbnailSource: ThumbnailSource | null;
   // FEAT-010 AC-11. og:image 원본 주소
   thumbnailSourceUrl: string | null;
+  // FEAT-010 AC-15. 사이트 아이콘 주소
+  faviconUrl: string | null;
+  // FEAT-010 AC-19. 리다이렉트를 따라간 마지막 주소(짧은 주소 등). 응답에는 넣지 않고 표시 제목에만 쓴다
+  resolvedUrl: string | null;
   tags: { id: string; name: string }[];
 };
 
@@ -45,6 +49,8 @@ const RECORD_SELECT = {
   thumbnailStatus: true,
   thumbnailSource: true,
   thumbnailSourceUrl: true,
+  faviconUrl: true,
+  resolvedUrl: true,
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const satisfies Prisma.BookmarkSelect;
 
@@ -165,6 +171,22 @@ export class BookmarksRepository {
     });
   }
 
+  // FEAT-010 AC-15. 사이트 아이콘 주소. 처음 받은 값만 둔다
+  async setFaviconUrl(id: string, url: string): Promise<void> {
+    await this.prisma.bookmark.updateMany({
+      where: { id, faviconUrl: null },
+      data: { faviconUrl: url },
+    });
+  }
+
+  // FEAT-010 AC-19. 리다이렉트 마지막 주소. 처음 받은 값만 둔다
+  async setResolvedUrl(id: string, url: string): Promise<void> {
+    await this.prisma.bookmark.updateMany({
+      where: { id, resolvedUrl: null },
+      data: { resolvedUrl: url },
+    });
+  }
+
   // og:title은 처음 받은 값만 둔다
   async setPageTitle(id: string, pageTitle: string): Promise<void> {
     await this.prisma.bookmark.updateMany({
@@ -270,6 +292,19 @@ export class BookmarksRepository {
       data: { deletedAt: now },
     });
     return count === 1;
+  }
+
+  // FEAT-011 AC-01·02. 활성이고 본인 것일 때만 제목을 바꾼다. 없으면 null
+  async updateTitle(
+    userId: string,
+    id: string,
+    title: string | null,
+  ): Promise<BookmarkRecord | null> {
+    const { count } = await this.prisma.bookmark.updateMany({
+      where: { id, userId, deletedAt: null },
+      data: { title },
+    });
+    return count === 1 ? this.findOwned(userId, id) : null;
   }
 
   // 삭제된 것만 되살린다. 같은 URL의 활성 북마크가 있으면 부분 UNIQUE가 거부한다(P2002, AC-06의 최종 권위)

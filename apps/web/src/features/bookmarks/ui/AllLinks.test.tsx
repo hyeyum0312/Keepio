@@ -44,7 +44,7 @@ function setup() {
   return { bodies };
 }
 
-describe("전체 링크 화면 (LINK-01 시안, FEAT-009 후속)", () => {
+describe("내 링크 화면 (LINK-01 시안, FEAT-009 후속)", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("제목·태그는 접혀 있다가 펼치면 보이고, 다시 접어도 입력한 값은 함께 저장된다", async () => {
@@ -98,7 +98,7 @@ describe("전체 링크 화면 (LINK-01 시안, FEAT-009 후속)", () => {
     });
     await userEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("menuitem", { name: "삭제" })).toHaveFocus();
+    expect(screen.getByRole("menuitem", { name: "수정" })).toHaveFocus();
 
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();

@@ -4,7 +4,7 @@ import { AppShell } from "@/features/app-shell";
 import { AllLinksPreview } from "@/features/bookmarks";
 import { isPreviewEnabled } from "@/shared/lib/preview";
 
-// 디자인 확인용 전체 링크(샘플 데이터, 로그인 없이). 개발 환경에서만 열리고 배포에서는 404
+// 디자인 확인용 내 링크(샘플 데이터, 로그인 없이). 개발 환경에서만 열리고 배포에서는 404
 export default function LinksPreviewPage() {
   if (!isPreviewEnabled()) notFound();
   return (
@@ -23,7 +23,7 @@ export default function LinksPreviewPage() {
       }
     >
       <main className="flex w-full max-w-5xl flex-col gap-6 px-6 pt-6 pb-16 md:gap-8 md:px-10 md:pt-8">
-        <h1 className="text-title font-bold tracking-tight">전체 링크</h1>
+        <h1 className="text-lg font-bold tracking-tight">내 링크</h1>
         <AllLinksPreview />
       </main>
     </AppShell>
