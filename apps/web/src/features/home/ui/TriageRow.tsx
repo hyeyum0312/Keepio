@@ -87,7 +87,7 @@ export function TriageRow({
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block truncate text-base font-bold hover:underline focus-visible:focus-ring"
+            className="block truncate text-sm font-bold hover:underline focus-visible:focus-ring"
           >
             {title}
           </a>

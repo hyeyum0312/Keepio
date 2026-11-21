@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | style(web): 홈 최근 추가한 링크 줄 제목 14px
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 섹션 제목(16px)보다 한 단계 작게 해 위계를 분명히 한다(사용자 결정, 2026-11-21 시안).
+- 변경: `TriageRow` 링크 제목 `text-base` → `text-sm`(14px).
+- 영향: 글자 크기만. 동작·API 변경 없음.
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
 ## 2026-11-21 | style(web): 페이지 제목 18px, 하위 제목 16px로 통일
 
 - Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
