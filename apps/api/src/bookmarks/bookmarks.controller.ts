@@ -170,12 +170,12 @@ export class BookmarksController {
   }
 }
 
-// FEAT-010 AC-07. 넣은 제목 → og:title → 도메인
+// FEAT-010 AC-07·17. 넣은 제목 → og:title → 사이트 이름(도메인에서 앞의 www.·m.을 뺀 것)
 function displayTitle(bookmark: BookmarkRecord): string {
+  const host = URL.parse(bookmark.originalUrl)?.hostname;
   return (
     bookmark.title ??
     bookmark.pageTitle ??
-    URL.parse(bookmark.originalUrl)?.hostname ??
-    bookmark.originalUrl
+    (host ? host.replace(/^(www|m)\./, "") : bookmark.originalUrl)
   );
 }

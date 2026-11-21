@@ -113,4 +113,40 @@ describe("normalizeUrl", () => {
       normalizedUrl: "https://example.com/p/abc/?img_index=2",
     });
   });
+
+  it("FEAT-010 AC-16: 스마트스토어 상품 주소는 쿼리를 모두 떼고 모바일 주소를 PC 주소로 맞춘다", () => {
+    const pc =
+      "https://smartstore.naver.com/diaday/products/13854531009?NaPm=ct%3Dmwqe5ucw%7Cci%3DER16";
+    const mobile =
+      "https://m.smartstore.naver.com/diaday/products/13854531009?fbclid=PAV&n_media=27758";
+    const clean = {
+      ok: true,
+      normalizedUrl: "https://smartstore.naver.com/diaday/products/13854531009",
+    };
+    expect(normalizeUrl(pc)).toEqual(clean);
+    expect(normalizeUrl(mobile)).toEqual(clean);
+  });
+
+  it("FEAT-010 AC-16: 스마트스토어의 상품이 아닌 주소는 기존 규칙 그대로다", () => {
+    expect(
+      normalizeUrl(
+        "https://m.smartstore.naver.com/diaday/category/ALL?st=POPULAR",
+      ),
+    ).toEqual({
+      ok: true,
+      normalizedUrl:
+        "https://m.smartstore.naver.com/diaday/category/ALL?st=POPULAR",
+    });
+  });
+
+  it("FEAT-010 AC-16: 추가한 추적 값(NaPm·utm_id·gbraid·wbraid·msclkid)도 뗀다. 이름이 정확히 같을 때만", () => {
+    expect(
+      normalizeUrl(
+        "https://shop.example.com/item?id=7&NaPm=ct%3D1&utm_id=9&gbraid=a&wbraid=b&msclkid=c&napm=keep",
+      ),
+    ).toEqual({
+      ok: true,
+      normalizedUrl: "https://shop.example.com/item?id=7&napm=keep",
+    });
+  });
 });

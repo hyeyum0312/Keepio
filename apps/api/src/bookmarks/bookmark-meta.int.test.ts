@@ -272,6 +272,24 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     expect(unsigned.status).toBe(404);
   });
 
+  it("AC-16·17: 모바일·PC 스마트스토어 상품을 하나로 묶고, 제목을 못 받으면 www.·m.을 뺀 사이트 이름을 보여 준다", async () => {
+    const userId = await newUser();
+    const a = await save(userId, {
+      url: "https://m.smartstore.naver.com/nvnutra/products/13646818252?fbclid=PAV",
+    });
+    const b = await save(userId, {
+      url: "https://smartstore.naver.com/nvnutra/products/13646818252?NaPm=ct%3D1",
+    });
+
+    expect(a.status).toBe(201);
+    expect(b.status).toBe(200);
+    expect(b.body.id).toBe(a.body.id);
+    expect(a.body.normalizedUrl).toBe(
+      "https://smartstore.naver.com/nvnutra/products/13646818252",
+    );
+    expect(a.body.displayTitle).toBe("smartstore.naver.com");
+  });
+
   it("AC-15: 대표 이미지가 없어도 페이지가 알려 준 아이콘 주소(apple-touch-icon 우선)를 남기고, 서버는 아이콘을 받지 않는다", async () => {
     fetcher.fetchPage.mockResolvedValue({
       html: `<head><title>문서</title>

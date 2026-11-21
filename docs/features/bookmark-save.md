@@ -15,7 +15,7 @@
 - [x] AC-02 중복: 같은 사용자가 정규화 결과가 같은 URL을 다시 저장하면 새로 만들지 않고 기존 ID를 `200`으로 반환한다.
 - [x] AC-03 동시성: 같은 사용자의 같은 URL 저장 요청 100개를 동시에 보내도 활성 북마크는 1개이고 모든 응답의 ID가 같다.
 - [x] AC-04 사용자 격리: 다른 사용자가 같은 URL을 저장하면 각자 별도 북마크가 생긴다.
-- [x] AC-05 정규화: 스킴·호스트 소문자, 기본 포트(`http :80`/`https :443`) 제거, 추적 파라미터 `utm_source`·`utm_medium`·`utm_campaign`·`utm_term`·`utm_content`·`fbclid`·`gclid`·`igshid`(이름 정확히 일치)만 제거한다. 경로·그 외 쿼리(순서 유지)·fragment는 유지한다. 쿼리가 모두 제거되면 `?`도 없앤다.
+- [x] AC-05 정규화: 스킴·호스트 소문자, 기본 포트(`http :80`/`https :443`) 제거, 추적 파라미터 `utm_source`·`utm_medium`·`utm_campaign`·`utm_term`·`utm_content`·`utm_id`·`fbclid`·`gclid`·`gbraid`·`wbraid`·`msclkid`·`igshid`·`NaPm`(이름 정확히 일치, 2026-11-21 `utm_id`·`gbraid`·`wbraid`·`msclkid`·`NaPm` 추가 — FEAT-010 AC-16)만 제거한다. 경로·그 외 쿼리(순서 유지)·fragment는 유지한다. 쿼리가 모두 제거되면 `?`도 없앤다.
 - [x] AC-06 입력 거부: 파싱 불가 URL(빈 문자열 포함), `http`/`https`가 아닌 스킴, 입력 또는 정규화 결과가 2048자 초과면 `400`과 오류 코드로 거부하고 저장하지 않는다. `url`이 없거나 문자열이 아니면 `400 VALIDATION_FAILED`.
 - [x] AC-07 삭제된 URL 재저장(ADR-017, D-01 대체): 같은 사용자의 휴지통에만 같은 정규화 URL이 있으면 그 행을 영구 삭제하고 새 북마크로 저장한다(201). 활성 북마크가 있으면 AC-02가 우선한다.
 

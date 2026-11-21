@@ -135,6 +135,10 @@ describe("링크 저장 시 제목·태그와 썸네일 (FEAT-010)", () => {
     expect(
       screen.getByRole("button", { name: "캡처 올리기: 레퍼런스 3" }),
     ).toBeInTheDocument();
+    // 이미지가 이미 있어도 바꿀 수 있다(2026-11-21)
+    expect(
+      screen.getByRole("button", { name: "이미지 바꾸기: 레퍼런스 1" }),
+    ).toBeInTheDocument();
   });
 
   it("AC-06: 캡처를 올리면 PUT으로 보내고 목록을 다시 받는다. 실패하면 서버 문구를 보여 준다", async () => {

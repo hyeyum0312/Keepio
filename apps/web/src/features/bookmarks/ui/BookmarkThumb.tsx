@@ -20,7 +20,7 @@ const BOXES = {
 } as const;
 export type ThumbVariant = keyof typeof BOXES;
 
-// FEAT-010 AC-04~06. ready는 이미지, pending은 회색 상자, failed는 아트워크 + 캡처 올리기(활성 목록만).
+// FEAT-010 AC-04~06. ready는 이미지, pending은 회색 상자, failed는 아트워크. 활성 목록에서는 어느 상태든 눌러 이미지를 올리거나 바꾼다.
 // 보관 파일을 못 불러오면(만료·삭제·서버 디스크 초기화) 링크 페이지의 원본 이미지(AC-11)를, 그것도 안 되면
 // 링크 ID로 정한 아트워크를 보여 준다(같은 링크는 늘 같은 그림). 아트워크 가운데에는 사이트 파비콘을 올린다(AC-15)
 export function BookmarkThumb({
@@ -63,14 +63,14 @@ export function BookmarkThumb({
     else onError(r.message);
   }
 
+  const sizes = variant === "row" ? "160px" : "(min-width: 768px) 320px, 50vw";
+  let content: React.ReactNode;
   if (src) {
-    const sizes =
-      variant === "row" ? "160px" : "(min-width: 768px) 320px, 50vw";
-    return (
-      // 비율이 제각각(유튜브 16:9, 인스타 1:1·4:5)이라 자르지 않고 상자 안에 다 보이게 한다(object-contain).
-      // 남는 자리는 같은 이미지를 흐리게 깔아 채운다(같은 주소라 추가 요청 없음)
-      <div className={`${BOX} relative`}>
-        {/* 서명 주소·다른 사이트 주소라 Next 이미지 최적화(캐시 키)를 거치지 않는다. 원본 사이트에 지금 보는 주소를 넘기지 않는다 */}
+    // 비율이 제각각(유튜브 16:9, 인스타 1:1·4:5)이라 자르지 않고 상자 안에 다 보이게 한다(object-contain).
+    // 남는 자리는 같은 이미지를 흐리게 깔아 채운다(같은 주소라 추가 요청 없음).
+    // 서명 주소·다른 사이트 주소라 Next 이미지 최적화(캐시 키)를 거치지 않는다. 원본 사이트에 지금 보는 주소를 넘기지 않는다
+    content = (
+      <>
         <Image
           key={`bg-${src}`}
           src={src}
@@ -93,53 +93,57 @@ export function BookmarkThumb({
           referrerPolicy="no-referrer"
           className="object-contain"
         />
-      </div>
+      </>
+    );
+  } else if (thumbnail.status === "pending") {
+    content = <span className="sr-only">썸네일 가져오는 중</span>;
+  } else {
+    content = (
+      <>
+        <Image src={art} alt="" fill sizes={sizes} className="object-cover" />
+        <FaviconTile
+          faviconUrl={faviconUrl}
+          pageUrl={pageUrl}
+          size={variant === "row" ? "sm" : "md"}
+        />
+      </>
     );
   }
-  if (thumbnail.status === "pending") {
+  const boxClass = `${BOX} relative ${!src && thumbnail.status === "pending" ? "motion-safe:animate-pulse" : ""}`;
+
+  // 휴지통 등 올릴 수 없는 곳은 그림만
+  if (!canUpload) {
     return (
-      <div className={`${BOX} motion-safe:animate-pulse`}>
-        <span className="sr-only">썸네일 가져오는 중</span>
+      <div
+        aria-hidden={(!src && thumbnail.status !== "pending") || undefined}
+        className={boxClass}
+      >
+        {content}
       </div>
     );
   }
-  const artImage = (
-    <Image
-      src={art}
-      alt=""
-      fill
-      sizes={variant === "row" ? "160px" : "(min-width: 768px) 320px, 50vw"}
-      className="object-cover"
-    />
-  );
-  const favicon = (
-    <FaviconTile
-      faviconUrl={faviconUrl}
-      pageUrl={pageUrl}
-      size={variant === "row" ? "sm" : "md"}
-    />
-  );
-  if (!canUpload || thumbnail.status === "ready") {
-    return (
-      <div aria-hidden="true" className={`${BOX} relative`}>
-        {artImage}
-        {favicon}
-      </div>
-    );
-  }
+  // 이미지가 이미 있어도 사용자가 바꿀 수 있다(2026-11-21 사용자 결정). 서버는 올린 이미지로 바꾸고 이전 파일을 지운다(AC-06)
+  const label = src ? "이미지 바꾸기" : "캡처 올리기";
   return (
     <>
       <button
         type="button"
         onClick={() => input.current?.click()}
         disabled={upload.isPending}
-        aria-label={`캡처 올리기: ${title}`}
-        className={`${BOX} group relative focus-visible:focus-ring disabled:opacity-50`}
+        aria-label={`${label}: ${title}${!src && thumbnail.status === "pending" ? " (썸네일 가져오는 중)" : ""}`}
+        className={`${boxClass} group focus-visible:focus-ring disabled:opacity-50`}
       >
-        {artImage}
-        {favicon}
-        <span className="absolute inset-x-1.5 bottom-1.5 rounded-lg bg-surface/90 py-1 text-caption font-medium text-foreground group-hover:bg-surface">
-          {upload.isPending ? "올리는 중" : "캡처 올리기"}
+        {content}
+        {/* 안내 글자는 마우스를 올리거나 키보드로 고를 때만 보인다(사용자 결정 2026-11-21). 올리는 중이거나
+            마우스가 없는 기기(터치)는 늘 보인다. 버튼 이름(aria-label)은 늘 읽힌다 */}
+        <span
+          className={`absolute inset-x-1.5 bottom-1.5 rounded-lg bg-surface/90 py-1 text-caption font-medium text-foreground transition-opacity group-hover:bg-surface ${
+            upload.isPending
+              ? "opacity-100"
+              : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+          }`}
+        >
+          {upload.isPending ? "올리는 중" : label}
         </span>
       </button>
       <input
