@@ -9,6 +9,7 @@ function Section({
   count,
   sample = false,
   intro,
+  seeAllHref,
   children,
 }: {
   id: string;
@@ -19,6 +20,8 @@ function Section({
   sample?: boolean;
   // 제목 아래 한 줄 안내(예시 화면의 버킷 등)
   intro?: string;
+  // "전체 보기"가 갈 곳. 없으면 준비 중
+  seeAllHref?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -43,7 +46,7 @@ function Section({
               )
             )}
           </h2>
-          <SeeAll section={title} />
+          <SeeAll section={title} href={seeAllHref} />
         </div>
         {intro && <p className="text-sm text-muted-foreground">{intro}</p>}
       </div>
@@ -111,6 +114,8 @@ export function HomeView({
         <Section
           id="home-triage"
           title="최근 추가한 링크"
+          // 2026-11-21: 전체 보기는 내 링크로
+          seeAllHref="/links"
           count={triageCount}
           sample={sample}
         >

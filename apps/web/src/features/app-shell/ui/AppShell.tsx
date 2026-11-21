@@ -18,7 +18,7 @@ type NavItem = {
 const MAIN: NavItem[] = [
   { label: "홈", icon: "home", href: "/" },
   { label: "내 링크", icon: "links", href: "/links" },
-  { label: "카테고리", icon: "tag", soon: true },
+  // 카테고리는 따로 두지 않는다: 내 링크의 카테고리 칩으로 보고, 관리는 칩 줄에서(2026-11-21 사용자 결정)
   { label: "버킷", icon: "bucket", soon: true },
   { label: "공유한 페이지", icon: "pages", soon: true },
   // AI 도구(MCP)에서 내 링크를 쓰게 하는 연결 설정. 기능은 나중에(목록만)

@@ -368,7 +368,11 @@ describe("홈 미리보기", () => {
       screen.getByRole("heading", { name: /공유용 링크/ }),
     ).toBeInTheDocument();
     // 세 섹션 모두 제목 줄 끝에 "전체 보기"(목록 화면 전에는 준비 중)
-    for (const section of ["최근 추가한 링크", "버킷", "공유용 링크"]) {
+    // 최근 추가한 링크의 전체 보기는 내 링크(/links)로 간다(2026-11-21)
+    expect(
+      screen.getByRole("link", { name: "최근 추가한 링크 전체 보기" }),
+    ).toHaveAttribute("href", "/links");
+    for (const section of ["버킷", "공유용 링크"]) {
       expect(
         screen.getByRole("link", { name: `${section} 전체 보기 (준비 중)` }),
       ).toHaveAttribute("aria-disabled", "true");
