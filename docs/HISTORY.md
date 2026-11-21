@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | style(web): 페이지 제목 18px, 하위 제목 16px로 통일
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 화면 제목 크기를 시안(2026-11-21)과 같게 통일한다(사용자 결정).
+- 변경: 페이지 제목 `text-title`(28px) → `text-lg`(18px): `/links`, `/preview/links`, `/trash`. 하위 제목 `text-xl md:text-[22px]` → `text-base`(16px): `HomeView` 섹션 제목, `AllLinks` 목록 제목. `docs/standards/DESIGN.md`에 규칙 한 줄 추가. 인증 화면은 `text-title` 유지(토큰 값 변경 없음).
+- 영향: 글자 크기만. 동작·API 변경 없음.
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
 ## 2026-11-21 | docs(decisions): ADR-018 링크 원본 하나·버킷은 참조·발행은 라이브, D-17 AI 일괄 정리, D-18 발행 스냅샷
 
 - Feature: N/A (버킷 기능 전 결정 기록)

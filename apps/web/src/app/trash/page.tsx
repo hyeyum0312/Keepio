@@ -8,7 +8,7 @@ export default function TrashPage() {
     <RequireAuth>
       <AppShell account={<AccountMenu />}>
         <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 pt-4 pb-16 md:px-10 md:pt-8">
-          <h1 className="text-title font-semibold tracking-tight">휴지통</h1>
+          <h1 className="text-lg font-semibold tracking-tight">휴지통</h1>
           <BookmarkList status="deleted" />
         </main>
       </AppShell>

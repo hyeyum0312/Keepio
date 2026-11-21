@@ -10,7 +10,7 @@ export default function LinksPage() {
       <AppShell account={<AccountMenu />}>
         <main className="flex w-full max-w-5xl flex-col gap-6 px-6 pt-6 pb-16 md:gap-8 md:px-10 md:pt-8">
           {/* 2026-11-21 시안: 화면 제목 "내 링크"를 PC·모바일 모두 보이게 둔다(미리보기와 같은 모양) */}
-          <h1 className="text-title font-bold tracking-tight">내 링크</h1>
+          <h1 className="text-lg font-bold tracking-tight">내 링크</h1>
           <AllLinks />
         </main>
       </AppShell>

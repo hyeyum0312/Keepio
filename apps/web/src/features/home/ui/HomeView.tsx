@@ -31,7 +31,7 @@ function Section({
         <div className="flex items-center justify-between gap-3">
           <h2
             id={id}
-            className="flex items-center gap-2 text-xl font-bold tracking-tight md:text-[22px]"
+            className="flex items-center gap-2 text-base font-bold tracking-tight"
           >
             {title}
             {sample ? (

@@ -143,7 +143,7 @@ export function AllLinks() {
             </label>
             <h2
               id="links-list"
-              className="truncate text-xl font-bold tracking-tight md:text-[22px]"
+              className="truncate text-base font-bold tracking-tight"
             >
               <span className={selecting ? "hidden md:inline" : ""}>
                 정리한 링크
