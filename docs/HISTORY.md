@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | style(web): 홈 버킷 카드 hover·이름 14px, 최근 추가한 링크 상세 12px
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 시안(홈 1-B)과 같은 hover 반응과 글자 크기로 맞춘다(사용자 요청).
+- 변경: `BucketTiles` 버킷 이름 `text-base` → `text-sm`(14px). `TriageRow` 제목 아래 상세 줄 `text-sm` → `text-xs`(12px), 제목과 4px 간격. `BucketTiles` 썸네일에 hover 시 `-translate-y-0.5`(2px), 0.15초 전환. `prefers-reduced-motion`이면 움직이지 않음. `.gitignore`에 작업 결과물 폴더 `Claude outputs/` 추가.
+- 영향: 화면 반응만. 동작·API 변경 없음. 카드는 아직 링크가 아니다(버킷 상세 미구현).
+- 검증: 미실행(작업 환경에서 vitest 네이티브 바인딩 로드 실패, Mac에서 실행 필요).
+- 주의/롤백: revert.
+
 ## 2026-11-21 | style(web): 홈 최근 추가한 링크 줄 제목 14px
 
 - Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)

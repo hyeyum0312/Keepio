@@ -18,8 +18,12 @@ export function BucketTiles({ buckets }: { buckets: BucketTile[] }) {
   return (
     <ul className="flex snap-x gap-3 overflow-x-auto md:grid md:grid-cols-3 md:gap-4 md:overflow-visible">
       {buckets.map((bucket) => (
-        <li key={bucket.id} className="w-[220px] shrink-0 snap-start md:w-auto">
-          <span className="relative block aspect-[16/10] overflow-hidden rounded-2xl bg-muted">
+        <li
+          key={bucket.id}
+          className="group w-[220px] shrink-0 snap-start md:w-auto"
+        >
+          {/* 마우스를 올리면 썸네일이 2px 떠오른다(시안 홈 1-B .bkA:hover, 0.15초). 동작 줄이기 설정이면 움직이지 않는다 */}
+          <span className="relative block aspect-[16/10] overflow-hidden rounded-2xl bg-muted transition-transform duration-150 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0">
             <Image
               src={bucketArtFor(bucket)}
               alt=""
@@ -34,7 +38,7 @@ export function BucketTiles({ buckets }: { buckets: BucketTile[] }) {
             <span className="absolute top-3 left-3 text-white drop-shadow-sm">
               <HomeIcon name="bookmark" size={18} filled />
             </span>
-            <span className="kp-on-image absolute right-3.5 bottom-3 left-3.5 truncate text-base font-bold">
+            <span className="kp-on-image absolute right-3.5 bottom-3 left-3.5 truncate text-sm font-bold">
               {bucket.name}
             </span>
           </span>

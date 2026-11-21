@@ -91,7 +91,7 @@ export function TriageRow({
           >
             {title}
           </a>
-          <p className="truncate text-sm text-muted-foreground">
+          <p className="mt-1 truncate text-xs text-muted-foreground">
             {link.meta ?? origin(link.url)}
           </p>
         </div>
