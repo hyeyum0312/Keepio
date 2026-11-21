@@ -80,6 +80,10 @@ describe("safeFetch 동작 (로컬 가짜 서버, 주소 검사만 끔)", () => 
         res.writeHead(302, { location: "http://169.254.169.254/latest" });
         return res.end();
       }
+      if (req.url === "/headers") {
+        res.writeHead(200, { "content-type": "application/json" });
+        return res.end(JSON.stringify(req.headers));
+      }
       if (req.url === "/slow") return; // 응답하지 않음
       res.writeHead(404);
       res.end();
@@ -101,8 +105,42 @@ describe("safeFetch 동작 (로컬 가짜 서버, 주소 검사만 끔)", () => 
     );
   });
 
+  it("페이지 요청은 브라우저와 같은 요청 성격 헤더를 붙이고, 압축은 받지 않는다", async () => {
+    const res = await safeFetch(`${base}/headers`, {
+      ...local,
+      purpose: "document",
+    });
+    const headers = JSON.parse(res.body.toString("utf8")) as Record<
+      string,
+      string
+    >;
+    expect(headers["sec-fetch-mode"]).toBe("navigate");
+    expect(headers["sec-fetch-dest"]).toBe("document");
+    expect(headers["accept-language"]).toMatch(/^ko-KR/);
+    expect(headers["accept-encoding"]).toBe("identity");
+  });
+
   it("AC-10: 응답이 상한을 넘으면 중단한다", async () => {
     await expect(safeFetch(`${base}/big`, local)).rejects.toThrow("too large");
+  });
+
+  it("AC-13: truncate면 상한을 넘는 응답도 상한까지 받은 부분을 돌려준다", async () => {
+    const res = await safeFetch(`${base}/big`, {
+      ...local,
+      overLimit: "truncate",
+    });
+    expect(res.status).toBe(200);
+    expect(res.truncated).toBe(true);
+    expect(res.body.length).toBe(OPTS.maxBytes);
+  });
+
+  it("AC-13: truncate여도 상한 안의 응답은 그대로다", async () => {
+    const res = await safeFetch(`${base}/ok`, {
+      ...local,
+      overLimit: "truncate",
+    });
+    expect(res.truncated).toBe(false);
+    expect(res.body.toString("utf8")).toBe("<p>ok</p>");
   });
 
   it("AC-10: 리다이렉트 대상도 다시 검사한다(기본 검사)", async () => {

@@ -9,7 +9,11 @@ import { AccessTokenService } from "../auth/access-token.service.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { setupApp } from "../setup-app.js";
 import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
-import { LinkPreviewFetcher } from "./link-preview.fetcher.js";
+import { SafeFetchError } from "./lib/safe-fetch.js";
+import {
+  LinkPreviewFetcher,
+  LinkPreviewHttpError,
+} from "./link-preview.fetcher.js";
 
 const PNG = Buffer.concat([
   Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
@@ -292,6 +296,42 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     });
     expect(item.title).toBe("유지");
     expect((item.tags as unknown[]).length).toBe(1);
+  });
+
+  it("AC-14: 일시적 실패(5xx·시간 초과)는 한 번 다시 받아 썸네일을 만든다", async () => {
+    fetcher.fetchPage
+      .mockRejectedValueOnce(new LinkPreviewHttpError(503))
+      .mockResolvedValue({ html: OG_PAGE, finalUrl: "https://example.com/r" });
+    fetcher.fetchImage
+      .mockRejectedValueOnce(new SafeFetchError("timeout"))
+      .mockResolvedValue(PNG);
+    const userId = await newUser();
+
+    await save(userId, { url: "https://example.com/r" });
+    await thumbnails.drain();
+    const [item] = await list(userId);
+
+    expect(fetcher.fetchPage).toHaveBeenCalledTimes(2);
+    expect(fetcher.fetchImage).toHaveBeenCalledTimes(2);
+    expect((item.thumbnail as { status: string }).status).toBe("ready");
+  });
+
+  it("AC-14: 차단(403)은 다시 시도하지 않고, 일시적 실패도 한 번만 다시 시도한다", async () => {
+    fetcher.fetchPage.mockRejectedValue(new LinkPreviewHttpError(403));
+    const blocked = await newUser();
+    await save(blocked, { url: "https://example.com/blocked" });
+    await thumbnails.drain();
+    expect(fetcher.fetchPage).toHaveBeenCalledTimes(1);
+
+    fetcher.fetchPage
+      .mockReset()
+      .mockRejectedValue(new LinkPreviewHttpError(503));
+    const down = await newUser();
+    await save(down, { url: "https://example.com/down" });
+    await thumbnails.drain();
+    expect(fetcher.fetchPage).toHaveBeenCalledTimes(2);
+    const [item] = await list(down);
+    expect((item.thumbnail as { status: string }).status).toBe("failed");
   });
 
   it("AC-06: 직접 올리면 ready가 되고, 늦게 끝난 자동 수집이 덮어쓰지 않는다", async () => {

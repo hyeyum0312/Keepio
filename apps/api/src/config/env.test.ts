@@ -29,7 +29,7 @@ describe("loadEnv", () => {
       apiOrigin: "http://localhost:7711",
       storageDir: ".storage",
       linkPreviewUserAgent:
-        "Mozilla/5.0 (compatible; KeepioBot/0.1; link preview)",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
     });
   });
 

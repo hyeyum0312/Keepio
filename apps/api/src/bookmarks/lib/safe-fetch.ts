@@ -9,10 +9,14 @@ import { BlockList, isIP } from "node:net";
 // - 전체 시간·응답 바이트 상한, 압축 응답은 받지 않는다(압축 폭탄 방지)
 export type SafeFetchOptions = {
   maxBytes: number;
+  // 상한을 넘을 때: reject(기본) — 에러, truncate — 상한까지 받은 것만 돌려준다(페이지 앞부분만 필요할 때, AC-13)
+  overLimit?: "reject" | "truncate";
   timeoutMs: number;
   maxRedirects: number;
   accept: string;
   userAgent: string;
+  // 브라우저가 붙이는 요청 성격 헤더(sec-fetch-*). document: 페이지 열기, image: 이미지 불러오기
+  purpose?: "document" | "image";
   // 테스트에서 로컬 가짜 서버로 리다이렉트·크기 제한을 검증할 때만 바꾼다. 운영 코드는 넘기지 않는다
   isAllowedAddress?: (address: string) => boolean;
 };
@@ -21,6 +25,8 @@ export type SafeFetchResult = {
   status: number;
   contentType: string;
   body: Buffer;
+  // overLimit: "truncate"로 상한에서 끊었을 때 true
+  truncated: boolean;
 };
 export class SafeFetchError extends Error {
   constructor(readonly reason: string) {
@@ -146,7 +152,8 @@ function requestOnce(
           "user-agent": options.userAgent,
           accept: options.accept,
           "accept-encoding": "identity",
-          "accept-language": "ko,en;q=0.8",
+          "accept-language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+          ...browserHints(options.purpose),
         },
         timeout: remaining,
       },
@@ -159,30 +166,53 @@ function requestOnce(
             status,
             contentType: "",
             body: Buffer.alloc(0),
+            truncated: false,
             location,
           });
         }
+        const truncate = options.overLimit === "truncate";
         const declared = Number(res.headers["content-length"]);
-        if (Number.isFinite(declared) && declared > options.maxBytes) {
+        if (
+          !truncate &&
+          Number.isFinite(declared) &&
+          declared > options.maxBytes
+        ) {
           res.destroy();
           return reject(new SafeFetchError("too large"));
         }
+        const contentType = String(res.headers["content-type"] ?? "");
         const chunks: Buffer[] = [];
         let size = 0;
+        let cut = false;
         res.on("data", (chunk: Buffer) => {
-          size += chunk.length;
-          if (size > options.maxBytes) {
+          if (cut) return;
+          if (size + chunk.length > options.maxBytes) {
+            if (!truncate) {
+              res.destroy();
+              reject(new SafeFetchError("too large"));
+              return;
+            }
+            // 상한까지만 담고 나머지는 받지 않는다. destroy 뒤에는 end가 오지 않으므로 여기서 끝낸다
+            cut = true;
+            chunks.push(chunk.subarray(0, options.maxBytes - size));
             res.destroy();
-            reject(new SafeFetchError("too large"));
+            resolve({
+              status,
+              contentType,
+              body: Buffer.concat(chunks),
+              truncated: true,
+            });
             return;
           }
+          size += chunk.length;
           chunks.push(chunk);
         });
         res.on("end", () =>
           resolve({
             status,
-            contentType: String(res.headers["content-type"] ?? ""),
+            contentType,
             body: Buffer.concat(chunks),
+            truncated: false,
           }),
         );
         res.on("error", reject);
@@ -197,4 +227,27 @@ function requestOnce(
     req.on("close", () => clearTimeout(timer));
     req.end();
   });
+}
+
+// 브라우저와 같은 요청 성격 헤더. 봇 차단(WAF)이 이 값이 없는 요청을 막는 경우가 많다
+function browserHints(
+  purpose: SafeFetchOptions["purpose"],
+): Record<string, string> {
+  if (purpose === "document") {
+    return {
+      "upgrade-insecure-requests": "1",
+      "sec-fetch-dest": "document",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-site": "none",
+      "sec-fetch-user": "?1",
+    };
+  }
+  if (purpose === "image") {
+    return {
+      "sec-fetch-dest": "image",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-site": "cross-site",
+    };
+  }
+  return {};
 }
