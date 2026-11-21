@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | docs: 외부 링크 미리보기 API 도입 보류 (D-16)
+
+- Feature: FEAT-010
+- 목적: 봇 차단이 강한 사이트(쿠팡 등)는 서버 IP가 데이터센터라 호스팅을 바꿔도 막힌다. 외부 미리보기 API(주거용 프록시)를 검토했으나 막히면 제공하지 않기로 함(사용자 결정).
+- 변경: `docs/OPEN-QUESTIONS.md`에 D-16(보류, 재검토 조건·후보) 추가.
+- 영향: 문서만. 동작·비용 변화 없음.
+- 검증: `prettier --check docs/OPEN-QUESTIONS.md docs/HISTORY.md` PASS(리눅스 VM). `check-history.py`는 커밋 hook(사용자 Mac)에서 실행.
+- 주의/롤백: revert.
+
 ## 2026-11-21 | fix(api): 링크 미리보기에서 제목·썸네일을 더 자주 가져오기
 
 - Feature: FEAT-010 (AC-12~14)
