@@ -149,4 +149,24 @@ describe("normalizeUrl", () => {
       normalizedUrl: "https://shop.example.com/item?id=7&napm=keep",
     });
   });
+
+  it("FEAT-010 AC-20: 쿠팡 상품 주소는 itemId·vendorItemId만 남기고 모바일 주소를 www로 맞춘다", () => {
+    const shared =
+      "https://www.coupang.com/vp/products/9410732411?itemId=27961894605&vendorItemId=94919932757&src=1191000&spec=10999999&addtag=400&ctag=9410732411&itime=20261121214653&wPcid=1795&mcid=52e0&sharesource=sharebutton&isshortened=Y";
+    const mobile =
+      "https://m.coupang.com/vp/products/9410732411?vendorItemId=94919932757&itemId=27961894605&src=other";
+    const clean = {
+      ok: true,
+      normalizedUrl:
+        "https://www.coupang.com/vp/products/9410732411?itemId=27961894605&vendorItemId=94919932757",
+    };
+    expect(normalizeUrl(shared)).toEqual(clean);
+    expect(normalizeUrl(mobile)).toEqual(clean);
+    expect(
+      normalizeUrl("https://www.coupang.com/vp/products/9410732411?src=1"),
+    ).toEqual({
+      ok: true,
+      normalizedUrl: "https://www.coupang.com/vp/products/9410732411",
+    });
+  });
 });

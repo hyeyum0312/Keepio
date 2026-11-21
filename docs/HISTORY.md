@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | feat(api): 쿠팡 링크 사이트 이름·주소 정리 (FEAT-010 AC-20)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-20), spec 04 URL 정책
+- 목적: 쿠팡도 서버 요청에 상품 페이지 대신 403을 줘 제목·사진을 못 받고, 짧은 주소(`link.coupang.com`)로 저장하면 무슨 링크인지 전혀 알 수 없었다(사용자 Mac에서 302 → 상품 주소 403 확인). 차단은 우회하지 않는다(D-16).
+- 변경: `lib/site-name.ts`에 쿠팡 규칙(상품 주소 `쿠팡 상품`, 그 밖 `쿠팡`), `lib/normalize-url.ts`에 쿠팡 상품 주소 정리(`itemId`·`vendorItemId`만, 호스트 `www.coupang.com`). 짧은 주소는 AC-19(마지막 주소 기억)로 `쿠팡 상품`이 된다.
+- 영향: 표시 제목과 새로 저장하는 쿠팡 상품 링크의 중복 판단. API·DB 형식 변경 없음. 기존 저장분은 다시 정규화하지 않는다.
+- 검증: 클라우드 복사본에서 api 단위 vitest 169 PASS(esbuild 설정, 쿠팡 2건 추가), api `tsc`·eslint PASS.
+- 주의/롤백: revert.
+
 ## 2026-11-21 | feat(api): 스마트스토어 가게 이름 제목, 짧은 주소의 마지막 주소 기억 (FEAT-010 AC-18·19)
 
 - Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-18·19)

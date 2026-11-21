@@ -34,4 +34,17 @@ describe("siteName (FEAT-010 AC-17·18)", () => {
     expect(siteName("https://naver.me/5CCVAoip")).toBe("naver.me");
     expect(siteName("not a url")).toBeNull();
   });
+
+  it("AC-20: 쿠팡은 상품 주소면 '쿠팡 상품', 짧은 주소 등은 '쿠팡'", () => {
+    expect(
+      siteName(
+        "https://www.coupang.com/vp/products/9410732411?itemId=27961894605&src=1191000",
+      ),
+    ).toBe("쿠팡 상품");
+    expect(siteName("https://m.coupang.com/vp/products/9410732411")).toBe(
+      "쿠팡 상품",
+    );
+    expect(siteName("https://link.coupang.com/a/iOihWam6xM")).toBe("쿠팡");
+    expect(siteName("https://www.coupang.com/np/search?q=a")).toBe("쿠팡");
+  });
 });

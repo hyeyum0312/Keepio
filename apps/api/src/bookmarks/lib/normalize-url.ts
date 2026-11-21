@@ -44,6 +44,9 @@ export function normalizeUrl(input: string): NormalizeUrlResult {
   if (isSmartstoreProduct(url)) {
     url.hostname = SMARTSTORE_HOST;
     url.search = "";
+  } else if (isCoupangProduct(url)) {
+    url.hostname = COUPANG_HOST;
+    url.search = keepOnly(url.search, COUPANG_KEEP);
   } else {
     url.search = isInstagramPost(url) ? "" : stripTrackingParams(url.search);
   }
@@ -76,6 +79,28 @@ function isSmartstoreProduct(url: URL): boolean {
     SMARTSTORE_HOSTS.has(url.hostname) &&
     SMARTSTORE_PRODUCT_PATH.test(url.pathname)
   );
+}
+
+// FEAT-010 AC-20. 쿠팡 상품 주소(/vp/products/{번호})는 옵션을 가리키는 itemId·vendorItemId만 남긴다.
+// 나머지(src·spec·addtag·ctag·lptag·itime·wPcid·mcid·sharesource 등)는 공유·광고 경로 표시라 같은 상품도 매번 달라진다.
+// m.coupang.com도 www로 맞춘다
+const COUPANG_HOST = "www.coupang.com";
+const COUPANG_HOSTS = new Set([COUPANG_HOST, "coupang.com", "m.coupang.com"]);
+const COUPANG_PRODUCT = /^\/vp\/products\/\d+\/?$/;
+const COUPANG_KEEP = ["itemId", "vendorItemId"];
+
+function isCoupangProduct(url: URL): boolean {
+  return COUPANG_HOSTS.has(url.hostname) && COUPANG_PRODUCT.test(url.pathname);
+}
+
+// 남길 이름만, 정한 순서대로(원문 값 그대로)
+function keepOnly(search: string, names: string[]): string {
+  const pairs = search ? search.slice(1).split("&") : [];
+  const kept = names.flatMap((name) => {
+    const pair = pairs.find((p) => p.split("=", 1)[0] === name);
+    return pair ? [pair] : [];
+  });
+  return kept.length > 0 ? `?${kept.join("&")}` : "";
 }
 
 // searchParams.delete()는 남은 파라미터까지 다시 인코딩한다(%20 → +). 원문 그대로 두려고 문자열로 거른다
