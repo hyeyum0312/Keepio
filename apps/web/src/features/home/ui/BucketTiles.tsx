@@ -5,47 +5,43 @@ import { HomeIcon } from "./HomeIcons";
 export type BucketTile = {
   id: string;
   name: string;
-  linkCount: number;
-  // "2일 전 업데이트"처럼 서버 시각을 사람이 읽는 말로 바꾼 값(표시용)
-  updatedLabel: string;
+  // 한 줄 설명(선택). 버킷 명세(BKT-02)에서 `description`으로 정한다. 없으면 줄을 그리지 않는다
+  description?: string;
   art: BucketArt;
 };
 
-// 홈 버킷 타일(2026-11-19 시안): 아트워크 + 왼쪽 위 책갈피 + 이름·더보기 + 링크 수·업데이트
+// 홈 버킷 카드(07-BRAND §7 "버킷 카드", 2026-11-21): 카드 틀 없이 썸네일 하나.
+// 왼쪽 위 책갈피, 이름은 썸네일 안 왼쪽 아래 흰 글자(아래쪽만 완만한 검정 그라데이션), 설명 한 줄은 썸네일 아래.
+// 썸네일 색은 앞으로 늘고 사용자 사진도 들어오므로 어떤 이미지에서도 읽히게 한다. 링크 개수·칩·색 번짐은 넣지 않는다
 export function BucketTiles({ buckets }: { buckets: BucketTile[] }) {
   return (
-    <ul className="flex snap-x gap-3 overflow-x-auto md:grid md:grid-cols-4 md:gap-4 md:overflow-visible">
+    <ul className="flex snap-x gap-3 overflow-x-auto md:grid md:grid-cols-3 md:gap-4 md:overflow-visible">
       {buckets.map((bucket) => (
-        <li key={bucket.id} className="w-40 shrink-0 snap-start md:w-auto">
-          <div className="flex flex-col gap-1">
-            <span className="relative block aspect-[16/10] overflow-hidden rounded-[20px]">
-              <Image
-                src={BUCKET_ART[bucket.art]}
-                alt=""
-                fill
-                sizes="(min-width: 768px) 25vw, 160px"
-                className="object-cover"
-              />
-              <span className="absolute top-3 left-3 text-white drop-shadow-sm">
-                <HomeIcon name="bookmark" size={18} filled />
-              </span>
+        <li key={bucket.id} className="w-[220px] shrink-0 snap-start md:w-auto">
+          <span className="relative block aspect-[16/10] overflow-hidden rounded-2xl bg-muted">
+            <Image
+              src={BUCKET_ART[bucket.art]}
+              alt=""
+              fill
+              sizes="(min-width: 768px) 33vw, 220px"
+              className="object-cover"
+            />
+            <span
+              aria-hidden="true"
+              className="kp-bucket-scrim absolute inset-x-0 bottom-0 h-[62%]"
+            />
+            <span className="absolute top-3 left-3 text-white drop-shadow-sm">
+              <HomeIcon name="bookmark" size={18} filled />
             </span>
-            <span className="flex items-center justify-between gap-2 pt-2 pl-2">
-              <span className="truncate text-[15px] font-bold md:text-base">
-                {bucket.name}
-              </span>
-              <button
-                type="button"
-                aria-label={`${bucket.name} 더보기`}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus-visible:focus-ring"
-              >
-                <HomeIcon name="more" />
-              </button>
+            <span className="kp-on-image absolute right-3.5 bottom-3 left-3.5 truncate text-base font-bold">
+              {bucket.name}
             </span>
-            <span className="truncate pl-2 text-caption text-muted-foreground">
-              {bucket.linkCount}개 링크 · {bucket.updatedLabel}
-            </span>
-          </div>
+          </span>
+          {bucket.description && (
+            <p className="mt-2 truncate px-0.5 text-[13px] text-muted-foreground">
+              {bucket.description}
+            </p>
+          )}
         </li>
       ))}
     </ul>

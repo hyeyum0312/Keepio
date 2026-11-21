@@ -15,6 +15,8 @@ export type TriageLink = {
   thumbnailUrl?: string | null;
   // 보관 파일을 못 쓸 때 불러 볼 링크 페이지의 원본 이미지(FEAT-010 AC-11)
   thumbnailFallbackUrl?: string | null;
+  // 주소 대신 보여 줄 보조 문구(예시 카드의 안내)
+  meta?: string;
 };
 export type TriageCategory = { id: string; name: string };
 
@@ -24,15 +26,19 @@ function origin(url: string) {
 
 // 정리할 링크 한 줄(2026-11-19 시안): 썸네일 · 제목·주소 · [카테고리 선택] [건너뛰기] [저장].
 // 썸네일이 없거나 불러오지 못하면 링크 ID로 정한 아트워크를 보여 준다(같은 링크는 늘 같은 그림).
-// 카테고리 선택·저장은 카테고리 서버(FEAT-008)가 붙기 전에는 넘기지 않는다(빈 배열이면 그리지 않음)
+// 카테고리 선택·저장은 카테고리 서버(FEAT-008)가 붙기 전에는 넘기지 않는다(빈 배열이면 그리지 않음).
+// createCategory: 카테고리가 0개일 때 [+ 카테고리 만들기](FEAT-008 AC-13). 지금은 예시 화면에서만 켜고,
+// 만들기 동작은 카테고리 서버가 붙을 때 연결한다(그 전에는 "준비 중")
 export function TriageRow({
   link,
   categories = [],
+  createCategory = false,
   onSave,
   onSkip,
 }: {
   link: TriageLink;
   categories?: TriageCategory[];
+  createCategory?: boolean;
   onSave?: (categoryId: string) => void;
   onSkip: () => void;
 }) {
@@ -47,7 +53,7 @@ export function TriageRow({
   return (
     <article
       aria-label="정리할 링크"
-      className="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-surface p-4 md:flex-row md:items-center md:gap-5 md:px-5"
+      className="flex flex-col gap-4 rounded-[20px] bg-surface p-3.5 shadow-[0_1px_2px_var(--shadow-soft),0_8px_24px_var(--shadow-soft)] md:flex-row md:items-center md:gap-4 md:px-4"
     >
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <span className="relative h-16 w-28 shrink-0 overflow-hidden rounded-xl bg-muted">
@@ -75,7 +81,7 @@ export function TriageRow({
             {title}
           </a>
           <p className="truncate text-sm text-muted-foreground">
-            {origin(link.url)}
+            {link.meta ?? origin(link.url)}
           </p>
         </div>
       </div>
@@ -104,6 +110,18 @@ export function TriageRow({
               <HomeIcon name="chevron" size={16} />
             </span>
           </span>
+        )}
+        {categories.length === 0 && createCategory && (
+          <button
+            type="button"
+            aria-disabled="true"
+            title="준비 중"
+            className="inline-flex min-h-11 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-dashed border-muted-foreground/60 px-3.5 text-sm font-medium focus-visible:focus-ring md:flex-none"
+          >
+            <HomeIcon name="plus" size={16} />
+            카테고리 만들기
+            <span className="sr-only">(준비 중)</span>
+          </button>
         )}
         <button
           type="button"

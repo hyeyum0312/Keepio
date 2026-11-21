@@ -23,8 +23,9 @@ type Failure = { message: string; deletedId?: string };
 
 // FEAT-002 AC-09. 저장하면 목록 맨 위에. 삭제했던 링크면(409 BOOKMARK_DELETED) 서버 문구 + [복구].
 // FEAT-010 AC-01: 제목(선택)과 태그(선택)를 함께 보낸다. 입력 중인 태그 글자도 저장할 때 태그로 넣는다.
-// LINK-01 시안: 제목·태그는 "추가 정보 입력하기"로 펼친다. 접어도 입력한 값은 남고 함께 저장된다
-export function SaveBookmarkForm() {
+// LINK-01 시안: 제목·태그는 "추가 정보 입력하기"로 펼친다. 접어도 입력한 값은 남고 함께 저장된다.
+// onSaved: 저장(또는 복구)에 성공한 뒤 부르는 콜백(예: 모바일 시트 닫기)
+export function SaveBookmarkForm({ onSaved }: { onSaved?: () => void } = {}) {
   const save = useBookmarksControllerSave();
   const restore = useBookmarksControllerRestore();
   const invalidate = useInvalidateBookmarkLists();
@@ -57,6 +58,7 @@ export function SaveBookmarkForm() {
       form.reset();
       setTags([]);
       await invalidate();
+      onSaved?.();
       return;
     }
     // 복구 대상 ID는 서버가 준다(D-01). 분기는 code로만(ADR-009)
@@ -75,6 +77,7 @@ export function SaveBookmarkForm() {
     if (r.ok) {
       setFailure(null);
       await invalidate();
+      onSaved?.();
     } else {
       setFailure({ message: r.message });
     }
