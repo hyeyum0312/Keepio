@@ -82,7 +82,7 @@ function SeeAll({ href, section }: { href?: string; section: string }) {
   );
 }
 
-// 홈(FEAT-009, 2026-11-21 시안): 정리할 링크 → 버킷 → 공유용 링크. 비어 있는 섹션은 그리지 않는다.
+// 홈(FEAT-009, 2026-11-21 시안): 최근 추가한 링크 → 버킷 → 공유용 링크. 비어 있는 섹션은 그리지 않는다.
 // 검색·알림·계정은 앱 틀 위쪽 막대에 있다. PC는 맨 위에 링크 저장 카드(savePanel),
 // 모바일은 본문 저장 칸 없이 오른쪽 아래 + 버튼(mobileAdd)으로 연다
 export function HomeView({
@@ -110,7 +110,7 @@ export function HomeView({
       {triage && (
         <Section
           id="home-triage"
-          title="정리할 링크"
+          title="최근 추가한 링크"
           count={triageCount}
           sample={sample}
         >

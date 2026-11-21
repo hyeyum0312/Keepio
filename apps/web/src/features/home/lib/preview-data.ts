@@ -23,7 +23,7 @@ export const PREVIEW_LINKS: TriageLink[] = [
   },
 ];
 
-// 정리할 링크의 카테고리 선택(첫 항목이 AI 추천 자리)
+// 최근 추가한 링크의 카테고리 선택(첫 항목이 AI 추천 자리)
 export const PREVIEW_CATEGORIES: TriageCategory[] = [
   { id: "c4", name: "디자인" },
   { id: "c3", name: "개발" },

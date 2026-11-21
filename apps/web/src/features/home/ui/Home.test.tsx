@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Home } from "./Home";
 import { HomePreview } from "./HomePreview";
@@ -76,7 +82,9 @@ describe("홈 (FEAT-009)", () => {
 
   it("링크가 하나도 없으면 예시로 채운다: 세 섹션에 예시 표시, 카테고리 만들기, 버킷·공유용 링크 예시", async () => {
     renderHome([]);
-    const triage = await screen.findByRole("heading", { name: /정리할 링크/ });
+    const triage = await screen.findByRole("heading", {
+      name: /최근 추가한 링크/,
+    });
     expect(triage).toHaveTextContent("예시");
     expect(screen.getByRole("heading", { name: /버킷/ })).toHaveTextContent(
       "예시",
@@ -105,43 +113,77 @@ describe("홈 (FEAT-009)", () => {
   it("링크가 있으면 예시를 보여 주지 않고 개수를 보여 준다", async () => {
     renderHome([link(1)]);
     const heading = await screen.findByRole("heading", {
-      name: /정리할 링크/,
+      name: /최근 추가한 링크/,
     });
     await screen.findByRole("link", { name: "site1.example" });
     expect(heading).not.toHaveTextContent("예시");
     expect(heading).toHaveTextContent("1개");
     expect(
-      screen.queryByRole("button", { name: /카테고리 만들기/ }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("region", { name: "링크 저장" }),
+    ).toBeInTheDocument();
+  });
+
+  it("카테고리가 하나도 없으면 [카테고리 만들기] [저장] [건너뛰기] 순서, 만들기·저장은 카테고리 서버 전까지 준비 중 (2026-11-21)", async () => {
+    renderHome([link(1)]);
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
+    const names = within(card)
+      .getAllByRole("button")
+      .map((b) => b.textContent?.replace(/\s*\(준비 중\)/, "").trim());
+    expect(names).toEqual(["카테고리 만들기", "저장", "건너뛰기"]);
+    expect(
+      within(card).getByRole("button", { name: /카테고리 만들기/ }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(within(card).getByRole("button", { name: /^저장/ })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  });
+
+  it("카테고리를 고를 수 있으면 [카테고리 선택] [저장] [건너뛰기] 순서 (미리보기)", async () => {
+    render(<HomePreview />);
+    const card = screen.getByRole("article", { name: "최근 추가한 링크" });
+    expect(
+      within(card)
+        .getAllByRole("button")
+        .map((b) => b.textContent?.trim()),
+    ).toEqual(["저장", "건너뛰기"]);
+    expect(within(card).getByLabelText("카테고리")).toBeInTheDocument();
+  });
+
+  it("링크 저장 카드는 링크가 있어도 맨 위에 있다", async () => {
+    renderHome([link(1)]);
+    await screen.findByRole("link", { name: "site1.example" });
     expect(
       screen.getByRole("region", { name: "링크 저장" }),
     ).toBeInTheDocument();
   });
 
-  it("카테고리가 없는 링크를 정리할 링크로 한 장씩 보여 주고, 건너뛰면 다음 링크가 나온다", async () => {
+  it("카테고리가 없는 링크를 최근 추가한 링크로 한 장씩 보여 주고, 건너뛰면 다음 링크가 나온다", async () => {
     renderHome([link(1), link(2)]);
     expect(
       await screen.findByRole("link", { name: "site1.example" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /정리할 링크/ }),
+      screen.getByRole("heading", { name: /최근 추가한 링크/ }),
     ).toHaveTextContent("2개");
     await userEvent.click(screen.getByRole("button", { name: "건너뛰기" }));
     expect(
       screen.getByRole("link", { name: "site2.example" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /정리할 링크/ }),
+      screen.getByRole("heading", { name: /최근 추가한 링크/ }),
     ).toHaveTextContent("1개");
   });
 
-  it("모든 링크를 건너뛰면 정리할 링크 섹션이 사라진다", async () => {
+  it("모든 링크를 건너뛰면 최근 추가한 링크 섹션이 사라진다", async () => {
     renderHome([link(1)]);
     await userEvent.click(
       await screen.findByRole("button", { name: "건너뛰기" }),
     );
     expect(
-      screen.queryByRole("heading", { name: /정리할 링크/ }),
+      screen.queryByRole("heading", { name: /최근 추가한 링크/ }),
     ).not.toBeInTheDocument();
   });
 
@@ -149,7 +191,7 @@ describe("홈 (FEAT-009)", () => {
     renderHome([link(1), link(2)], "next");
     await screen.findByRole("link", { name: "site1.example" });
     expect(
-      screen.getByRole("heading", { name: /정리할 링크/ }),
+      screen.getByRole("heading", { name: /최근 추가한 링크/ }),
     ).not.toHaveTextContent("개");
   });
 
@@ -232,7 +274,9 @@ describe("홈 (FEAT-009)", () => {
         },
       },
     ]);
-    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
     expect(card.querySelector("img")?.getAttribute("src")).toMatch(
       /\/api\/files\/thumbnails\/t\.jpg/,
     );
@@ -249,7 +293,9 @@ describe("홈 (FEAT-009)", () => {
         },
       },
     ]);
-    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
     fireEvent.error(card.querySelector("img")!);
     const original = card.querySelector("img")!;
     expect(original.getAttribute("src")).toBe(
@@ -270,7 +316,9 @@ describe("파비콘 (FEAT-010 AC-15)", () => {
     renderHome([
       { ...link(1), faviconUrl: "https://cdn.site1.example/apple.png" },
     ]);
-    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
     const tile = () => card.querySelector('[data-testid="favicon-tile"]');
     const icon = () => tile()?.querySelector("img");
     expect(icon()?.getAttribute("src")).toBe(
@@ -305,7 +353,9 @@ describe("파비콘 (FEAT-010 AC-15)", () => {
         },
       },
     ]);
-    const card = await screen.findByRole("article", { name: "정리할 링크" });
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
     expect(card.querySelector('[data-testid="favicon-tile"]')).toBeNull();
   });
 });
@@ -318,7 +368,7 @@ describe("홈 미리보기", () => {
       screen.getByRole("heading", { name: /공유용 링크/ }),
     ).toBeInTheDocument();
     // 세 섹션 모두 제목 줄 끝에 "전체 보기"(목록 화면 전에는 준비 중)
-    for (const section of ["정리할 링크", "버킷", "공유용 링크"]) {
+    for (const section of ["최근 추가한 링크", "버킷", "공유용 링크"]) {
       expect(
         screen.getByRole("link", { name: `${section} 전체 보기 (준비 중)` }),
       ).toHaveAttribute("aria-disabled", "true");
@@ -329,7 +379,7 @@ describe("홈 미리보기", () => {
       screen.getByText("프레임워크 문서와 좋은 예제 모음"),
     ).toBeInTheDocument();
     expect(screen.queryByText(/개 링크/)).not.toBeInTheDocument();
-    const card = screen.getByRole("article", { name: "정리할 링크" });
+    const card = screen.getByRole("article", { name: "최근 추가한 링크" });
     const img = card.querySelector("img")!;
     fireEvent.error(img);
     expect(card.querySelector("img")?.getAttribute("src")).toMatch(

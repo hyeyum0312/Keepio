@@ -25,9 +25,10 @@ function isMobile() {
   return !!window.matchMedia?.(MOBILE_QUERY).matches;
 }
 
-// 실제 홈. 지금 서버에 있는 것은 링크 목록뿐이라 카테고리가 없는 링크 = 정리할 링크다(D-02).
+// 실제 홈. "최근 추가한 링크"는 최근에 저장한 링크를 한 장씩 보여 주고 카테고리를 정하게 한다(2026-11-21, 옛 "정리할 링크").
+// 지금은 카테고리 서버가 없어 모든 활성 링크가 대상이고, 카테고리 만들기·저장은 준비 중(D-02).
 // 카테고리 선택·버킷·공유용 링크는 각 서버 기능(FEAT-008 등)이 붙을 때 채운다. 그 전에는 그리지 않는다.
-// 링크가 하나도 없으면 예시(정리할 링크 1장·버킷 3개·공유용 링크 2개)로 채우고, 첫 링크를 저장하면 예시는 사라진다.
+// 링크가 하나도 없으면 예시(최근 추가한 링크 1장·버킷 3개·공유용 링크 2개)로 채우고, 첫 링크를 저장하면 예시는 사라진다.
 // 링크 저장: PC는 맨 위 저장 카드, 모바일은 + 버튼과 시트. 사이드바 "링크 추가"(/?save=1)는 모바일이면 시트를 연 채로 시작한다
 export function Home({ openSave = false }: { openSave?: boolean }) {
   const pages = useBookmarkPages("active");
@@ -74,6 +75,7 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
           <TriageRow link={SAMPLE_TRIAGE} createCategory onSkip={() => {}} />
         ) : queue.current ? (
           <TriageRow
+            createCategory
             link={queue.current}
             onSkip={() => queue.skip(queue.current!.id)}
           />

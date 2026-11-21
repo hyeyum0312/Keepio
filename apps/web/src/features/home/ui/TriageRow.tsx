@@ -27,11 +27,12 @@ function origin(url: string) {
   return URL.parse(url)?.origin ?? url;
 }
 
-// 정리할 링크 한 줄(2026-11-19 시안): 썸네일 · 제목·주소 · [카테고리 선택] [건너뛰기] [저장].
+// 최근 추가한 링크 한 줄(2026-11-21 시안, 옛 "정리할 링크"): 썸네일 · 제목·주소 · [카테고리 선택] [저장] [건너뛰기].
+// 카테고리가 하나도 없으면 [+ 카테고리 만들기] [저장] [건너뛰기]. 이미 카테고리를 정한 링크는 그 카테고리가 골라진 채로 보인다.
 // 썸네일이 없거나 불러오지 못하면 링크 ID로 정한 아트워크를 보여 준다(같은 링크는 늘 같은 그림).
 // 카테고리 선택·저장은 카테고리 서버(FEAT-008)가 붙기 전에는 넘기지 않는다(빈 배열이면 그리지 않음).
-// createCategory: 카테고리가 0개일 때 [+ 카테고리 만들기](FEAT-008 AC-13). 지금은 예시 화면에서만 켜고,
-// 만들기 동작은 카테고리 서버가 붙을 때 연결한다(그 전에는 "준비 중")
+// createCategory: 카테고리가 0개일 때 [+ 카테고리 만들기](FEAT-008 AC-13). 만들기와 그때의 저장은
+// 카테고리 서버가 붙을 때 연결한다(그 전에는 "준비 중")
 export function TriageRow({
   link,
   categories = [],
@@ -55,7 +56,7 @@ export function TriageRow({
 
   return (
     <article
-      aria-label="정리할 링크"
+      aria-label="최근 추가한 링크"
       className="flex flex-col gap-4 rounded-[20px] bg-surface p-3.5 shadow-[0_1px_2px_var(--shadow-soft),0_8px_24px_var(--shadow-soft)] md:flex-row md:items-center md:gap-4 md:px-4"
     >
       <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -133,14 +134,7 @@ export function TriageRow({
             <span className="sr-only">(준비 중)</span>
           </button>
         )}
-        <button
-          type="button"
-          onClick={onSkip}
-          className="min-h-11 shrink-0 rounded-xl bg-muted px-4 text-sm font-medium focus-visible:focus-ring"
-        >
-          건너뛰기
-        </button>
-        {categories.length > 0 && (
+        {categories.length > 0 ? (
           <button
             type="button"
             onClick={() => categoryId && onSave?.(categoryId)}
@@ -148,7 +142,27 @@ export function TriageRow({
           >
             저장
           </button>
+        ) : (
+          createCategory && (
+            // 고를 카테고리가 없어 아직 저장할 것이 없다(카테고리 서버 전까지 준비 중)
+            <button
+              type="button"
+              aria-disabled="true"
+              title="준비 중"
+              className="min-h-11 shrink-0 cursor-default rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground opacity-50 focus-visible:focus-ring"
+            >
+              저장
+              <span className="sr-only"> (준비 중)</span>
+            </button>
+          )
         )}
+        <button
+          type="button"
+          onClick={onSkip}
+          className="min-h-11 shrink-0 rounded-xl bg-muted px-4 text-sm font-medium focus-visible:focus-ring"
+        >
+          건너뛰기
+        </button>
       </div>
     </article>
   );
