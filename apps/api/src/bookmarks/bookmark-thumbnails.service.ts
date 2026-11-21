@@ -16,6 +16,7 @@ import { signThumbnailPath, thumbnailUrlKey } from "./lib/signed-url.js";
 import {
   isTransientFetchError,
   LinkPreviewFetcher,
+  LinkPreviewHttpError,
   MAX_IMAGE_BYTES,
 } from "./link-preview.fetcher.js";
 import { ThumbnailStorage } from "./thumbnail.storage.js";
@@ -107,6 +108,7 @@ export class BookmarkThumbnailsService
   private async run({ bookmarkId, url }: Job): Promise<void> {
     try {
       const page = await this.withRetry(() => this.fetcher.fetchPage(url));
+      await this.keepResolvedUrl(bookmarkId, url, page.finalUrl);
       const og = parseOpenGraph(page.html, page.finalUrl);
       if (og.title) await this.bookmarks.setPageTitle(bookmarkId, og.title);
       // AC-15. 대표 이미지가 없어도 파비콘 주소는 남긴다(서버는 파비콘을 받지 않는다)
@@ -129,11 +131,21 @@ export class BookmarkThumbnailsService
         await this.storage.remove(key);
       }
     } catch (error) {
+      // 페이지가 막혀도(예: 스마트스토어 429) 짧은 주소가 가리키는 곳은 남겨 표시 제목에 쓴다(AC-19)
+      if (error instanceof LinkPreviewHttpError && error.finalUrl) {
+        await this.keepResolvedUrl(bookmarkId, url, error.finalUrl);
+      }
       await this.fail(
         bookmarkId,
         error instanceof Error ? `${error.name}: ${error.message}` : "unknown",
       );
     }
+  }
+
+  // FEAT-010 AC-19. 리다이렉트로 다른 주소에 닿았을 때만 남긴다(처음 값만)
+  private async keepResolvedUrl(id: string, url: string, finalUrl: string) {
+    if (finalUrl === url || finalUrl.length > MAX_SOURCE_URL_LENGTH) return;
+    await this.bookmarks.setResolvedUrl(id, finalUrl);
   }
 
   private async withRetry<T>(fetch: () => Promise<T>): Promise<T> {

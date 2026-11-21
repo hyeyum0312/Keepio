@@ -105,6 +105,8 @@ model Bookmark {
   thumbnailSourceUrl String?          @map("thumbnail_source_url") @db.VarChar(2048)
   // 링크 페이지가 알려 준 사이트 아이콘 주소(FEAT-010 AC-15). 썸네일이 없을 때 아트워크 위에 올린다
   faviconUrl         String?          @map("favicon_url") @db.VarChar(2048)
+  // 리다이렉트를 따라간 마지막 주소(FEAT-010 AC-19, 짧은 주소 등). 표시 제목의 사이트 이름에만 쓴다
+  resolvedUrl        String?          @map("resolved_url") @db.VarChar(2048)
   user               User             @relation(fields: [userId], references: [id], onDelete: Restrict)
   tags               BookmarkTag[]
 

@@ -290,6 +290,24 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     expect(a.body.displayTitle).toBe("smartstore.naver.com");
   });
 
+  it("AC-18·19: 짧은 주소가 스마트스토어로 가고 페이지가 막혀도(429) 따라간 주소의 가게 이름을 제목으로 보여 준다", async () => {
+    fetcher.fetchPage.mockRejectedValue(
+      new LinkPreviewHttpError(
+        429,
+        "https://smartstore.naver.com/diaday/products/13854531009?NaPm=ct%3D1",
+      ),
+    );
+    const userId = await newUser();
+
+    await save(userId, { url: "https://naver.me/5CCVAoip" });
+    await thumbnails.drain();
+    const [item] = await list(userId);
+
+    expect(item.displayTitle).toBe("diaday · 스마트스토어");
+    expect(item.url).toBe("https://naver.me/5CCVAoip");
+    expect((item.thumbnail as { status: string }).status).toBe("failed");
+  });
+
   it("AC-15: 대표 이미지가 없어도 페이지가 알려 준 아이콘 주소(apple-touch-icon 우선)를 남기고, 서버는 아이콘을 받지 않는다", async () => {
     fetcher.fetchPage.mockResolvedValue({
       html: `<head><title>문서</title>

@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | feat(api): 스마트스토어 가게 이름 제목, 짧은 주소의 마지막 주소 기억 (FEAT-010 AC-18·19)
+
+- Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-18·19)
+- 목적: 스마트스토어는 서버 요청을 막아(429) 제목을 못 받는다. 주소에 든 가게 이름이라도 보여 주고, `naver.me` 짧은 주소로 저장해도 같은 이름이 나오게 한다(사용자 결정, `naver.me`는 KeepioBot에 307로 상품 주소를 알려 주는 것을 사용자 Mac에서 확인).
+- 변경: `lib/site-name.ts`(스마트스토어·브랜드스토어 가게 이름, 그 밖은 www.·m. 뺀 도메인), 표시 제목 대체를 `siteName(resolvedUrl ?? originalUrl)`로. `LinkPreviewHttpError`에 `finalUrl`, 썸네일 작업이 리다이렉트 마지막 주소를 `bookmarks.resolved_url`에 남김(마이그레이션 `20261121010000_add_bookmark_resolved_url`).
+- 영향: 표시 제목(`displayTitle`)만 바뀌고 API 형식은 그대로(`resolved_url`은 응답에 넣지 않음). 열 때 쓰는 주소·중복 판단은 그대로. 기존 링크는 마지막 주소가 없어 원래 주소 기준.
+- 검증: 클라우드 복사본에서 api 단위 vitest 167 PASS(esbuild 설정, `site-name.test.ts` 3건 추가), api `tsc`(Prisma 생성물을 손으로 맞춘 상태)·eslint PASS. 통합 테스트(AC-18·19 1건 추가)·`prisma generate`는 사용자 Mac.
+- 주의/롤백: revert + `resolved_url` 칸 제거.
+
 ## 2026-11-21 | feat(web): 썸네일 이미지 바꾸기, "캡처 올리기"는 마우스를 올릴 때만
 
 - Feature: FEAT-010 (`docs/features/bookmark-meta.md` AC-06, UX)

@@ -41,6 +41,8 @@
 - [x] AC-15 파비콘(2026-11-21): 보여 줄 썸네일이 하나도 없을 때(보관 파일·원본 주소 모두 없거나 불러오지 못함) 아트워크 가운데에 그 사이트의 파비콘을 흰 둥근 타일(40px, 아이콘 24px)로 올린다. 파비콘 주소는 서버가 같은 HTML에서 `apple-touch-icon` → `<link rel="icon">`(가장 큰 `sizes`) → `shortcut icon` 순으로 고르고(`faviconUrl`), 없거나 HTML을 못 받았으면 화면이 `사이트 주소/favicon.ico`를 불러 본다. 파비콘도 못 불러오면 아트워크만 보인다. 서버는 파비콘을 받거나 보관하지 않고(요청 추가 없음), 화면은 원본 사이트에 리퍼러를 보내지 않는다. 외부 파비콘 서비스는 쓰지 않는다(D-16). 기존 행은 `faviconUrl`이 없어 `/favicon.ico`부터.
 - [x] AC-16 추적 값·스마트스토어 주소(2026-11-21): 중복 판단용 정규화에서 `utm_id`·`NaPm`(네이버 광고·쇼핑 경로)·`gbraid`·`wbraid`(구글 광고)·`msclkid`(빙 광고)도 뗀다(이름 정확히 일치). 스마트스토어 상품 주소(`/{가게}/products/{번호}`)는 쿼리를 모두 떼고 `m.smartstore.naver.com`을 `smartstore.naver.com`으로 맞춰, 모바일·PC와 광고·검색 경로가 달라도 같은 상품은 하나로 묶는다. 사용자가 넣은 원래 주소(`url`)는 그대로 둔다.
 - [x] AC-17 사이트 이름(2026-11-21): 제목도 페이지 제목도 없으면 도메인에서 앞의 `www.`·`m.`을 뺀 이름을 보여 준다(`m.smartstore.naver.com` → `smartstore.naver.com`).
+- [x] AC-18 가게 이름(2026-11-21): 스마트스토어(`smartstore.naver.com/{가게}/…`)·브랜드스토어(`brand.naver.com/{브랜드}/…`) 링크는 제목을 못 받으면 주소의 첫 경로로 `diaday · 스마트스토어`처럼 보여 준다(모바일 주소 포함). 첫 경로가 목록·검색 화면(`main`·`search`·`category` 등)이거나 영문·숫자·`_`·`-` 1~50자가 아니면 AC-17(사이트 이름)로.
+- [x] AC-19 짧은 주소(2026-11-21): 썸네일 작업이 리다이렉트로 다른 주소에 닿으면 그 마지막 주소를 남기고(`resolved_url`, 처음 값만, 페이지가 막혀도), 표시 제목의 사이트 이름(AC-17·18)은 이 주소로 만든다. `naver.me/…`처럼 정보 없는 짧은 주소도 `diaday · 스마트스토어`로 보인다. 응답 `url`(열 때 쓰는 주소)과 중복 판단(정규화 주소)은 그대로 — 짧은 주소와 상품 주소는 다른 링크로 저장된다.
 - 참고(2026-11-21 확인): 스마트스토어는 서버 요청에 상품 페이지 대신 429 "에러페이지 - 시스템오류"를 준다(KeepioBot·facebookexternalhit·브라우저 User-Agent 모두 같음). 사용자 브라우저 확인 방식이라 이름만 바꿔서는 받을 수 없고, 차단을 우회하지 않는다(D-16). 스마트스토어 링크는 사이트 이름 + 아트워크·파비콘으로 보이고, 캡처 올리기·제목 수정으로 채운다.
 
 ## 검토한 대안 — 파비콘(AC-15)
@@ -76,6 +78,7 @@
 
 - DB 변경/마이그레이션(모두 추가만, 기존 행 영향 없음):
   - `bookmarks`: `title varchar(100) NULL`, `page_title varchar(300) NULL`(og:title), `thumbnail_key text NULL`, `thumbnail_status` enum(`pending`,`ready`,`failed`) NOT NULL DEFAULT `failed`(기존 행은 썸네일 없음으로), `thumbnail_source` enum(`auto`,`upload`) NULL, `thumbnail_source_url varchar(2048) NULL`(AC-11, 마이그레이션 `20261120000000_add_bookmark_thumbnail_source_url`)
+  - (AC-19) `bookmarks.resolved_url varchar(2048) NULL`(마이그레이션 `20261121010000_add_bookmark_resolved_url`, 응답에 넣지 않음)
   - (AC-15) `bookmarks.favicon_url varchar(2048) NULL`(마이그레이션 `20261121000000_add_bookmark_favicon_url`)
   - `tags(id, user_id, name, normalized_name, created_at)` UNIQUE `(user_id, normalized_name)` — FEAT-008 정의와 동일
   - `bookmark_tags(bookmark_id, tag_id)` PK 복합, 양쪽 CASCADE

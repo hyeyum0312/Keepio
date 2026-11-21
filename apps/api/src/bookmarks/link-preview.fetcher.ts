@@ -14,7 +14,11 @@ const TIMEOUT_MS = 5000;
 const MAX_REDIRECTS = 3;
 
 export class LinkPreviewHttpError extends Error {
-  constructor(readonly status: number) {
+  // finalUrl: 리다이렉트를 따라간 마지막 주소(FEAT-010 AC-19). 막힌 페이지라도 어디로 가는 링크인지는 남긴다
+  constructor(
+    readonly status: number,
+    readonly finalUrl?: string,
+  ) {
     super(`http ${status}`);
     this.name = "LinkPreviewHttpError";
   }
@@ -58,7 +62,9 @@ export class SafeLinkPreviewFetcher extends LinkPreviewFetcher {
       userAgent: this.userAgent(),
       purpose: "document",
     });
-    if (res.status !== 200) throw new LinkPreviewHttpError(res.status);
+    if (res.status !== 200) {
+      throw new LinkPreviewHttpError(res.status, res.finalUrl);
+    }
     // 대부분 UTF-8. 다른 인코딩은 og 값이 깨질 수 있으나 썸네일 주소(ASCII)는 읽힌다
     return { html: res.body.toString("utf8"), finalUrl: res.finalUrl };
   }
