@@ -272,7 +272,7 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     expect(unsigned.status).toBe(404);
   });
 
-  it("AC-16·17: 모바일·PC 스마트스토어 상품을 하나로 묶고, 제목을 못 받으면 www.·m.을 뺀 사이트 이름을 보여 준다", async () => {
+  it("AC-16·18: 모바일·PC 스마트스토어 상품을 하나로 묶고, 제목을 못 받으면 가게 이름을 보여 준다", async () => {
     const userId = await newUser();
     const a = await save(userId, {
       url: "https://m.smartstore.naver.com/nvnutra/products/13646818252?fbclid=PAV",
@@ -287,7 +287,7 @@ describe("링크 저장 시 제목·태그와 썸네일 (실제 PostgreSQL, FEAT
     expect(a.body.normalizedUrl).toBe(
       "https://smartstore.naver.com/nvnutra/products/13646818252",
     );
-    expect(a.body.displayTitle).toBe("smartstore.naver.com");
+    expect(a.body.displayTitle).toBe("nvnutra · 스마트스토어");
   });
 
   it("AC-18·19: 짧은 주소가 스마트스토어로 가고 페이지가 막혀도(429) 따라간 주소의 가게 이름을 제목으로 보여 준다", async () => {

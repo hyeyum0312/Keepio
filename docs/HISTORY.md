@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-22 | test(api): 스마트스토어 표시 제목 기대값을 AC-18에 맞춤
+
+- Feature: FEAT-010 AC-16·18
+- 목적: CI 통합 테스트가 AC-18에 명시된 스마트스토어 가게 이름 대신 이전 일반 도메인 규칙을 기대해 실패했다.
+- 변경: `bookmark-meta.int.test.ts` 설명과 기대값을 `nvnutra · 스마트스토어`로 정정했다. API 동작은 변경하지 않았다.
+- 영향: 테스트만 변경. API·DB 변경 없음.
+- 검증: `npm run test:integration -w @keepio/api -- src/bookmarks/bookmark-meta.int.test.ts` PASS(18 tests). `npm run verify` PASS. 초기 샌드박스 실행은 localhost 권한 제한으로 실패했으나, 승인된 로컬 실행에서 통과했다.
+- 주의/롤백: 테스트 기대값만 되돌리면 기존 CI 실패가 재발한다. 실제 CI에서 통합 테스트 재실행이 필요하다.
+
 ## 2026-11-21 | docs(screens): 화면별 정책 문서 폴더 신설 (HOME-02·LINK-01·LINK-04·BKT-02)
 
 - Feature: N/A (문서 구조)
