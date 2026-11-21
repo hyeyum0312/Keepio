@@ -121,26 +121,27 @@ export function AllLinks() {
       <section aria-labelledby="links-list" className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-1">
-            {/* 모두 선택: PC는 늘, 모바일은 선택 모드에서만 */}
-            <label
-              className={`relative size-11 shrink-0 cursor-pointer items-center justify-center ${
-                selecting ? "flex" : "hidden md:flex"
-              }`}
-            >
-              <input
-                ref={allBox}
-                type="checkbox"
-                checked={all}
-                onChange={(e) => toggleAll(e.target.checked)}
-                disabled={ids.length === 0}
-                aria-label="이 화면의 링크 모두 선택"
-                className="peer absolute inset-0 size-full cursor-pointer opacity-0"
-              />
-              <span
-                aria-hidden="true"
-                className="kp-thumb-check size-[22px] rounded-[7px] shadow-none! peer-focus-visible:focus-ring"
-              />
-            </label>
+            {/* 모두 선택: PC는 늘, 모바일은 선택 모드에서만. 고를 링크가 0개면 그리지 않는다 */}
+            {ids.length > 0 && (
+              <label
+                className={`relative size-11 shrink-0 cursor-pointer items-center justify-center ${
+                  selecting ? "flex" : "hidden md:flex"
+                }`}
+              >
+                <input
+                  ref={allBox}
+                  type="checkbox"
+                  checked={all}
+                  onChange={(e) => toggleAll(e.target.checked)}
+                  aria-label="이 화면의 링크 모두 선택"
+                  className="peer absolute inset-0 size-full cursor-pointer opacity-0"
+                />
+                <span
+                  aria-hidden="true"
+                  className="kp-thumb-check size-[22px] rounded-[7px] shadow-none! peer-focus-visible:focus-ring"
+                />
+              </label>
+            )}
             <h2
               id="links-list"
               className="truncate text-base font-bold tracking-tight"
@@ -154,13 +155,15 @@ export function AllLinks() {
             </h2>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={() => (selecting ? clear() : setMobileMode(true))}
-              className="min-h-11 rounded-lg px-3 text-sm font-semibold focus-visible:focus-ring md:hidden"
-            >
-              {selecting ? "완료" : "선택"}
-            </button>
+            {(ids.length > 0 || selecting) && (
+              <button
+                type="button"
+                onClick={() => (selecting ? clear() : setMobileMode(true))}
+                className="min-h-11 rounded-lg px-3 text-sm font-semibold focus-visible:focus-ring md:hidden"
+              >
+                {selecting ? "완료" : "선택"}
+              </button>
+            )}
             <div
               role="group"
               aria-label="보기 방식"

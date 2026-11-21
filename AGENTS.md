@@ -96,6 +96,7 @@ Claude Code에서는 `/task`(계획) → `/feature`(새 기능일 때 명세) �
 
 ## Feature 및 History 필수 프로토콜 (v0.2)
 
+- 화면을 만들거나 고치기 전에 `docs/screens/<화면ID>-*.md`(화면별 정책: 구성·요소 규칙·상태·예정 작업)를 읽는다. 기획이 바뀌면 개발 전에 그 문서를 고친다. 화면 ID는 `docs/spec/06-SCREENS.md`. 이전 화면 기획서(artifact)·`02-DESIGN.md`와 다르면 `docs/screens`가 기준이다.
 - 신규 사용자 기능/행동 변경 전 `docs/features/README.md`를 확인하고 기능 문서를 생성 또는 수정한다. 요구사항·데이터 계약·수용 기준·회귀 범위를 승인받고 구현한다. 단순 리팩터링은 새 Feature 문서를 만들지 않는다.
 - 구현 완료는 관련 테스트 실행 결과 확인 후에만 선언한다. 테스트 파일 경로와 실행 명령을 Feature 문서에 기록한다.
 - **매 커밋** `docs/HISTORY.md`의 최상단에 한 항목을 추가한다. 이유·영향·실제 검증·주의/롤백을 적고 과거 기록은 변경하지 않는다. 자세한 규칙: `docs/standards/HISTORY.md`.

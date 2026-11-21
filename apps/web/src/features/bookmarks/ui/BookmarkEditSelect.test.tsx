@@ -165,6 +165,19 @@ describe("FEAT-011 제목 수정", () => {
 describe("FEAT-011 여러 개 선택", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it("AC-06: 링크가 0개면 모두 선택 체크박스와 모바일 선택 버튼을 그리지 않는다", async () => {
+    setup([]);
+    expect(
+      await screen.findByText("저장한 링크가 없어요."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: "이 화면의 링크 모두 선택" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "선택" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("AC-06·08: 썸네일 체크박스로 고르면 작업 막대가 나오고, 모두 선택은 중간 상태를 보여 준다. ✕로 푼다", async () => {
     setup([item(1), item(2), item(3)]);
     const first = await screen.findByRole("checkbox", {
