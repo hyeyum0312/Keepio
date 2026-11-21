@@ -31,8 +31,10 @@ export type Env = {
 };
 
 const DEFAULT_STORAGE_DIR = ".storage";
+// 봇 이름을 밝히면 쇼핑몰·뉴스 등 봇 차단 사이트가 403을 준다(제목·썸네일 둘 다 못 받음).
+// 사용자가 브라우저로 여는 것과 같은 요청으로 보낸다. 환경 변수로 바꿀 수 있다
 const DEFAULT_LINK_PREVIEW_USER_AGENT =
-  "Mozilla/5.0 (compatible; KeepioBot/0.1; link preview)";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 // 시작 시 한 번 검증하고 실패하면 바로 종료한다. 메시지에 값은 넣지 않는다(비밀값 노출 방지)
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {

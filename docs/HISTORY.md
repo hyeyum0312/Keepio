@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | fix(api): 링크 미리보기에서 제목·썸네일을 더 자주 가져오기
+
+- Feature: FEAT-010 (AC-12~14)
+- 목적: 링크 저장 시 제목·썸네일이 간혹 안 보였다. 원인 조사 결과 (1) `og:title`·`og:image`만 읽어 og 태그가 없는 사이트는 `<title>`이 있어도 도메인·아트워크로 나옴, (2) 3MB를 넘는 페이지는 `<head>`의 태그까지 통째로 버림, (3) 일시적 실패(시간 초과·5xx)도 재시도 없이 바로 failed.
+- 변경: `open-graph.ts` 대체 태그(이미지 og → twitter → `link rel=image_src`, 제목 og → twitter → `<title>`, 순위 고정). `safeFetch`에 `overLimit: "truncate"`(상한까지 받은 부분 반환)·결과 `truncated`, 페이지 요청만 사용. `isTransientFetchError`(시간 초과·연결 끊김·EAI_AGAIN·5xx·429) + `BookmarkThumbnailsService`가 페이지·이미지 각각 1초 뒤 1회 재시도(종료 중엔 안 함). FEAT-010 문서 AC-10 상한을 실제 값(3MB)으로 바로잡고 AC-12~14 추가, AI-LOG 1줄.
+- 영향: 링크 미리보기 서버 작업만. API·DB 계약 변경 없음. 비용: 일시적 실패 링크에만 외부 요청 최대 1회 추가, 재시도 대기 중 동시 실행 자리 1개를 최대 1초 사용. DB·저장소·로그 양 변화 없음(실패 로그는 기존처럼 1줄).
+- 검증: 리눅스 VM 사본(`npm ci --engine-strict=false`)에서 api 단위 테스트 21파일 159 PASS — 이 VM은 SWC 네이티브 모듈이 안 떠서 SWC 대신 esbuild 변환 임시 설정으로 실행. api `tsc --noEmit`·`eslint --max-warnings=0 src/bookmarks`·`prettier --check` PASS. 통합 테스트(`test:integration`, 신규 AC-14 2건 포함)는 미실행(VM에 PostgreSQL 없음) → 사용자 Mac·CI에서 확인.
+- 주의/롤백: revert로 원래 동작. `<title>`을 쓰면서 og가 없는 사이트는 사이트 이름 같은 일반 제목이 들어올 수 있다(사용자 제목이 항상 우선). 재시도는 메모리 대기열 안이라 서버 재시작 시 사라지는 점은 그대로.
+
+## 2026-11-20 | feat(api): 링크 미리보기 요청을 브라우저처럼 보내기
+
+- Feature: FEAT-010
+- 목적: 쿠팡 링크가 제목·썸네일을 못 가져왔다. 로컬 로그 `LinkPreviewHttpError: http 403` — 봇 이름(`KeepioBot`)을 밝힌 요청을 봇 차단 사이트가 거부. 어떤 사이트가 들어올지 모르니 사이트별 처리 대신 공통으로 차단을 줄인다(사용자 결정).
+- 변경: 기본 `LINK_PREVIEW_USER_AGENT`를 크롬 데스크톱 값으로(`config/env.ts`, 환경 변수로 바꿀 수 있음). `safeFetch`에 `purpose`(document·image) — 브라우저가 붙이는 `sec-fetch-*`·`upgrade-insecure-requests` 헤더, `accept-language`를 브라우저 형식(ko-KR 우선)으로. 페이지 `accept`도 브라우저 값. 압축 응답 거부(identity)·SSRF 제한은 그대로. 테스트: env 기본값 갱신, safeFetch 헤더 확인 1개 추가.
+- 영향: 링크 미리보기 서버 요청만. 차단이 강한 사이트(쿠팡 등 Akamai)는 여전히 막힐 수 있다 → 막히면 외부 미리보기 서비스(2단계)를 검토.
+- 검증: prettier PASS, `python3 scripts/check-history.py` PASS — 리눅스 VM. vitest·tsc는 커밋 hook(사용자 Mac)과 PR CI. 실제 쿠팡 통과 여부는 로컬에서 다시 저장해 확인 필요.
+- 주의/롤백: revert 또는 `LINK_PREVIEW_USER_AGENT`를 예전 값으로 지정하면 원래 동작.
+
 ## 2026-11-20 | feat: 썸네일을 못 불러오면 링크 페이지의 원본 이미지로 (FEAT-010 AC-11)
 
 - Feature: FEAT-010

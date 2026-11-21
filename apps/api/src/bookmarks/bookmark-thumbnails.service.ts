@@ -5,6 +5,7 @@ import {
   type OnModuleDestroy,
   type OnModuleInit,
 } from "@nestjs/common";
+import { setTimeout as sleep } from "node:timers/promises";
 import { ApiException } from "../common/api-error.js";
 import { loadEnv } from "../config/env.js";
 import { BookmarksRepository } from "./bookmarks.repository.js";
@@ -12,7 +13,11 @@ import { sniffImageType } from "./lib/image-type.js";
 import { parseOpenGraph } from "./lib/open-graph.js";
 import { isUuid } from "./lib/cursor.js";
 import { signThumbnailPath, thumbnailUrlKey } from "./lib/signed-url.js";
-import { LinkPreviewFetcher, MAX_IMAGE_BYTES } from "./link-preview.fetcher.js";
+import {
+  isTransientFetchError,
+  LinkPreviewFetcher,
+  MAX_IMAGE_BYTES,
+} from "./link-preview.fetcher.js";
 import { ThumbnailStorage } from "./thumbnail.storage.js";
 
 const logger = new Logger("Thumbnail");
@@ -23,6 +28,8 @@ const MAX_WAITING = 200;
 const STALE_PENDING_MS = 10 * 60 * 1000;
 // DB 칸 길이(VARCHAR 2048). 더 긴 주소는 남기지 않는다
 const MAX_SOURCE_URL_LENGTH = 2048;
+// AC-14. 일시적 실패는 잠깐 쉬고 한 번만 다시 받는다(페이지·이미지 각각). 쉬는 동안 동시 실행 자리 하나를 쓴다
+const RETRY_DELAY_MS = 1000;
 
 // docs/features/bookmark-meta.md 오류 표
 const UNSUPPORTED_IMAGE_MESSAGE = "JPG·PNG·WEBP·GIF 이미지만 올릴 수 있어요.";
@@ -99,7 +106,7 @@ export class BookmarkThumbnailsService
   // 실패 이유는 로그로만(URL은 민감 쿼리가 있을 수 있어 남기지 않는다, BACKEND.md)
   private async run({ bookmarkId, url }: Job): Promise<void> {
     try {
-      const page = await this.fetcher.fetchPage(url);
+      const page = await this.withRetry(() => this.fetcher.fetchPage(url));
       const og = parseOpenGraph(page.html, page.finalUrl);
       if (og.title) await this.bookmarks.setPageTitle(bookmarkId, og.title);
       if (!og.image) return await this.fail(bookmarkId, "no og:image");
@@ -108,7 +115,8 @@ export class BookmarkThumbnailsService
         await this.bookmarks.setThumbnailSourceUrl(bookmarkId, og.image);
       }
 
-      const bytes = await this.fetcher.fetchImage(og.image);
+      const image = og.image;
+      const bytes = await this.withRetry(() => this.fetcher.fetchImage(image));
       const type = sniffImageType(bytes);
       if (!type) return await this.fail(bookmarkId, "not an image");
       const key = await this.storage.save(bytes, type);
@@ -121,6 +129,16 @@ export class BookmarkThumbnailsService
         bookmarkId,
         error instanceof Error ? `${error.name}: ${error.message}` : "unknown",
       );
+    }
+  }
+
+  private async withRetry<T>(fetch: () => Promise<T>): Promise<T> {
+    try {
+      return await fetch();
+    } catch (error) {
+      if (this.closed || !isTransientFetchError(error)) throw error;
+      await sleep(RETRY_DELAY_MS);
+      return await fetch();
     }
   }
 
