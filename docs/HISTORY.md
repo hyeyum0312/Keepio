@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-21 | feat(web): "전체 링크"를 "내 링크"로
+
+- Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)
+- 목적: 이 화면은 저장·카테고리별 보기·수정·여러 개 선택(버킷 추가)까지 해서 "전체 링크"는 하는 일을 좁게 보이게 한다. 사용자 결정으로 "내 링크".
+- 변경: `AppShell` 사이드바 메뉴, `/links`·`/preview/links` 화면 제목(`/links`도 보조기기 전용이던 제목을 화면에 보이게, 시안), 관련 주석·테스트 이름. 주소 `/links`와 모바일 탭 "링크"는 그대로.
+- 영향: 화면 글자만. 동작·API 변경 없음.
+- 검증: 클라우드 복사본에서 web vitest 95 PASS, `tsc`·eslint·prettier PASS.
+- 주의/롤백: revert.
+
 ## 2026-11-21 | feat(web): 홈 "최근 추가한 링크"와 버튼 순서 [저장] [건너뛰기]
 
 - Feature: FEAT-009 (`docs/features/app-shell-home.md` 후속 변경)

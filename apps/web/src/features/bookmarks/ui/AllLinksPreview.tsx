@@ -68,7 +68,7 @@ const PREVIEW_LIST: BookmarkListResponse = {
   nextCursor: null,
 };
 
-// 디자인 미리보기 전용 전체 링크(샘플 데이터, 로그인 없이). 목록은 미리 채운 캐시만 쓰고 서버에 다시 묻지 않는다.
+// 디자인 미리보기 전용 내 링크(샘플 데이터, 로그인 없이). 목록은 미리 채운 캐시만 쓰고 서버에 다시 묻지 않는다.
 // 저장·삭제는 서버로 가므로 로그인하지 않았으면 오류 문구가 보인다(문구 모양 확인용)
 export function AllLinksPreview() {
   const [client] = useState(() => {

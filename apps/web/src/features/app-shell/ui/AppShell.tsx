@@ -17,7 +17,7 @@ type NavItem = {
 
 const MAIN: NavItem[] = [
   { label: "홈", icon: "home", href: "/" },
-  { label: "전체 링크", icon: "links", href: "/links" },
+  { label: "내 링크", icon: "links", href: "/links" },
   { label: "카테고리", icon: "tag", soon: true },
   { label: "버킷", icon: "bucket", soon: true },
   { label: "공유한 페이지", icon: "pages", soon: true },
