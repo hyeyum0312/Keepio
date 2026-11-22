@@ -196,6 +196,20 @@ describe("홈 (FEAT-009)", () => {
     expect(patch.body).toEqual({ categoryId: "c-new" });
   });
 
+  it("미분류 링크를 먼저 보여 준다 (2026-11-22)", async () => {
+    // 최근 저장 순으로는 id-1(카테고리 있음)이 먼저지만, 미분류인 id-2가 앞에 와야 한다
+    renderHome([{ ...link(1), categoryId: "c-1" }, link(2)], null, false, [
+      { id: "c-1", name: "디자인", bookmarkCount: 1 },
+    ]);
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
+    expect(within(card).getByRole("link")).toHaveAttribute(
+      "href",
+      "https://site2.example/page",
+    );
+  });
+
   it("FEAT-008 AC-09·D-19: 카테고리가 있으면 고르기가 보이고, 이미 정한 카테고리가 골라진 채로 나온다", async () => {
     renderHome([{ ...link(1), categoryId: "c-2" }], null, false, [
       { id: "c-1", name: "디자인", bookmarkCount: 0 },

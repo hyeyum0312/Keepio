@@ -60,7 +60,12 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
     faviconUrl: b.faviconUrl,
     categoryId: b.categoryId,
   }));
-  const queue = useTriageQueue(items);
+  // 미분류를 먼저 보여 준다(2026-11-22 사용자 요청). 같은 묶음 안에서는 서버가 준 순서(최근 저장 순)를 지킨다
+  const ordered = [
+    ...items.filter((i) => !i.categoryId),
+    ...items.filter((i) => i.categoryId),
+  ];
+  const queue = useTriageQueue(ordered);
   // 모든 페이지를 받았을 때만 개수를 보여 준다(일부로 세지 않는다)
   const exactCount =
     pages.data && !pages.hasNextPage ? queue.remaining : undefined;
