@@ -1,5 +1,6 @@
 import { BadRequestException, HttpStatus, Injectable } from "@nestjs/common";
 import { ApiException } from "../common/api-error.js";
+import { CategoriesService } from "../categories/categories.service.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { ThumbnailStorage } from "./thumbnail.storage.js";
 import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
@@ -28,6 +29,7 @@ const ALREADY_SAVED_MESSAGE = "같은 링크가 이미 저장되어 있어요.";
 // docs/features/bookmark-meta.md 오류 표(FEAT-010)
 const META_INVALID_MESSAGE = "제목은 100자, 태그는 30자까지 입력할 수 있어요.";
 const TITLE_INVALID_MESSAGE = "제목은 100자까지 입력할 수 있어요.";
+const NOTHING_TO_UPDATE_MESSAGE = "고칠 내용을 보내 주세요.";
 const BOOKMARK_TAG_LIMIT_MESSAGE = "링크 하나에 태그는 10개까지 달 수 있어요.";
 const TAG_LIMIT_MESSAGE = "태그는 500개까지 만들 수 있어요.";
 export const MAX_TITLE_LENGTH = 100;
@@ -50,6 +52,7 @@ export class BookmarksService {
     private readonly bookmarks: BookmarksRepository,
     private readonly thumbnails: BookmarkThumbnailsService,
     private readonly storage: ThumbnailStorage,
+    private readonly categories: CategoriesService,
   ) {}
 
   // FEAT-001: 활성 북마크가 있으면 재사용(AC-02), 없으면 생성(AC-01). 휴지통에만 있으면 그 행을 영구 삭제하고
@@ -167,21 +170,44 @@ export class BookmarksService {
   }
 
   // FEAT-011 AC-01~03. 활성 북마크의 제목만. 정규화는 저장할 때와 같다(FEAT-010 AC-01)
-  async updateTitle(
+  // FEAT-011 AC-01~03(제목), FEAT-008 AC-09(카테고리 이동). 주어진 항목만 고친다
+  async update(
     userId: string,
     id: string,
-    input: string | null,
+    input: { title?: string | null; categoryId?: string | null },
   ): Promise<BookmarkRecord> {
     if (!isUuid(id)) throw notFound();
-    const title = normalizeTitle(input);
-    if (title && title.length > MAX_TITLE_LENGTH) {
+    // 고칠 항목이 하나도 없으면 거부한다(FEAT-011 AC-03. 보낼 것이 없는 요청은 클라이언트 잘못)
+    if (input.title === undefined && input.categoryId === undefined) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
         "VALIDATION_FAILED",
-        TITLE_INVALID_MESSAGE,
+        NOTHING_TO_UPDATE_MESSAGE,
       );
     }
-    const updated = await this.bookmarks.updateTitle(userId, id, title);
+    const data: { title?: string | null; categoryId?: string | null } = {};
+
+    if (input.title !== undefined) {
+      const title = normalizeTitle(input.title);
+      if (title && title.length > MAX_TITLE_LENGTH) {
+        throw new ApiException(
+          HttpStatus.BAD_REQUEST,
+          "VALIDATION_FAILED",
+          TITLE_INVALID_MESSAGE,
+        );
+      }
+      data.title = title;
+    }
+
+    if (input.categoryId !== undefined) {
+      // null은 미분류. 남의·없는 카테고리는 404(AC-07)
+      if (input.categoryId !== null) {
+        await this.categories.requireOwned(userId, input.categoryId);
+      }
+      data.categoryId = input.categoryId;
+    }
+
+    const updated = await this.bookmarks.update(userId, id, data);
     if (!updated) throw notFound();
     return updated;
   }

@@ -24,6 +24,8 @@ function sample(
     title,
     displayTitle: title,
     titleSource: "user" as const,
+    categoryId: null,
+    category: null,
     tags: tags.map((name) => ({ id: `${n}-${name}`, name })),
     thumbnail: {
       status: "ready" as const,

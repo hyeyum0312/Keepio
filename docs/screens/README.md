@@ -27,11 +27,13 @@
 
 ## 문서
 
-| 화면 ID | 문서                                        |
-| ------- | ------------------------------------------- |
-| HOME-02 | [홈(로그인 후)](HOME-02-home.md)            |
-| LINK-01 | [내 링크](LINK-01-my-links.md)              |
-| LINK-04 | [AI로 한 번에 정리](LINK-04-ai-organize.md) |
-| BKT-02  | [버킷 상세](BKT-02-bucket-detail.md)        |
+| 화면 ID | 문서                                                  |
+| ------- | ----------------------------------------------------- |
+| HOME-02 | [홈(로그인 후)](HOME-02-home.md)                      |
+| LINK-01 | [내 링크](LINK-01-my-links.md)                        |
+| LINK-03 | [링크 상세·수정 모달](LINK-03-link-edit-modal.md)     |
+| CAT-01  | [카테고리 칩 줄·관리 모달](CAT-01-category-manage.md) |
+| LINK-04 | [AI로 한 번에 정리](LINK-04-ai-organize.md)           |
+| BKT-02  | [버킷 상세](BKT-02-bucket-detail.md)                  |
 
 새 문서는 [TEMPLATE.md](TEMPLATE.md)로 시작한다.

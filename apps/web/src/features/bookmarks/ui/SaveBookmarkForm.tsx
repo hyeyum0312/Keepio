@@ -90,7 +90,7 @@ export function SaveBookmarkForm({ onSaved }: { onSaved?: () => void } = {}) {
           <label htmlFor="field-url" className="sr-only">
             링크 주소
           </label>
-          <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted-foreground">
+          <span className="pointer-events-none absolute top-1/2 left-0.5 -translate-y-1/2 text-muted-foreground">
             <LinkIcon name="link" size={20} />
           </span>
           <input
@@ -103,8 +103,8 @@ export function SaveBookmarkForm({ onSaved }: { onSaved?: () => void } = {}) {
             placeholder="링크를 붙여넣으세요 (https://)"
             aria-invalid={!!failure || undefined}
             aria-describedby={failure ? ERROR_ID : undefined}
-            className={`h-[52px] w-full rounded-xl border bg-surface pr-4 pl-12 text-base text-foreground placeholder:text-muted-foreground focus-visible:focus-ring md:text-sm ${
-              failure ? "border-destructive" : "border-input"
+            className={`h-[52px] w-full kp-field pr-4 pl-10 text-base text-foreground placeholder:text-muted-foreground md:text-sm ${
+              failure ? "border-destructive" : ""
             }`}
           />
         </div>

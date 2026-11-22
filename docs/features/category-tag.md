@@ -1,13 +1,13 @@
 # FEAT-008 — 카테고리·태그 CRUD와 링크 분류
 
-- Status: Draft
-- Updated: 2026-11-21
+- Status: 부분 구현 (2026-11-22: 만들기·목록·적용 = AC-01·02·07·08·09·12 / 정렬·고정·링크 응답의 카테고리 이름 = AC-14·15·16 / 고르기 부품 = AC-13. 관리 모달(AC-17)·이름 변경·삭제·병합·별칭·태그 API·목록 필터는 다음 범위)
+- Updated: 2026-11-22 (카테고리 만들기 구현)
 - Related: PRD v0.3 카테고리·태그 정책 / ADR-015 / spec 04 / 화면 CAT-01·LINK-01·LINK-03 / [정책 기획서](https://claude.ai/artifact/TiYqnwWyza9FGxkXQw4jh8) / [홈 와이어프레임](https://claude.ai/artifact/TVK97VZWLdiXH6GdM6PiBx)
 
 ## 목적 및 비범위
 
 - 사용자 문제: 저장한 링크가 한 목록에 쌓여 다시 찾기 어렵다. 링크를 한 서랍(카테고리)에 넣고, 키워드(태그)로 좁혀 찾고 싶다.
-- 이번 작업에서 하지 않는 것: 화면(FEAT-009 앱 틀·홈), AI 분류 제안(LINK-04), 하위 카테고리, 색·아이콘, 직접 순서, 카테고리 휴지통, 유사 이름 차단, 검색(링크 제목 등 메타데이터 수집 전이라 URL만 검색 가능 — 메타데이터 기능과 함께).
+- 이번 작업에서 하지 않는 것: 화면(FEAT-009 앱 틀·홈), AI 분류 제안(LINK-04), 하위 카테고리, 색·아이콘, 고정 순서를 손으로 바꾸기, 카테고리 휴지통, 유사 이름 차단(막지 않고 고르기 목록에서 보여 준다, AC-13), 검색(링크 제목 등 메타데이터 수집 전이라 URL만 검색 가능 — 메타데이터 기능과 함께).
 
 ## 검토한 대안
 
@@ -21,19 +21,35 @@
 
 ## 사용자 흐름 및 수용 기준
 
-- [ ] AC-01 카테고리를 만들면 목록에 이름순으로 나타나고 링크 수가 함께 온다.
-- [ ] AC-02 "여행"이 있을 때 " 여행 "·"TRAVEL"/"travel"처럼 정규화 후 같은 이름(별칭 포함)을 만들면 409와 기존 ID를 반환한다.
+- [x] AC-01 카테고리를 만들면 목록에 이름순으로 나타나고 링크 수가 함께 온다.
+- [x] AC-02 "여행"이 있을 때 " 여행 "·"TRAVEL"/"travel"처럼 정규화 후 같은 이름(별칭 포함)을 만들면 409와 기존 ID를 반환한다.
 - [ ] AC-03 카테고리를 고르지 않고 저장한 링크는 미분류, 고르고 저장한 링크는 그 카테고리에 나타난다. 이미 저장된 링크를 다시 저장할 때 카테고리를 주면 무시하지 않고 그 카테고리로 옮기지 않는다(기존 값 유지, 응답 200).
 - [ ] AC-04 카테고리를 삭제하면 그 안의 링크는 남고 미분류가 된다. 별칭도 함께 지워진다.
 - [ ] AC-05 A를 B로 병합하면 A의 링크가 모두 B로 옮겨지고 A는 사라지며, A 이름으로 다시 만들면 409로 B를 안내한다. 자기 자신으로 병합하면 400.
 - [ ] AC-06 링크에 태그 이름 목록을 주면 없는 태그는 만들고 연결한다. 11번째 태그는 422이고 기존 연결은 바뀌지 않는다.
-- [ ] AC-07 다른 사용자의 카테고리·태그는 조회·수정·삭제·병합·연결할 수 없다(404). 링크에 남의 카테고리 ID를 주면 404.
-- [ ] AC-08 같은 이름으로 동시에 생성 요청이 와도 카테고리·태그는 하나만 생긴다.
-- [ ] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
+- [x] AC-07 다른 사용자의 카테고리·태그는 조회·수정·삭제·병합·연결할 수 없다(404). 링크에 남의 카테고리 ID를 주면 404.
+- [x] AC-08 같은 이름으로 동시에 생성 요청이 와도 카테고리·태그는 하나만 생긴다.
+- [x] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
 - [ ] AC-10 `GET /api/tags?categoryId=`는 그 카테고리의 활성 링크에 쓰인 태그만 돌려준다.
 - [ ] AC-11 목록 `GET /api/bookmarks`는 `categoryId`·`uncategorized=true`·`tag` 필터를 지원하고 응답에 각 링크의 `categoryId`와 `tags`를 담는다.
-- [ ] AC-12 상한: 사용자당 카테고리 100개·태그 500개를 넘으면 422.
-- [ ] AC-13 정리할 링크에서 바로 만들기(2026-11-21): 홈 "정리할 링크" 줄에서 카테고리가 하나도 없으면 고르기 대신 "카테고리 만들기"가 보이고, 있으면 고르기 맨 아래에 "새 카테고리"가 있다. 이름을 입력하고 Enter·[저장]을 누르면 카테고리를 만들고(`POST /api/categories`) 그 링크에 바로 적용한다(`PATCH /api/bookmarks/:id`). 같은 이름이면 409로 받은 기존 카테고리를 쓰고 오류로 보여 주지 않는다("이미 있는 ○○으로 정리"). 1~20자를 벗어나면 입력창 오류 상태(07-BRAND §6)와 서버 문구, [저장] 비활성. 만들기에 실패하면 링크는 그대로 미분류로 남는다.
+- [x] AC-16 링크 응답은 카테고리 **이름까지** 담는다: `category: { id, name } | null`(2026-11-22 사용자 요청 — 내 링크 줄에 카테고리 이름을 보여 준다). 화면이 카테고리 목록을 따로 받지 않아도 이름이 나온다. 기존 `categoryId`는 당분간 함께 둔다(쓰는 곳을 옮긴 뒤 뺀다).
+- [ ] AC-17 관리 모달(2026-11-22 사용자 결정): 내 링크 칩 줄 끝 **[관리]**로 모달을 연다. 줄마다 핀 · 이름 · 링크 수 · 이름 바꾸기 · 합치기 · 삭제이고, 고정한 것이 "고정" 머리글 아래 먼저 온다. 바닥에 전체 개수와 고정 한도("6개 · 고정 1/8")를 적는다. **별도 관리 화면(`/categories`)은 만들지 않는다.** 고정은 고르기 부품(AC-13)에서도 바로 누르지만, **이름 바꾸기·합치기·삭제는 이 모달에서만** 한다(고르다가 잘못 누르는 것을 막는다).
+  - 이름 바꾸기: 줄 안에서 입력칸(밑줄)으로 바뀐다. Enter·[저장] 저장, Esc·[취소] 취소, 1~20자. 이름만 바뀌고 링크 연결은 그대로이며 정렬 자리는 옮겨간다(AC-14).
+  - **이미 있는 이름이면 409를 오류로만 보여 주지 않고 합치기를 권한다**: "○○으로 합칠까요? '△△'의 링크 N개가 '○○'으로 옮겨지고 '△△'은 사라져요. 태그는 그대로예요."([취소] / [합치기], AC-05의 merge를 호출)
+  - 삭제 확인에는 **링크가 지워지지 않고 미분류가 된다**는 것과 링크 수를 적는다(AC-04). 링크가 0개면 확인 없이 삭제한다.
+  - 화면 정책은 `docs/screens/CAT-01-category-manage.md`가 기준이다. 시안: 캔버스 "CAT-01 카테고리 칩 줄·관리 모달".
+- [x] AC-12 상한: 사용자당 카테고리 100개·태그 500개를 넘으면 422.
+- [x] AC-13 고르기 부품: 검색 + 고르기 + 만들기를 한 부품으로(2026-11-22 개정, 이전에는 드롭다운 `select` + 맨 아래 "새 카테고리"). 홈·내 링크가 같은 부품을 쓴다.
+  - 열면 **전체 목록이 바로 보인다**(글자를 안 넣어도 고를 수 있다). 커서는 검색칸에 둔다. 줄마다 이름과 활성 링크 수, 고정 핀을 보여 준다.
+  - 글자를 넣으면 좁혀진다. **찾기는 공백을 떼고 영문 소문자로 맞춰 비교한다**(정규화 중복 판정보다 느슨하다): "모션"으로 "모션 그래픽"·"모션그래픽"이 모두 나온다. 비슷한 이름을 새로 만드는 일을 입구에서 막는 장치이고, 따로 경고를 띄우지 않는다.
+  - 목록 **맨 아래에만** `새 카테고리 "<입력한 이름>" 만들기`를 둔다. 누르면 만들고(`POST /api/categories`) 그 링크에 바로 적용한다(`PATCH /api/bookmarks/:id`). 이름이 비어 있으면 그 줄을 그리지 않는다.
+  - 키보드: ↑↓로 목록을 옮기고 Enter로 고른다. 목록에 들어가지 않은 채 Enter를 누르면 만든다. 단, **정규화 기준으로 똑같은 이름이 이미 있으면 만들지 않고 그 카테고리를 고른다**(서버 409와 같은 결과). Esc는 닫는다.
+  - 같은 이름을 서버가 409로 돌려주면(목록이 최신이 아니거나 동시 생성) 오류로 보여 주지 않고 받은 기존 ID로 적용한다. 1~20자를 벗어나면 만들기 줄을 막고 서버 문구를 보여 준다(07-BRAND §6). 만들기에 실패하면 링크는 그대로 미분류로 남는다.
+  - 카테고리가 하나도 없으면 목록 대신 안내("아직 카테고리가 없어요…")를 두고 입력한 이름으로 바로 만든다. 고를 것이 없으니 줄의 [저장]은 누를 수 없다.
+  - 모바일은 아래에서 올라오는 시트로 연다(좁은 줄에 드롭다운을 띄우지 않는다). 닫기·Esc·바깥 누름으로 닫는다.
+  - 카테고리를 정한 링크도 목록에 남고 그 카테고리가 골라진 채로 보인다(D-19). 시안: 홈 와이어프레임 "홈 1-B — 상태와 예외" 7번.
+- [x] AC-14 정렬: 목록 순서는 서버가 정한다(DB collation은 환경마다 달라 쓰지 않는다). **고정한 것 먼저(고정한 순서) → 첫 글자 종류(한글 → 영문 → 숫자 → 그 밖: 특수문자·한자·일본어 등) → 같은 종류 안에서는 한국어 기준 이름순**(2026-11-22 사용자 결정).
+- [x] AC-15 고정: 자주 쓰는 카테고리를 목록 맨 위에 고정한다. `PATCH /api/categories/:id { pinned }`로 켜고 끄며, 같은 상태를 다시 보내도 성공한다(멱등). 고정은 **사용자당 8개까지**이고 넘으면 422. 고르기 목록에서 고정 묶음을 "고정" 머리글 아래 먼저 보여 준다. 자동으로 자주 쓰는 것을 추려 주는 기능은 넣지 않는다(손으로 고정한다).
 
 ## 데이터 계약
 
@@ -41,20 +57,20 @@
 - 프론트 전용 파생 값: 없음. 화면은 서버 값만 그린다.
 - API 요청/응답/오류:
 
-  | 메서드 | 경로                      | 설명                                                    |
-  | ------ | ------------------------- | ------------------------------------------------------- |
-  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount }] }` 이름순       |
-  | POST   | /api/categories           | `{ name }` → 201 카테고리                               |
-  | PATCH  | /api/categories/:id       | `{ name }` 이름 변경                                    |
-  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                    |
-  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                      |
-  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순 |
-  | PATCH  | /api/tags/:id             | `{ name }`                                              |
-  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                      |
-  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                    |
-  | PATCH  | /api/bookmarks/:id        | `{ categoryId: string \| null }` 이동                   |
-  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                         |
-  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터          |
+  | 메서드 | 경로                      | 설명                                                                           |
+  | ------ | ------------------------- | ------------------------------------------------------------------------------ |
+  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount, pinned }] }` 정렬은 AC-14                |
+  | POST   | /api/categories           | `{ name }` → 201 카테고리                                                      |
+  | PATCH  | /api/categories/:id       | `{ name?, pinned? }` 이름 변경·고정(보낸 항목만)                               |
+  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                                           |
+  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                                             |
+  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순                        |
+  | PATCH  | /api/tags/:id             | `{ name }`                                                                     |
+  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                                             |
+  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                                           |
+  | PATCH  | /api/bookmarks/:id        | `{ title?, categoryId?: string \| null }` 보낸 항목만 고친다. 둘 다 없으면 400 |
+  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                                                |
+  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터                                 |
 
 - 오류 문구(ADR-009, 서버 `message` 그대로 표시):
 
@@ -65,12 +81,13 @@
   | 400    | VALIDATION_FAILED  | 카테고리 1~20자·태그 1~30자 | 카테고리 이름은 1~20자로 입력해 주세요. (태그 1~30자) |
   | 400    | MERGE_SAME         | 자기 자신에게 병합          | 다른 카테고리를 골라 주세요.                          |
   | 422    | CATEGORY_LIMIT     | 사용자당 100개 초과         | 카테고리는 100개까지 만들 수 있어요.                  |
+  | 422    | CATEGORY_PIN_LIMIT | 고정 8개 초과               | 고정은 8개까지 할 수 있어요.                          |
   | 422    | TAG_LIMIT          | 사용자당 500개 초과         | 태그는 500개까지 만들 수 있어요.                      |
   | 422    | BOOKMARK_TAG_LIMIT | 링크당 10개 초과            | 링크 하나에 태그는 10개까지 달 수 있어요.             |
   | 404    | NOT_FOUND          | 없거나 남의 항목            | 카테고리를 찾을 수 없어요. (태그는 "태그를")          |
 
 - DB 변경/마이그레이션:
-  - `categories(id, user_id, name, normalized_name, created_at, updated_at)` UNIQUE `(user_id, normalized_name)`
+  - `categories(id, user_id, name, normalized_name, created_at, updated_at, pinned_at)` UNIQUE `(user_id, normalized_name)`. `pinned_at`은 NULL이면 고정 안 함이고, 고정한 순서를 그 값으로 정렬한다(AC-15)
   - `category_aliases(id, category_id, user_id, normalized_alias)` UNIQUE `(user_id, normalized_alias)`, 카테고리 삭제 시 CASCADE
   - `tags(id, user_id, name, normalized_name, …)` UNIQUE `(user_id, normalized_name)`
   - `bookmark_tags(bookmark_id, tag_id)` PK 복합, 양쪽 CASCADE
@@ -80,7 +97,7 @@
 ## UX 및 디자인
 
 - 이 기능은 API만 다룬다. 화면은 FEAT-009(앱 틀·홈 E버전)와 CAT-01·LINK-03 명세에서 다룬다.
-- 예외로 AC-13(정리할 링크에서 만들기)은 이 기능의 API를 처음 쓰는 화면이라 여기 함께 적는다. 시안: 홈 와이어프레임 "홈 1-B — 상태와 예외" 7번(있음·고르기 열림·0개·만드는 중·이미 있는 이름·20자 초과). 정리할 링크 줄은 [카테고리 고르기] [건너뛰기] [저장] 순서를 유지한다(이미 저장된 링크에 카테고리를 정하는 영역, [저장] = 정리 완료).
+- 예외로 AC-13(최근 추가한 링크에서 만들기)은 이 기능의 API를 처음 쓰는 화면이라 여기 함께 적는다. 시안: 홈 와이어프레임 "홈 1-B — 상태와 예외" 7번(있음·고르기 열림·0개·만드는 중·이미 있는 이름·20자 초과). 줄의 버튼 순서는 [카테고리 선택] [저장] [건너뛰기](2026-11-21 변경, 이전 [고르기] [건너뛰기] [저장]). 이미 저장된 링크에 카테고리를 정하는 영역이고 [저장] = 정리 완료. 카테고리를 정한 링크도 목록에 남는다(D-19). 화면 정책은 `docs/screens/HOME-02-home.md`가 기준.
 - 카테고리 썸네일(사용자 요청, 2026-11-15): 홈 카테고리 카드는 이름 + Keepio 캐릭터 얼굴 썸네일만 보여 준다. 썸네일은 카테고리 ID로 정해지는 표시용 값이라 API·DB에 필드를 두지 않는다(새로고침해도 같은 얼굴). 사용자가 직접 고르는 기능이 생기면 그때 서버 필드로 옮긴다. 상세는 FEAT-009.
 
 ## 영향도 및 주의사항
@@ -94,13 +111,31 @@
 
 테스트 이름은 `AC-xx: 동작 문장` 형식으로 수용 기준과 연결한다.
 
-- Unit: 이름 정규화(`lib/normalize-name`), 상한 판정.
-- Integration: AC-01~12 실제 PostgreSQL. AC-13은 web 컴포넌트 테스트(만들기 → 적용 호출 순서, 409면 기존 ID로 적용, 길이 오류 시 저장 비활성). AC-08은 요청을 생성 직전에 붙잡는 배리어로 경합을 강제한다(QUALITY.md).
+- Unit: 이름 정규화(`lib/normalize-category-name`), 정렬(`lib/sort-categories`: 종류 순서·이름순·고정 먼저), 상한 판정, 고르기 부품의 느슨한 찾기.
+- Integration: AC-01~12·14·15 실제 PostgreSQL(AC-15는 고정·해제의 멱등과 8개 상한, AC-14는 섞인 이름의 순서). AC-13은 web 컴포넌트 테스트(열면 전체가 보임, 느슨한 찾기, 맨 아래 만들기, 똑같은 이름이면 고르기, 만들기 → 적용 호출 순서, 409면 기존 ID로 적용, 길이 오류 시 만들기 비활성). AC-08은 요청을 생성 직전에 붙잡는 배리어로 경합을 강제한다(QUALITY.md).
 - E2E: 없음(화면은 FEAT-009).
 - Regression: FEAT-001·002 기존 통합 테스트 전체.
 
 ## 구현 결과 (검증 후)
 
-- 변경 파일/PR:
-- 실행 명령 및 실제 결과:
+### 1차: 카테고리 만들기·목록·적용 (2026-11-22)
+
+- 범위: AC-01·02·07·08·09·12·13. **별칭 테이블은 만들지 않았다**(병합할 때만 생기므로 병합 범위로). 이름 변경·삭제·병합, 태그 API(`PUT /tags`), 목록 필터(`categoryId`·`uncategorized`·`tag`), 내 링크 카테고리 칩, 저장 시 카테고리 지정(AC-03)은 다음 범위.
+- 변경 파일: `prisma/schema.prisma`(`Category`, `Bookmark.categoryId`, 카테고리별 활성 목록 인덱스), `prisma/migrations/20261122000000_add_categories`, `apps/api/src/categories/*`(controller·service·repository·dto·`lib/normalize-category-name`), `apps/api/src/bookmarks`(`update-bookmark.dto`에 `categoryId`, service `updateTitle` → `update`, repository `update`, 응답 `categoryId`), `packages/api-client` 재생성, `apps/web/src/features/categories/*`, `apps/web/src/features/home/ui/{Home,TriageRow}.tsx`.
+- 회귀 수정: `PATCH /api/bookmarks/:id`가 `title`·`categoryId` 모두 선택이 되면서 빈 본문이 200이 됐다. 고칠 항목이 하나도 없으면 400으로 거부해 FEAT-011 AC-03을 지킨다. 저장 응답에 `categoryId`가 늘어 `bookmarks.int.test.ts` 기대값을 고쳤다.
+- 실행 명령 및 실제 결과: 사용자 Mac에서 `npm run test:integration` 통과(카테고리 11건 포함 121건), `apps/api` typecheck·lint 통과, `npm run openapi:generate` 재생성. 작업 환경에서 web vitest 106 PASS(새 11건), web tsc·eslint·prettier PASS. 작업 환경은 Prisma 엔진을 내려받을 수 없어 API 테스트·빌드는 Mac에서만 돌렸다.
+
+### 3차: 고르기 부품·목록 줄 분류 표시 (2026-11-22)
+
+- 범위: AC-13(고르기 부품), 목록 줄의 카테고리·태그 칩(screens/LINK-01·HOME-02).
+- 변경 파일: `features/categories/ui/CategoryPicker.tsx`(새 부품), `ui/CatIcons.tsx`, `lib/match.ts`(+단위 테스트: 느슨한 찾기·똑같은 이름 판정), `model/useCategories.ts`(`useSetCategoryPinned`), `features/home/ui/TriageRow.tsx`(드롭다운 → 고르기 부품, 고르기 전에는 "카테고리 선택"이고 [저장]을 막는다), `features/home/ui/Home.tsx`(고정 연결·태그 넘김), `features/bookmarks/ui/BookmarkList.tsx`(분류 줄: 카테고리 칩 + 태그), `LinkIcons.tsx`(folder).
+- 고르기 전에 첫 카테고리를 자동으로 고르지 않는다(실수로 엉뚱한 카테고리가 저장되는 것을 막는다). 미분류면 목록 줄에 카테고리 칩을 그리지 않는다.
+- 테스트: web 111 PASS(고르기 부품 열기·느슨한 찾기·맨 아래 만들기·똑같은 이름이면 고르기·핀·onCreate 없을 때). 기존 드롭다운 테스트는 새 부품에 맞게 고쳤다.
+
+### 2차: 정렬·고정·링크 응답의 카테고리 이름 (2026-11-22)
+
+- 범위: AC-14(정렬: 고정 → 한글 → 영문 → 숫자 → 그 밖 → 이름순), AC-15(고정 `pinned_at`, 8개 상한, `PATCH /api/categories/:id { pinned }`, 멱등), AC-16(링크 응답에 `category: { id, name }`).
+- 변경 파일: `prisma/schema.prisma`(`Category.pinnedAt`)와 마이그레이션 `20261122010000_add_category_pinned_at`, `categories/lib/sort-categories.ts`(+단위 테스트), `categories/lib/normalize-category-name.ts`(`MAX_PINNED_CATEGORIES`), `categories.repository`(정렬·`setPinned`·`countPinned`), `categories.service`(`setPinned`와 422), `categories.controller`(`PATCH :id`), `dto/update-category.dto.ts`(새 파일), `dto/category-response.dto.ts`(`pinned`), `bookmarks`(응답 `category` 객체: repository select·record·DTO·controller).
+- 정렬은 DB collation을 쓰지 않고 서버 코드에서 정한다(환경마다 결과가 달라지는 것을 막는다).
+- 통합 테스트 추가: AC-14(섞인 이름 순서와 고정 후 순서), AC-15(멱등·고정 순서·8개 상한·남의 것 404), AC-16(저장·수정·목록에서 이름, 미분류는 null). 저장 응답 전체 비교 테스트에 `category: null` 추가.
 - 남은 위험: 별칭↔이름 동시 생성 경합(UNIQUE 대상이 달라 이론상 둘 다 통과 가능) — 빈도 낮음, 발견 시 사용자별 advisory lock으로 보강.
