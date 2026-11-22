@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
@@ -19,6 +28,7 @@ import {
   CategoryResponse,
 } from "./dto/category-response.dto.js";
 import { CreateCategoryDto } from "./dto/create-category.dto.js";
+import { UpdateCategoryDto } from "./dto/update-category.dto.js";
 
 @Controller("api/categories")
 @UseGuards(UserGuard)
@@ -48,6 +58,23 @@ export class CategoriesController {
   ): Promise<CategoryResponse> {
     return toResponse(await this.categories.create(user.id, dto.name));
   }
+
+  // AC-15 고정·해제. 이름 변경(AC-02)은 다음 범위에서 같은 경로에 더한다
+  @Patch(":id")
+  @ApiOkResponse({ type: CategoryResponse })
+  @ApiBadRequestResponse({ type: ApiErrorResponse })
+  @ApiNotFoundResponse({ type: ApiErrorResponse })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorResponse })
+  async update(
+    @CurrentUser() user: AuthUser,
+    @Param("id") id: string,
+    @Body() dto: UpdateCategoryDto,
+  ): Promise<CategoryResponse> {
+    if (dto.pinned === undefined) {
+      return toResponse(await this.categories.requireOwned(user.id, id));
+    }
+    return toResponse(await this.categories.setPinned(user.id, id, dto.pinned));
+  }
 }
 
 function toResponse(record: CategoryRecord): CategoryResponse {
@@ -55,5 +82,6 @@ function toResponse(record: CategoryRecord): CategoryResponse {
     id: record.id,
     name: record.name,
     bookmarkCount: record.bookmarkCount,
+    pinned: !!record.pinnedAt,
   };
 }

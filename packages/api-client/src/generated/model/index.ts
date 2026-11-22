@@ -7,6 +7,7 @@
 
 export * from "./accessTokenResponse";
 export * from "./apiErrorResponse";
+export * from "./bookmarkCategoryResponse";
 export * from "./bookmarkConflictErrorResponse";
 export * from "./bookmarkFilesControllerThumbnailParams";
 export * from "./bookmarkListResponse";
@@ -34,3 +35,4 @@ export * from "./resetPasswordDto";
 export * from "./saveBookmarkDto";
 export * from "./tokenDto";
 export * from "./updateBookmarkDto";
+export * from "./updateCategoryDto";

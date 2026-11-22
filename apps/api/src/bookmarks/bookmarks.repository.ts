@@ -26,8 +26,9 @@ export type BookmarkRecord = {
   faviconUrl: string | null;
   // FEAT-010 AC-19. 리다이렉트를 따라간 마지막 주소(짧은 주소 등). 응답에는 넣지 않고 표시 제목에만 쓴다
   resolvedUrl: string | null;
-  // FEAT-008. 링크당 0~1개. null = 미분류
+  // FEAT-008. 링크당 0~1개. null = 미분류. 이름까지 함께 준다(AC-16)
   categoryId: string | null;
+  category: { id: string; name: string } | null;
   tags: { id: string; name: string }[];
 };
 
@@ -54,6 +55,7 @@ const RECORD_SELECT = {
   faviconUrl: true,
   resolvedUrl: true,
   categoryId: true,
+  category: { select: { id: true, name: true } },
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const satisfies Prisma.BookmarkSelect;
 

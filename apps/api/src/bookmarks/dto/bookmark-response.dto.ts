@@ -1,6 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { ApiErrorResponse } from "../../common/api-error.js";
 
+// FEAT-008 AC-16. 목록 줄에 카테고리 이름을 보여 주려고 이름까지 함께 준다
+export class BookmarkCategoryResponse {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ maxLength: 20, example: "디자인" })
+  name!: string;
+}
+
 export class BookmarkTagResponse {
   @ApiProperty({ format: "uuid" })
   id!: string;
@@ -75,9 +84,17 @@ export class BookmarkResponse {
     type: String,
     format: "uuid",
     nullable: true,
-    description: "링크의 카테고리(FEAT-008). null이면 미분류",
+    description: "링크의 카테고리 ID(FEAT-008). null이면 미분류",
   })
   categoryId!: string | null;
+
+  @ApiProperty({
+    type: BookmarkCategoryResponse,
+    nullable: true,
+    description:
+      "링크의 카테고리(이름까지, AC-16). null이면 미분류. 목록 줄에 이름을 바로 보여 준다",
+  })
+  category!: BookmarkCategoryResponse | null;
 
   @ApiProperty({ type: [BookmarkTagResponse], description: "이름순" })
   tags!: BookmarkTagResponse[];

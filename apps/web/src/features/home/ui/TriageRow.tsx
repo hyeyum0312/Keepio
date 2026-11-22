@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { fallbackArtFor } from "@/shared/lib/fallback-art";
 import { FaviconTile } from "@/shared/ui/FaviconTile";
+import { CategoryPicker } from "@/features/categories";
 import { HomeIcon } from "./HomeIcons";
 
 // FEAT-010: 서버가 주는 표시 제목(넣은 제목 → 페이지 제목 → 도메인)과 썸네일 주소가 있으면 쓴다
@@ -22,8 +23,16 @@ export type TriageLink = {
   faviconUrl?: string | null;
   // FEAT-008. 이미 정한 카테고리(null이면 미분류). 고르기에 이 값이 골라진 채로 보인다(D-19)
   categoryId?: string | null;
+  // FEAT-010. 태그 칩(내 링크와 같은 모양). 홈은 카테고리 고르기가 따로 있어 태그만 보여 준다
+  tags?: { id: string; name: string }[];
 };
-export type TriageCategory = { id: string; name: string };
+// 고르기 부품이 쓰는 모양(서버가 준 순서·링크 수·고정을 그대로 넘긴다)
+export type TriageCategory = {
+  id: string;
+  name: string;
+  bookmarkCount: number;
+  pinned: boolean;
+};
 
 function origin(url: string) {
   return URL.parse(url)?.origin ?? url;
@@ -32,10 +41,9 @@ function origin(url: string) {
 // 최근 추가한 링크 한 줄(2026-11-21 시안, 옛 "정리할 링크"): 썸네일 · 제목·주소 · [카테고리 선택] [저장] [건너뛰기].
 // 카테고리가 하나도 없으면 [+ 카테고리 만들기] [저장] [건너뛰기]. 이미 카테고리를 정한 링크는 그 카테고리가 골라진 채로 보인다(D-19).
 // 썸네일이 없거나 불러오지 못하면 링크 ID로 정한 아트워크를 보여 준다(같은 링크는 늘 같은 그림).
-// FEAT-008 AC-13: 고르기 맨 아래 "새 카테고리"(카테고리가 0개면 그 자리에 [+ 카테고리 만들기])를 고르면
-// 입력칸이 열린다. Enter·[저장]이면 만들고 이 링크에 바로 적용한다. 1~20자를 벗어나면 오류 테두리와 문구, [저장] 비활성.
+// FEAT-008 AC-13: 카테고리가 하나라도 있으면 고르기 부품(검색 + 목록 + 맨 아래 만들기)을 쓴다.
+// 카테고리가 0개면 고를 것이 없으므로 줄에서 바로 [카테고리 만들기] → 입력칸으로 만든다(Enter·[저장]).
 // onCreate가 없으면(카테고리 서버 전) 만들기·저장은 "준비 중"으로 둔다
-const NEW_CATEGORY = "__new";
 const NAME_INVALID_MESSAGE = "카테고리 이름은 1~20자로 입력해 주세요.";
 const MAX_CATEGORY_LENGTH = 20;
 
@@ -45,6 +53,7 @@ export function TriageRow({
   createCategory = false,
   onSave,
   onCreate,
+  onPin,
   onSkip,
 }: {
   link: TriageLink;
@@ -53,11 +62,14 @@ export function TriageRow({
   onSave?: (categoryId: string) => void;
   // 이름으로 카테고리를 만들고 이 링크에 적용한다. 서버 문구를 돌려주면 입력칸 아래에 보여 준다
   onCreate?: (name: string) => Promise<string | null>;
+  // 고르기 목록에서 바로 고정·해제(FEAT-008 AC-15)
+  onPin?: (categoryId: string, pinned: boolean) => void;
   onSkip: () => void;
 }) {
   const [broken, setBroken] = useState<string[]>([]);
-  const [categoryId, setCategoryId] = useState(
-    link.categoryId ?? categories[0]?.id ?? "",
+  // 고르기 전에는 비어 있다(자동으로 첫 카테고리를 고르지 않는다). 이미 정한 링크는 그 값으로 시작
+  const [categoryId, setCategoryId] = useState<string | null>(
+    link.categoryId ?? null,
   );
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -137,6 +149,22 @@ export function TriageRow({
           <p className="mt-1 truncate text-xs text-muted-foreground">
             {link.meta ?? origin(link.url)}
           </p>
+          {/* 분류 줄(2026-11-22): 태그가 없으면 그리지 않는다 */}
+          {!!link.tags?.length && (
+            <ul
+              aria-label="태그"
+              className="mt-1.5 flex flex-wrap items-center gap-1.5"
+            >
+              {link.tags.map((t) => (
+                <li
+                  key={t.id}
+                  className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+                >
+                  #{t.name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
       <div className="flex flex-col gap-2 md:flex-row md:items-start">
@@ -199,38 +227,13 @@ export function TriageRow({
         ) : (
           <div className="flex items-center gap-2">
             {categories.length > 0 && (
-              <span className="relative inline-flex">
-                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2">
-                  <HomeIcon name="folder" />
-                </span>
-                <label htmlFor={`triage-cat-${link.id}`} className="sr-only">
-                  카테고리
-                </label>
-                <select
-                  id={`triage-cat-${link.id}`}
-                  value={categoryId}
-                  onChange={(e) => {
-                    if (e.target.value === NEW_CATEGORY) {
-                      startCreating();
-                      return;
-                    }
-                    setCategoryId(e.target.value);
-                  }}
-                  className="min-h-11 appearance-none rounded-xl border border-border-subtle bg-surface pr-9 pl-9 text-sm font-medium focus-visible:focus-ring"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                  {onCreate && (
-                    <option value={NEW_CATEGORY}>새 카테고리</option>
-                  )}
-                </select>
-                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground">
-                  <HomeIcon name="chevron" size={16} />
-                </span>
-              </span>
+              <CategoryPicker
+                value={categoryId}
+                categories={categories}
+                onSelect={setCategoryId}
+                onCreate={onCreate}
+                onPin={onPin}
+              />
             )}
             {categories.length === 0 &&
               createCategory &&
@@ -256,10 +259,17 @@ export function TriageRow({
                 </button>
               ))}
             {categories.length > 0 ? (
+              // 고른 카테고리가 없으면 저장할 것이 없다(시안 ①)
               <button
                 type="button"
                 onClick={() => categoryId && onSave?.(categoryId)}
-                className="min-h-11 shrink-0 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground focus-visible:focus-ring"
+                aria-disabled={categoryId ? undefined : "true"}
+                title={categoryId ? undefined : "카테고리를 골라 주세요"}
+                className={`min-h-11 shrink-0 rounded-xl px-5 text-sm font-semibold focus-visible:focus-ring ${
+                  categoryId
+                    ? "bg-primary text-primary-foreground"
+                    : "cursor-default bg-muted text-muted-foreground"
+                }`}
               >
                 저장
               </button>

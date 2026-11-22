@@ -8,6 +8,7 @@ import {
 } from "./categories.repository.js";
 import {
   MAX_CATEGORIES_PER_USER,
+  MAX_PINNED_CATEGORIES,
   toCategoryName,
 } from "./lib/normalize-category-name.js";
 
@@ -15,6 +16,7 @@ const NAME_INVALID_MESSAGE = "카테고리 이름은 1~20자로 입력해 주세
 const DUPLICATE_MESSAGE = "이미 같은 이름의 카테고리가 있어요.";
 const LIMIT_MESSAGE = "카테고리는 100개까지 만들 수 있어요.";
 const NOT_FOUND_MESSAGE = "카테고리를 찾을 수 없어요.";
+const PIN_LIMIT_MESSAGE = "고정은 8개까지 할 수 있어요.";
 
 export function categoryNotFound(): ApiException {
   return new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", NOT_FOUND_MESSAGE);
@@ -65,6 +67,29 @@ export class CategoriesService {
       );
       throw raced ? duplicate(raced.id) : (error as Error);
     }
+  }
+
+  // AC-15. 고정·해제. 같은 상태를 다시 보내도 성공한다(멱등). 고정은 8개까지
+  async setPinned(
+    userId: string,
+    id: string,
+    pinned: boolean,
+  ): Promise<CategoryRecord> {
+    const current = await this.requireOwned(userId, id);
+    if (pinned === !!current.pinnedAt) return current;
+    if (
+      pinned &&
+      (await this.categories.countPinned(userId)) >= MAX_PINNED_CATEGORIES
+    ) {
+      throw new ApiException(
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        "CATEGORY_PIN_LIMIT",
+        PIN_LIMIT_MESSAGE,
+      );
+    }
+    const updated = await this.categories.setPinned(userId, id, pinned);
+    if (!updated) throw categoryNotFound();
+    return updated;
   }
 
   // 링크에 카테고리를 걸 때 쓴다. 본인 것이 아니거나 없으면 404(AC-07·09)

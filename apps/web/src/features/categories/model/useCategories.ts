@@ -5,6 +5,7 @@ import {
   getCategoriesControllerListQueryKey,
   useBookmarksControllerUpdate,
   useCategoriesControllerCreate,
+  useCategoriesControllerUpdate,
 } from "@keepio/api-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBookmarksControllerListQueryKey } from "@keepio/api-client";
@@ -60,6 +61,26 @@ export function useCreateCategoryAndApply() {
       }),
     ]);
     return applied.ok ? null : applied.message;
+  };
+}
+
+// FEAT-008 AC-15. 고정·해제. 끝나면 목록을 다시 받아 순서를 맞춘다(고정이 맨 위)
+export function useSetCategoryPinned() {
+  const update = useCategoriesControllerUpdate();
+  const queryClient = useQueryClient();
+
+  return async function setPinned(
+    categoryId: string,
+    pinned: boolean,
+  ): Promise<string | null> {
+    const res = await submit(
+      () => update.mutateAsync({ id: categoryId, data: { pinned } }),
+      (r) => r.status === 200,
+    );
+    await queryClient.invalidateQueries({
+      queryKey: getCategoriesControllerListQueryKey(),
+    });
+    return res.ok ? null : res.message;
   };
 }
 

@@ -49,7 +49,12 @@ function link(n: number): {
   };
 }
 
-type Category = { id: string; name: string; bookmarkCount: number };
+type Category = {
+  id: string;
+  name: string;
+  bookmarkCount: number;
+  pinned: boolean;
+};
 
 // 서버 흉내: 경로로 나눈다(링크 목록·카테고리 목록·카테고리 만들기·링크 수정)
 function renderHome(
@@ -199,7 +204,7 @@ describe("홈 (FEAT-009)", () => {
   it("미분류 링크를 먼저 보여 준다 (2026-11-22)", async () => {
     // 최근 저장 순으로는 id-1(카테고리 있음)이 먼저지만, 미분류인 id-2가 앞에 와야 한다
     renderHome([{ ...link(1), categoryId: "c-1" }, link(2)], null, false, [
-      { id: "c-1", name: "디자인", bookmarkCount: 1 },
+      { id: "c-1", name: "디자인", bookmarkCount: 1, pinned: false },
     ]);
     const card = await screen.findByRole("article", {
       name: "최근 추가한 링크",
@@ -212,30 +217,29 @@ describe("홈 (FEAT-009)", () => {
 
   it("FEAT-008 AC-09·D-19: 카테고리가 있으면 고르기가 보이고, 이미 정한 카테고리가 골라진 채로 나온다", async () => {
     renderHome([{ ...link(1), categoryId: "c-2" }], null, false, [
-      { id: "c-1", name: "디자인", bookmarkCount: 0 },
-      { id: "c-2", name: "여행", bookmarkCount: 1 },
+      { id: "c-1", name: "디자인", bookmarkCount: 0, pinned: false },
+      { id: "c-2", name: "여행", bookmarkCount: 1, pinned: false },
     ]);
     const card = await screen.findByRole("article", {
       name: "최근 추가한 링크",
     });
-    const select = await waitFor(() =>
-      within(card).getByRole("combobox", { name: "카테고리" }),
+    // 고르기 버튼에 이미 정한 카테고리 이름이 보인다
+    await waitFor(() =>
+      expect(
+        within(card).getByRole("button", { name: /여행/ }),
+      ).toBeInTheDocument(),
     );
-    expect(select).toHaveValue("c-2");
-    expect(
-      within(card).getByRole("option", { name: "새 카테고리" }),
-    ).toBeInTheDocument();
   });
 
   it("카테고리를 고를 수 있으면 [카테고리 선택] [저장] [건너뛰기] 순서 (미리보기)", async () => {
     render(<HomePreview />);
     const card = screen.getByRole("article", { name: "최근 추가한 링크" });
+    // 고르기 버튼(현재 카테고리) → [저장] → [건너뛰기] 순서
     expect(
       within(card)
         .getAllByRole("button")
         .map((b) => b.textContent?.trim()),
-    ).toEqual(["저장", "건너뛰기"]);
-    expect(within(card).getByLabelText("카테고리")).toBeInTheDocument();
+    ).toEqual(["카테고리 선택", "저장", "건너뛰기"]);
   });
 
   it("링크 저장 카드는 링크가 있어도 맨 위에 있다", async () => {
@@ -475,7 +479,10 @@ describe("홈 미리보기", () => {
     expect(card.querySelector("img")?.getAttribute("src")).toMatch(
       /bucket-art/,
     );
-    await userEvent.selectOptions(screen.getByLabelText("카테고리"), "개발");
+    await userEvent.click(
+      screen.getByRole("button", { name: /카테고리 선택/ }),
+    );
+    await userEvent.click(screen.getByRole("option", { name: /개발/ }));
     await userEvent.click(screen.getByRole("button", { name: "저장" }));
     expect(screen.getByText("[미리보기] 모션 가이드")).toBeInTheDocument();
   });

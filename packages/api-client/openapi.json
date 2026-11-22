@@ -1085,6 +1085,89 @@
         ],
         "tags": ["Categories"]
       }
+    },
+    "/api/categories/{id}": {
+      "patch": {
+        "operationId": "CategoriesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Categories"]
+      }
     }
   },
   "info": {
@@ -1254,6 +1337,21 @@
         },
         "required": ["url"]
       },
+      "BookmarkCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 20,
+            "example": "디자인"
+          }
+        },
+        "required": ["id", "name"]
+      },
       "BookmarkTagResponse": {
         "type": "object",
         "properties": {
@@ -1329,7 +1427,17 @@
             "type": "string",
             "format": "uuid",
             "nullable": true,
-            "description": "링크의 카테고리(FEAT-008). null이면 미분류"
+            "description": "링크의 카테고리 ID(FEAT-008). null이면 미분류"
+          },
+          "category": {
+            "nullable": true,
+            "description": "링크의 카테고리(이름까지, AC-16). null이면 미분류. 목록 줄에 이름을 바로 보여 준다",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookmarkCategoryResponse"
+              }
+            ]
           },
           "tags": {
             "description": "이름순",
@@ -1357,6 +1465,7 @@
           "displayTitle",
           "titleSource",
           "categoryId",
+          "category",
           "tags",
           "thumbnail",
           "faviconUrl"
@@ -1439,9 +1548,13 @@
           "bookmarkCount": {
             "type": "number",
             "description": "이 카테고리의 활성 링크 수(휴지통은 세지 않는다)"
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "고정했으면 true. 고정한 것이 목록 맨 위에 온다(AC-15)"
           }
         },
-        "required": ["id", "name", "bookmarkCount"]
+        "required": ["id", "name", "bookmarkCount", "pinned"]
       },
       "CategoryListResponse": {
         "type": "object",
@@ -1493,6 +1606,15 @@
           }
         },
         "required": ["code", "message", "requestId", "categoryId"]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "pinned": {
+            "type": "boolean",
+            "description": "고정 여부. 고정한 카테고리는 목록 맨 위에 온다(사용자당 8개까지). 같은 값을 다시 보내도 성공한다"
+          }
+        }
       }
     }
   }
