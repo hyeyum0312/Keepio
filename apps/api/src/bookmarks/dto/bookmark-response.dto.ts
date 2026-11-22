@@ -71,6 +71,14 @@ export class BookmarkResponse {
   })
   titleSource!: "user" | "page" | "site";
 
+  @ApiProperty({
+    type: String,
+    format: "uuid",
+    nullable: true,
+    description: "링크의 카테고리(FEAT-008). null이면 미분류",
+  })
+  categoryId!: string | null;
+
   @ApiProperty({ type: [BookmarkTagResponse], description: "이름순" })
   tags!: BookmarkTagResponse[];
 

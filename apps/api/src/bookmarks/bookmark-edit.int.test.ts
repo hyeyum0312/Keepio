@@ -121,6 +121,7 @@ describe("PATCH /api/bookmarks/:id (FEAT-011)", () => {
     expect(
       (await patch(userId, saved.body.id, { title: "가".repeat(100) })).status,
     ).toBe(200);
+    // 고칠 항목이 하나도 없는 요청과 문자열이 아닌 제목은 400(FEAT-008로 categoryId가 생긴 뒤에도 유지)
     expect((await patch(userId, saved.body.id, {})).status).toBe(400);
     expect((await patch(userId, saved.body.id, { title: 3 })).status).toBe(400);
   });

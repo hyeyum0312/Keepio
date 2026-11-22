@@ -979,6 +979,112 @@
         },
         "tags": ["BookmarkFiles"]
       }
+    },
+    "/api/categories": {
+      "get": {
+        "operationId": "CategoriesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Categories"]
+      },
+      "post": {
+        "operationId": "CategoriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "같은 이름이 이미 있다. 기존 카테고리 ID를 함께 준다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryConflictErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Categories"]
+      }
     }
   },
   "info": {
@@ -1219,6 +1325,12 @@
             "enum": ["user", "page", "site"],
             "description": "displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음)"
           },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "링크의 카테고리(FEAT-008). null이면 미분류"
+          },
           "tags": {
             "description": "이름순",
             "type": "array",
@@ -1244,6 +1356,7 @@
           "title",
           "displayTitle",
           "titleSource",
+          "categoryId",
           "tags",
           "thumbnail",
           "faviconUrl"
@@ -1301,10 +1414,85 @@
             "nullable": true,
             "maxLength": 100,
             "example": "다이어리 데이 체크 다이어리",
-            "description": "비우거나 null이면 사용자 제목을 지운다"
+            "description": "비우거나 null이면 사용자 제목을 지운다. 보내지 않으면 그대로"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "링크의 카테고리(FEAT-008). null이면 미분류. 보내지 않으면 그대로"
+          }
+        }
+      },
+      "CategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 20,
+            "example": "여행"
+          },
+          "bookmarkCount": {
+            "type": "number",
+            "description": "이 카테고리의 활성 링크 수(휴지통은 세지 않는다)"
           }
         },
-        "required": ["title"]
+        "required": ["id", "name", "bookmarkCount"]
+      },
+      "CategoryListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "이름순(ko)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryResponse"
+            }
+          }
+        },
+        "required": ["items"]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 20,
+            "example": "여행"
+          }
+        },
+        "required": ["name"]
+      },
+      "CategoryConflictErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "VALIDATION_FAILED"
+          },
+          "message": {
+            "type": "string",
+            "description": "사용자에게 그대로 보여주는 문구. 분기는 code로 한다"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["code", "message", "requestId", "categoryId"]
       }
     }
   }

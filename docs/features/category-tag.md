@@ -1,7 +1,7 @@
 # FEAT-008 — 카테고리·태그 CRUD와 링크 분류
 
-- Status: Draft
-- Updated: 2026-11-22
+- Status: 부분 구현 (2026-11-22: 카테고리 만들기·목록·적용 = AC-01·02·07·08·09·12·13. 이름 변경·삭제·병합·별칭·태그 API·목록 필터는 다음 범위)
+- Updated: 2026-11-22 (카테고리 만들기 구현)
 - Related: PRD v0.3 카테고리·태그 정책 / ADR-015 / spec 04 / 화면 CAT-01·LINK-01·LINK-03 / [정책 기획서](https://claude.ai/artifact/TiYqnwWyza9FGxkXQw4jh8) / [홈 와이어프레임](https://claude.ai/artifact/TVK97VZWLdiXH6GdM6PiBx)
 
 ## 목적 및 비범위
@@ -21,19 +21,19 @@
 
 ## 사용자 흐름 및 수용 기준
 
-- [ ] AC-01 카테고리를 만들면 목록에 이름순으로 나타나고 링크 수가 함께 온다.
-- [ ] AC-02 "여행"이 있을 때 " 여행 "·"TRAVEL"/"travel"처럼 정규화 후 같은 이름(별칭 포함)을 만들면 409와 기존 ID를 반환한다.
+- [x] AC-01 카테고리를 만들면 목록에 이름순으로 나타나고 링크 수가 함께 온다.
+- [x] AC-02 "여행"이 있을 때 " 여행 "·"TRAVEL"/"travel"처럼 정규화 후 같은 이름(별칭 포함)을 만들면 409와 기존 ID를 반환한다.
 - [ ] AC-03 카테고리를 고르지 않고 저장한 링크는 미분류, 고르고 저장한 링크는 그 카테고리에 나타난다. 이미 저장된 링크를 다시 저장할 때 카테고리를 주면 무시하지 않고 그 카테고리로 옮기지 않는다(기존 값 유지, 응답 200).
 - [ ] AC-04 카테고리를 삭제하면 그 안의 링크는 남고 미분류가 된다. 별칭도 함께 지워진다.
 - [ ] AC-05 A를 B로 병합하면 A의 링크가 모두 B로 옮겨지고 A는 사라지며, A 이름으로 다시 만들면 409로 B를 안내한다. 자기 자신으로 병합하면 400.
 - [ ] AC-06 링크에 태그 이름 목록을 주면 없는 태그는 만들고 연결한다. 11번째 태그는 422이고 기존 연결은 바뀌지 않는다.
-- [ ] AC-07 다른 사용자의 카테고리·태그는 조회·수정·삭제·병합·연결할 수 없다(404). 링크에 남의 카테고리 ID를 주면 404.
-- [ ] AC-08 같은 이름으로 동시에 생성 요청이 와도 카테고리·태그는 하나만 생긴다.
-- [ ] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
+- [x] AC-07 다른 사용자의 카테고리·태그는 조회·수정·삭제·병합·연결할 수 없다(404). 링크에 남의 카테고리 ID를 주면 404.
+- [x] AC-08 같은 이름으로 동시에 생성 요청이 와도 카테고리·태그는 하나만 생긴다.
+- [x] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
 - [ ] AC-10 `GET /api/tags?categoryId=`는 그 카테고리의 활성 링크에 쓰인 태그만 돌려준다.
 - [ ] AC-11 목록 `GET /api/bookmarks`는 `categoryId`·`uncategorized=true`·`tag` 필터를 지원하고 응답에 각 링크의 `categoryId`와 `tags`를 담는다.
-- [ ] AC-12 상한: 사용자당 카테고리 100개·태그 500개를 넘으면 422.
-- [ ] AC-13 최근 추가한 링크에서 바로 만들기(2026-11-21): 홈 "최근 추가한 링크"(이전 이름 "정리할 링크") 줄에서 카테고리가 하나도 없으면 고르기 대신 "카테고리 만들기"가 보이고, 있으면 고르기 맨 아래에 "새 카테고리"가 있다. 이름을 입력하고 Enter·[저장]을 누르면 카테고리를 만들고(`POST /api/categories`) 그 링크에 바로 적용한다(`PATCH /api/bookmarks/:id`). 같은 이름이면 409로 받은 기존 카테고리를 쓰고 오류로 보여 주지 않는다("이미 있는 ○○으로 정리"). 1~20자를 벗어나면 입력창 오류 상태(07-BRAND §6)와 서버 문구, [저장] 비활성. 만들기에 실패하면 링크는 그대로 미분류로 남는다.
+- [x] AC-12 상한: 사용자당 카테고리 100개·태그 500개를 넘으면 422.
+- [x] AC-13 최근 추가한 링크에서 바로 만들기(2026-11-21): 홈 "최근 추가한 링크"(이전 이름 "정리할 링크") 줄에서 카테고리가 하나도 없으면 고르기 대신 "카테고리 만들기"가 보이고, 있으면 고르기 맨 아래에 "새 카테고리"가 있다. 이름을 입력하고 Enter·[저장]을 누르면 카테고리를 만들고(`POST /api/categories`) 그 링크에 바로 적용한다(`PATCH /api/bookmarks/:id`). 같은 이름이면 409로 받은 기존 카테고리를 쓰고 오류로 보여 주지 않는다("이미 있는 ○○으로 정리"). 1~20자를 벗어나면 입력창 오류 상태(07-BRAND §6)와 서버 문구, [저장] 비활성. 만들기에 실패하면 링크는 그대로 미분류로 남는다.
 
 ## 데이터 계약
 
@@ -41,20 +41,20 @@
 - 프론트 전용 파생 값: 없음. 화면은 서버 값만 그린다.
 - API 요청/응답/오류:
 
-  | 메서드 | 경로                      | 설명                                                    |
-  | ------ | ------------------------- | ------------------------------------------------------- |
-  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount }] }` 이름순       |
-  | POST   | /api/categories           | `{ name }` → 201 카테고리                               |
-  | PATCH  | /api/categories/:id       | `{ name }` 이름 변경                                    |
-  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                    |
-  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                      |
-  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순 |
-  | PATCH  | /api/tags/:id             | `{ name }`                                              |
-  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                      |
-  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                    |
-  | PATCH  | /api/bookmarks/:id        | `{ categoryId: string \| null }` 이동                   |
-  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                         |
-  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터          |
+  | 메서드 | 경로                      | 설명                                                                           |
+  | ------ | ------------------------- | ------------------------------------------------------------------------------ |
+  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount }] }` 이름순                              |
+  | POST   | /api/categories           | `{ name }` → 201 카테고리                                                      |
+  | PATCH  | /api/categories/:id       | `{ name }` 이름 변경                                                           |
+  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                                           |
+  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                                             |
+  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순                        |
+  | PATCH  | /api/tags/:id             | `{ name }`                                                                     |
+  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                                             |
+  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                                           |
+  | PATCH  | /api/bookmarks/:id        | `{ title?, categoryId?: string \| null }` 보낸 항목만 고친다. 둘 다 없으면 400 |
+  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                                                |
+  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터                                 |
 
 - 오류 문구(ADR-009, 서버 `message` 그대로 표시):
 
@@ -101,6 +101,10 @@
 
 ## 구현 결과 (검증 후)
 
-- 변경 파일/PR:
-- 실행 명령 및 실제 결과:
+### 1차: 카테고리 만들기·목록·적용 (2026-11-22)
+
+- 범위: AC-01·02·07·08·09·12·13. **별칭 테이블은 만들지 않았다**(병합할 때만 생기므로 병합 범위로). 이름 변경·삭제·병합, 태그 API(`PUT /tags`), 목록 필터(`categoryId`·`uncategorized`·`tag`), 내 링크 카테고리 칩, 저장 시 카테고리 지정(AC-03)은 다음 범위.
+- 변경 파일: `prisma/schema.prisma`(`Category`, `Bookmark.categoryId`, 카테고리별 활성 목록 인덱스), `prisma/migrations/20261122000000_add_categories`, `apps/api/src/categories/*`(controller·service·repository·dto·`lib/normalize-category-name`), `apps/api/src/bookmarks`(`update-bookmark.dto`에 `categoryId`, service `updateTitle` → `update`, repository `update`, 응답 `categoryId`), `packages/api-client` 재생성, `apps/web/src/features/categories/*`, `apps/web/src/features/home/ui/{Home,TriageRow}.tsx`.
+- 회귀 수정: `PATCH /api/bookmarks/:id`가 `title`·`categoryId` 모두 선택이 되면서 빈 본문이 200이 됐다. 고칠 항목이 하나도 없으면 400으로 거부해 FEAT-011 AC-03을 지킨다. 저장 응답에 `categoryId`가 늘어 `bookmarks.int.test.ts` 기대값을 고쳤다.
+- 실행 명령 및 실제 결과: 사용자 Mac에서 `npm run test:integration` 통과(카테고리 11건 포함 121건), `apps/api` typecheck·lint 통과, `npm run openapi:generate` 재생성. 작업 환경에서 web vitest 106 PASS(새 11건), web tsc·eslint·prettier PASS. 작업 환경은 Prisma 엔진을 내려받을 수 없어 API 테스트·빌드는 Mac에서만 돌렸다.
 - 남은 위험: 별칭↔이름 동시 생성 경합(UNIQUE 대상이 달라 이론상 둘 다 통과 가능) — 빈도 낮음, 발견 시 사용자별 advisory lock으로 보강.
