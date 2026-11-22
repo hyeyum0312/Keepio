@@ -171,6 +171,7 @@ export class BookmarksController {
       displayTitle: displayTitle(bookmark),
       titleSource: titleSource(bookmark),
       categoryId: bookmark.categoryId,
+      category: bookmark.category,
       tags: bookmark.tags,
       thumbnail: {
         status: bookmark.thumbnailStatus,

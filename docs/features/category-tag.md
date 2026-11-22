@@ -1,6 +1,6 @@
 # FEAT-008 — 카테고리·태그 CRUD와 링크 분류
 
-- Status: 부분 구현 (2026-11-22: 카테고리 만들기·목록·적용 = AC-01·02·07·08·09·12·13. 이름 변경·삭제·병합·별칭·태그 API·목록 필터는 다음 범위)
+- Status: 부분 구현 (2026-11-22: 만들기·목록·적용 = AC-01·02·07·08·09·12 / 정렬·고정·링크 응답의 카테고리 이름 = AC-14·15·16 / 고르기 부품 = AC-13. 관리 모달(AC-17)·이름 변경·삭제·병합·별칭·태그 API·목록 필터는 다음 범위)
 - Updated: 2026-11-22 (카테고리 만들기 구현)
 - Related: PRD v0.3 카테고리·태그 정책 / ADR-015 / spec 04 / 화면 CAT-01·LINK-01·LINK-03 / [정책 기획서](https://claude.ai/artifact/TiYqnwWyza9FGxkXQw4jh8) / [홈 와이어프레임](https://claude.ai/artifact/TVK97VZWLdiXH6GdM6PiBx)
 
@@ -32,7 +32,7 @@
 - [x] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
 - [ ] AC-10 `GET /api/tags?categoryId=`는 그 카테고리의 활성 링크에 쓰인 태그만 돌려준다.
 - [ ] AC-11 목록 `GET /api/bookmarks`는 `categoryId`·`uncategorized=true`·`tag` 필터를 지원하고 응답에 각 링크의 `categoryId`와 `tags`를 담는다.
-- [ ] AC-16 링크 응답은 카테고리 **이름까지** 담는다: `category: { id, name } | null`(2026-11-22 사용자 요청 — 내 링크 줄에 카테고리 이름을 보여 준다). 화면이 카테고리 목록을 따로 받지 않아도 이름이 나온다. 기존 `categoryId`는 당분간 함께 둔다(쓰는 곳을 옮긴 뒤 뺀다).
+- [x] AC-16 링크 응답은 카테고리 **이름까지** 담는다: `category: { id, name } | null`(2026-11-22 사용자 요청 — 내 링크 줄에 카테고리 이름을 보여 준다). 화면이 카테고리 목록을 따로 받지 않아도 이름이 나온다. 기존 `categoryId`는 당분간 함께 둔다(쓰는 곳을 옮긴 뒤 뺀다).
 - [ ] AC-17 관리 모달(2026-11-22 사용자 결정): 내 링크 칩 줄 끝 **[관리]**로 모달을 연다. 줄마다 핀 · 이름 · 링크 수 · 이름 바꾸기 · 합치기 · 삭제이고, 고정한 것이 "고정" 머리글 아래 먼저 온다. 바닥에 전체 개수와 고정 한도("6개 · 고정 1/8")를 적는다. **별도 관리 화면(`/categories`)은 만들지 않는다.** 고정은 고르기 부품(AC-13)에서도 바로 누르지만, **이름 바꾸기·합치기·삭제는 이 모달에서만** 한다(고르다가 잘못 누르는 것을 막는다).
   - 이름 바꾸기: 줄 안에서 입력칸(밑줄)으로 바뀐다. Enter·[저장] 저장, Esc·[취소] 취소, 1~20자. 이름만 바뀌고 링크 연결은 그대로이며 정렬 자리는 옮겨간다(AC-14).
   - **이미 있는 이름이면 409를 오류로만 보여 주지 않고 합치기를 권한다**: "○○으로 합칠까요? '△△'의 링크 N개가 '○○'으로 옮겨지고 '△△'은 사라져요. 태그는 그대로예요."([취소] / [합치기], AC-05의 merge를 호출)
@@ -48,8 +48,8 @@
   - 카테고리가 하나도 없으면 목록 대신 안내("아직 카테고리가 없어요…")를 두고 입력한 이름으로 바로 만든다. 고를 것이 없으니 줄의 [저장]은 누를 수 없다.
   - 모바일은 아래에서 올라오는 시트로 연다(좁은 줄에 드롭다운을 띄우지 않는다). 닫기·Esc·바깥 누름으로 닫는다.
   - 카테고리를 정한 링크도 목록에 남고 그 카테고리가 골라진 채로 보인다(D-19). 시안: 홈 와이어프레임 "홈 1-B — 상태와 예외" 7번.
-- [ ] AC-14 정렬: 목록 순서는 서버가 정한다(DB collation은 환경마다 달라 쓰지 않는다). **고정한 것 먼저(고정한 순서) → 첫 글자 종류(한글 → 영문 → 숫자 → 그 밖: 특수문자·한자·일본어 등) → 같은 종류 안에서는 한국어 기준 이름순**(2026-11-22 사용자 결정).
-- [ ] AC-15 고정: 자주 쓰는 카테고리를 목록 맨 위에 고정한다. `PATCH /api/categories/:id { pinned }`로 켜고 끄며, 같은 상태를 다시 보내도 성공한다(멱등). 고정은 **사용자당 8개까지**이고 넘으면 422. 고르기 목록에서 고정 묶음을 "고정" 머리글 아래 먼저 보여 준다. 자동으로 자주 쓰는 것을 추려 주는 기능은 넣지 않는다(손으로 고정한다).
+- [x] AC-14 정렬: 목록 순서는 서버가 정한다(DB collation은 환경마다 달라 쓰지 않는다). **고정한 것 먼저(고정한 순서) → 첫 글자 종류(한글 → 영문 → 숫자 → 그 밖: 특수문자·한자·일본어 등) → 같은 종류 안에서는 한국어 기준 이름순**(2026-11-22 사용자 결정).
+- [x] AC-15 고정: 자주 쓰는 카테고리를 목록 맨 위에 고정한다. `PATCH /api/categories/:id { pinned }`로 켜고 끄며, 같은 상태를 다시 보내도 성공한다(멱등). 고정은 **사용자당 8개까지**이고 넘으면 422. 고르기 목록에서 고정 묶음을 "고정" 머리글 아래 먼저 보여 준다. 자동으로 자주 쓰는 것을 추려 주는 기능은 넣지 않는다(손으로 고정한다).
 
 ## 데이터 계약
 
@@ -124,4 +124,18 @@
 - 변경 파일: `prisma/schema.prisma`(`Category`, `Bookmark.categoryId`, 카테고리별 활성 목록 인덱스), `prisma/migrations/20261122000000_add_categories`, `apps/api/src/categories/*`(controller·service·repository·dto·`lib/normalize-category-name`), `apps/api/src/bookmarks`(`update-bookmark.dto`에 `categoryId`, service `updateTitle` → `update`, repository `update`, 응답 `categoryId`), `packages/api-client` 재생성, `apps/web/src/features/categories/*`, `apps/web/src/features/home/ui/{Home,TriageRow}.tsx`.
 - 회귀 수정: `PATCH /api/bookmarks/:id`가 `title`·`categoryId` 모두 선택이 되면서 빈 본문이 200이 됐다. 고칠 항목이 하나도 없으면 400으로 거부해 FEAT-011 AC-03을 지킨다. 저장 응답에 `categoryId`가 늘어 `bookmarks.int.test.ts` 기대값을 고쳤다.
 - 실행 명령 및 실제 결과: 사용자 Mac에서 `npm run test:integration` 통과(카테고리 11건 포함 121건), `apps/api` typecheck·lint 통과, `npm run openapi:generate` 재생성. 작업 환경에서 web vitest 106 PASS(새 11건), web tsc·eslint·prettier PASS. 작업 환경은 Prisma 엔진을 내려받을 수 없어 API 테스트·빌드는 Mac에서만 돌렸다.
+
+### 3차: 고르기 부품·목록 줄 분류 표시 (2026-11-22)
+
+- 범위: AC-13(고르기 부품), 목록 줄의 카테고리·태그 칩(screens/LINK-01·HOME-02).
+- 변경 파일: `features/categories/ui/CategoryPicker.tsx`(새 부품), `ui/CatIcons.tsx`, `lib/match.ts`(+단위 테스트: 느슨한 찾기·똑같은 이름 판정), `model/useCategories.ts`(`useSetCategoryPinned`), `features/home/ui/TriageRow.tsx`(드롭다운 → 고르기 부품, 고르기 전에는 "카테고리 선택"이고 [저장]을 막는다), `features/home/ui/Home.tsx`(고정 연결·태그 넘김), `features/bookmarks/ui/BookmarkList.tsx`(분류 줄: 카테고리 칩 + 태그), `LinkIcons.tsx`(folder).
+- 고르기 전에 첫 카테고리를 자동으로 고르지 않는다(실수로 엉뚱한 카테고리가 저장되는 것을 막는다). 미분류면 목록 줄에 카테고리 칩을 그리지 않는다.
+- 테스트: web 111 PASS(고르기 부품 열기·느슨한 찾기·맨 아래 만들기·똑같은 이름이면 고르기·핀·onCreate 없을 때). 기존 드롭다운 테스트는 새 부품에 맞게 고쳤다.
+
+### 2차: 정렬·고정·링크 응답의 카테고리 이름 (2026-11-22)
+
+- 범위: AC-14(정렬: 고정 → 한글 → 영문 → 숫자 → 그 밖 → 이름순), AC-15(고정 `pinned_at`, 8개 상한, `PATCH /api/categories/:id { pinned }`, 멱등), AC-16(링크 응답에 `category: { id, name }`).
+- 변경 파일: `prisma/schema.prisma`(`Category.pinnedAt`)와 마이그레이션 `20261122010000_add_category_pinned_at`, `categories/lib/sort-categories.ts`(+단위 테스트), `categories/lib/normalize-category-name.ts`(`MAX_PINNED_CATEGORIES`), `categories.repository`(정렬·`setPinned`·`countPinned`), `categories.service`(`setPinned`와 422), `categories.controller`(`PATCH :id`), `dto/update-category.dto.ts`(새 파일), `dto/category-response.dto.ts`(`pinned`), `bookmarks`(응답 `category` 객체: repository select·record·DTO·controller).
+- 정렬은 DB collation을 쓰지 않고 서버 코드에서 정한다(환경마다 결과가 달라지는 것을 막는다).
+- 통합 테스트 추가: AC-14(섞인 이름 순서와 고정 후 순서), AC-15(멱등·고정 순서·8개 상한·남의 것 404), AC-16(저장·수정·목록에서 이름, 미분류는 null). 저장 응답 전체 비교 테스트에 `category: null` 추가.
 - 남은 위험: 별칭↔이름 동시 생성 경합(UNIQUE 대상이 달라 이론상 둘 다 통과 가능) — 빈도 낮음, 발견 시 사용자별 advisory lock으로 보강.

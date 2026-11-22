@@ -86,8 +86,9 @@ describe("POST /api/bookmarks (실제 PostgreSQL, FEAT-001)", () => {
       displayTitle: "example.com",
       // FEAT-011 AC-04
       titleSource: "site",
-      // FEAT-008(카테고리를 고르지 않고 저장 = 미분류)
+      // FEAT-008(카테고리를 고르지 않고 저장 = 미분류). 이름까지 함께 온다(AC-16)
       categoryId: null,
+      category: null,
       tags: [],
       thumbnail: { status: "pending", url: null, sourceUrl: null },
       // FEAT-010 AC-15(페이지를 받기 전이라 없음)

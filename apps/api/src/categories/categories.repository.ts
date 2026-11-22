@@ -2,18 +2,22 @@ import { Injectable } from "@nestjs/common";
 import type { Prisma } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import type { CategoryName } from "./lib/normalize-category-name.js";
+import { compareCategories } from "./lib/sort-categories.js";
 
 export type CategoryRecord = {
   id: string;
   name: string;
   normalizedName: string;
   bookmarkCount: number;
+  // FEAT-008 AC-15. 고정한 시각(null = 고정 안 함). 고정한 순서를 이 값으로 정렬한다
+  pinnedAt: Date | null;
 };
 
 const RECORD_SELECT = {
   id: true,
   name: true,
   normalizedName: true,
+  pinnedAt: true,
   // 활성 링크만 센다(휴지통 제외, AC-01)
   _count: { select: { bookmarks: { where: { deletedAt: null } } } },
 } as const satisfies Prisma.CategorySelect;
@@ -26,11 +30,9 @@ function toRecord(row: Row): CategoryRecord {
     name: row.name,
     normalizedName: row.normalizedName,
     bookmarkCount: row._count.bookmarks,
+    pinnedAt: row.pinnedAt,
   };
 }
-
-// 이름순은 서버가 정한다(AC-01). DB 정렬은 collation에 따라 환경마다 달라지므로 한국어 기준으로 여기서 맞춘다
-const collator = new Intl.Collator("ko");
 
 @Injectable()
 export class CategoriesRepository {
@@ -41,7 +43,8 @@ export class CategoriesRepository {
       where: { userId },
       select: RECORD_SELECT,
     });
-    return rows.map(toRecord).sort((a, b) => collator.compare(a.name, b.name));
+    // 정렬은 서버가 정한다(AC-14·15): 고정 먼저 → 한글·영문·숫자·그 밖 → 이름순
+    return rows.map(toRecord).sort(compareCategories);
   }
 
   async countForUser(userId: string): Promise<number> {
@@ -67,6 +70,25 @@ export class CategoriesRepository {
       select: RECORD_SELECT,
     });
     return row ? toRecord(row) : null;
+  }
+
+  // AC-15. 본인 카테고리만. 같은 상태를 다시 보내도 성공한다(멱등)
+  async setPinned(
+    userId: string,
+    id: string,
+    pinned: boolean,
+  ): Promise<CategoryRecord | null> {
+    const { count } = await this.prisma.category.updateMany({
+      where: { id, userId },
+      data: { pinnedAt: pinned ? new Date() : null },
+    });
+    return count === 1 ? this.findOwned(userId, id) : null;
+  }
+
+  async countPinned(userId: string): Promise<number> {
+    return this.prisma.category.count({
+      where: { userId, pinnedAt: { not: null } },
+    });
   }
 
   async findOwned(userId: string, id: string): Promise<CategoryRecord | null> {

@@ -172,6 +172,8 @@ model Category {
   normalizedName String     @map("normalized_name") @db.VarChar(40)
   createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // FEAT-008 AC-15. 고정한 시각(NULL = 고정 안 함). 고정한 순서대로 목록 맨 위에 둔다
+  pinnedAt       DateTime?  @map("pinned_at") @db.Timestamptz(3)
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookmarks      Bookmark[]
 

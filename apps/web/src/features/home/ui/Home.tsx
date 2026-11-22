@@ -7,6 +7,7 @@ import {
   useApplyCategory,
   useCategories,
   useCreateCategoryAndApply,
+  useSetCategoryPinned,
 } from "@/features/categories";
 import {
   SAMPLE_BUCKETS,
@@ -40,6 +41,7 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
   const categories = useCategories();
   const createAndApply = useCreateCategoryAndApply();
   const applyCategory = useApplyCategory();
+  const setPinned = useSetCategoryPinned();
   // 화면 폭은 브라우저에서만 안다(서버 렌더에서는 PC로 본다)
   const mobile = useSyncExternalStore(subscribeWidth, isMobile, () => false);
   // 사용자가 열고 닫기 전에는 /?save=1 + 모바일이면 열린 채로 시작한다
@@ -59,6 +61,7 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
     thumbnailFallbackUrl: b.thumbnail.sourceUrl,
     faviconUrl: b.faviconUrl,
     categoryId: b.categoryId,
+    tags: b.tags,
   }));
   // 미분류를 먼저 보여 준다(2026-11-22 사용자 요청). 같은 묶음 안에서는 서버가 준 순서(최근 저장 순)를 지킨다
   const ordered = [
@@ -93,6 +96,7 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
             link={queue.current}
             categories={categories.data?.items ?? []}
             onCreate={(name) => createAndApply(queue.current!.id, name)}
+            onPin={(categoryId, pinned) => void setPinned(categoryId, pinned)}
             onSave={(categoryId) => {
               const id = queue.current!.id;
               void applyCategory(id, categoryId);

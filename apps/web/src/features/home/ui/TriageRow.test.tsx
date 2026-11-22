@@ -128,23 +128,66 @@ describe("FEAT-008 AC-13 최근 추가한 링크에서 카테고리 만들기", 
     ).toBeInTheDocument();
   });
 
-  it("카테고리가 있으면 고르기 맨 아래 '새 카테고리'로 입력칸을 연다", async () => {
+  it("카테고리가 있으면 고르기 부품을 열어 검색·고르기·만들기를 한곳에서 한다", async () => {
+    const onCreate = vi.fn(async () => null);
+    const onSelect = vi.fn();
     render(
       <TriageRow
         link={link}
-        categories={[{ id: "c-1", name: "디자인" }]}
-        onCreate={vi.fn()}
+        categories={[
+          { id: "c-1", name: "디자인", bookmarkCount: 3, pinned: false },
+          { id: "c-2", name: "모션 그래픽", bookmarkCount: 1, pinned: false },
+        ]}
+        onCreate={onCreate}
+        onSave={onSelect}
+        onSkip={vi.fn()}
+      />,
+    );
+
+    // 열면 글자를 안 넣어도 전체가 보인다
+    await userEvent.click(
+      screen.getByRole("button", { name: /카테고리 선택/ }),
+    );
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+
+    // 공백·대소문자를 무시하고 좁혀진다("모션" → "모션 그래픽")
+    const q = screen.getByRole("searchbox", { name: "카테고리 검색" });
+    await userEvent.type(q, "모션");
+    expect(screen.getAllByRole("option")).toHaveLength(1);
+
+    // 맨 아래 만들기로 새로 만든다
+    await userEvent.clear(q);
+    await userEvent.type(q, "브랜딩");
+    await userEvent.click(
+      screen.getByRole("button", { name: /새 카테고리 .*브랜딩.* 만들기/ }),
+    );
+    expect(onCreate).toHaveBeenCalledWith("브랜딩");
+  });
+
+  it("똑같은 이름을 넣고 Enter면 만들지 않고 그 카테고리를 고른다", async () => {
+    const onCreate = vi.fn(async () => null);
+    render(
+      <TriageRow
+        link={link}
+        categories={[
+          { id: "c-1", name: "디자인", bookmarkCount: 3, pinned: false },
+        ]}
+        onCreate={onCreate}
         onSave={vi.fn()}
         onSkip={vi.fn()}
       />,
     );
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "카테고리" }),
-      "__new",
+    await userEvent.click(
+      screen.getByRole("button", { name: /카테고리 선택/ }),
     );
-    expect(
-      screen.getByRole("textbox", { name: "새 카테고리 이름" }),
-    ).toBeInTheDocument();
+    await userEvent.type(
+      screen.getByRole("searchbox", { name: "카테고리 검색" }),
+      " 디자인 {Enter}",
+    );
+
+    expect(onCreate).not.toHaveBeenCalled();
+    // 고른 카테고리가 버튼에 보인다
+    expect(screen.getByRole("button", { name: /디자인/ })).toBeInTheDocument();
   });
 
   it("이미 카테고리를 정한 링크는 그 카테고리가 골라진 채로 보인다 (D-19)", () => {
@@ -152,29 +195,60 @@ describe("FEAT-008 AC-13 최근 추가한 링크에서 카테고리 만들기", 
       <TriageRow
         link={{ ...link, categoryId: "c-2" }}
         categories={[
-          { id: "c-1", name: "디자인" },
-          { id: "c-2", name: "여행" },
+          { id: "c-1", name: "디자인", bookmarkCount: 0, pinned: false },
+          { id: "c-2", name: "여행", bookmarkCount: 0, pinned: false },
         ]}
         onSave={vi.fn()}
         onSkip={vi.fn()}
       />,
     );
-    expect(screen.getByRole("combobox", { name: "카테고리" })).toHaveValue(
-      "c-2",
-    );
+    expect(screen.getByRole("button", { name: /여행/ })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /카테고리 선택/ }),
+    ).not.toBeInTheDocument();
   });
 
-  it("onCreate가 없으면(카테고리 서버 전) 만들기는 준비 중이고 '새 카테고리'도 없다", async () => {
+  it("고르기 목록에서 핀으로 고정·해제한다 (AC-15)", async () => {
+    const onPin = vi.fn();
     render(
       <TriageRow
         link={link}
-        categories={[{ id: "c-1", name: "디자인" }]}
+        categories={[
+          { id: "c-1", name: "디자인", bookmarkCount: 3, pinned: false },
+        ]}
+        onCreate={vi.fn()}
+        onSave={vi.fn()}
+        onPin={onPin}
+        onSkip={vi.fn()}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /카테고리 선택/ }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "디자인 고정" }));
+    expect(onPin).toHaveBeenCalledWith("c-1", true);
+  });
+
+  it("onCreate가 없으면(카테고리 서버 전) 고르기 목록에 만들기 줄을 그리지 않는다", async () => {
+    render(
+      <TriageRow
+        link={link}
+        categories={[
+          { id: "c-1", name: "디자인", bookmarkCount: 0, pinned: false },
+        ]}
         onSave={vi.fn()}
         onSkip={vi.fn()}
       />,
     );
+    await userEvent.click(
+      screen.getByRole("button", { name: /카테고리 선택/ }),
+    );
+    await userEvent.type(
+      screen.getByRole("searchbox", { name: "카테고리 검색" }),
+      "브랜딩",
+    );
     expect(
-      screen.queryByRole("option", { name: "새 카테고리" }),
+      screen.queryByRole("button", { name: /새 카테고리/ }),
     ).not.toBeInTheDocument();
   });
 });
