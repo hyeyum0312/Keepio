@@ -53,6 +53,13 @@ describe("/api/categories (FEAT-008)", () => {
     return `Bearer ${await accessTokens.sign(userId)}`;
   }
 
+  async function patchCategory(userId: string, id: string, body: object) {
+    return request(app.getHttpServer())
+      .patch(`/api/categories/${id}`)
+      .set("Authorization", await auth(userId))
+      .send(body);
+  }
+
   async function create(userId: string, name: string) {
     return request(app.getHttpServer())
       .post("/api/categories")
@@ -262,6 +269,125 @@ describe("/api/categories (FEAT-008)", () => {
       title: "바뀐 제목",
       categoryId: category.body.id,
     });
+  });
+
+  it("AC-14: 고정 → 한글 → 영문 → 숫자 → 그 밖 순서로, 같은 종류 안에서는 이름순", async () => {
+    const userId = await newUser();
+    for (const name of ["#임시", "2026 결산", "Design", "하늘", "가방"]) {
+      await create(userId, name);
+    }
+
+    const before = await list(userId);
+    expect(before.body.items.map((c: { name: string }) => c.name)).toEqual([
+      "가방",
+      "하늘",
+      "Design",
+      "2026 결산",
+      "#임시",
+    ]);
+
+    // 맨 뒤의 "#임시"를 고정하면 맨 앞으로 온다
+    const temp = before.body.items.at(-1);
+    const pinned = await patchCategory(userId, temp.id, { pinned: true });
+    expect(pinned.status).toBe(200);
+    expect(pinned.body).toMatchObject({ name: "#임시", pinned: true });
+
+    const after = await list(userId);
+    expect(after.body.items.map((c: { name: string }) => c.name)).toEqual([
+      "#임시",
+      "가방",
+      "하늘",
+      "Design",
+      "2026 결산",
+    ]);
+  });
+
+  it("AC-15: 고정·해제는 멱등이고, 고정한 순서를 지킨다", async () => {
+    const userId = await newUser();
+    const a = await create(userId, "가방");
+    const b = await create(userId, "하늘");
+
+    // 나중에 고정한 것이 뒤로 온다
+    await patchCategory(userId, b.body.id, { pinned: true });
+    await patchCategory(userId, a.body.id, { pinned: true });
+    expect(
+      (await list(userId)).body.items.map((c: { name: string }) => c.name),
+    ).toEqual(["하늘", "가방"]);
+
+    // 같은 값을 다시 보내도 성공한다(멱등)
+    const again = await patchCategory(userId, a.body.id, { pinned: true });
+    expect(again.status).toBe(200);
+    expect(again.body.pinned).toBe(true);
+
+    const off = await patchCategory(userId, b.body.id, { pinned: false });
+    expect(off.body.pinned).toBe(false);
+    const offAgain = await patchCategory(userId, b.body.id, { pinned: false });
+    expect(offAgain.status).toBe(200);
+    expect(offAgain.body.pinned).toBe(false);
+  });
+
+  it("AC-15: 고정은 8개까지이고 넘기면 422. 남의 카테고리는 404", async () => {
+    const userId = await newUser();
+    const ids: string[] = [];
+    for (let i = 0; i < 9; i++) {
+      const res = await create(userId, `카테고리 ${i}`);
+      ids.push(res.body.id);
+    }
+    for (const id of ids.slice(0, 8)) {
+      expect((await patchCategory(userId, id, { pinned: true })).status).toBe(
+        200,
+      );
+    }
+
+    const over = await patchCategory(userId, ids[8], { pinned: true });
+    expect(over.status).toBe(422);
+    expect(over.body).toMatchObject({
+      code: "CATEGORY_PIN_LIMIT",
+      message: "고정은 8개까지 할 수 있어요.",
+    });
+    // 해제는 상한과 무관하다
+    expect(
+      (await patchCategory(userId, ids[0], { pinned: false })).status,
+    ).toBe(200);
+    expect((await patchCategory(userId, ids[8], { pinned: true })).status).toBe(
+      200,
+    );
+
+    const other = await newUser();
+    expect((await patchCategory(other, ids[0], { pinned: true })).status).toBe(
+      404,
+    );
+  });
+
+  it("AC-16: 링크 응답은 카테고리 이름까지 담는다(미분류는 null)", async () => {
+    const userId = await newUser();
+    const category = await create(userId, "디자인");
+    const saved = await save(userId, "https://example.com/name/1");
+    expect(saved.body.category).toBeNull();
+
+    const applied = await patchCategory(userId, category.body.id, {});
+    expect(applied.status).toBe(200);
+
+    const patched = await patch(userId, saved.body.id, {
+      categoryId: category.body.id,
+    });
+    expect(patched.body.category).toEqual({
+      id: category.body.id,
+      name: "디자인",
+    });
+
+    // 목록에도 같은 값이 온다
+    const listed = await request(app.getHttpServer())
+      .get("/api/bookmarks")
+      .set("Authorization", await auth(userId));
+    expect(listed.body.items[0].category).toEqual({
+      id: category.body.id,
+      name: "디자인",
+    });
+
+    // 미분류로 되돌리면 null
+    const cleared = await patch(userId, saved.body.id, { categoryId: null });
+    expect(cleared.body.category).toBeNull();
   });
 
   it("AC-12: 100개를 넘기면 422", async () => {

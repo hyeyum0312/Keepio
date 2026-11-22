@@ -26,6 +26,7 @@ import type {
   CategoryListResponse,
   CategoryResponse,
   CreateCategoryDto,
+  UpdateCategoryDto,
 } from "../model";
 
 import { apiFetch } from "../../api-fetch";
@@ -384,6 +385,168 @@ export const useCategoriesControllerCreate = <
 > => {
   return useMutation(
     getCategoriesControllerCreateMutationOptions(options),
+    queryClient,
+  );
+};
+export type categoriesControllerUpdateResponse200 = {
+  data: CategoryResponse;
+  status: 200;
+};
+
+export type categoriesControllerUpdateResponse400 = {
+  data: ApiErrorResponse;
+  status: 400;
+};
+
+export type categoriesControllerUpdateResponse401 = {
+  data: ApiErrorResponse;
+  status: 401;
+};
+
+export type categoriesControllerUpdateResponse404 = {
+  data: ApiErrorResponse;
+  status: 404;
+};
+
+export type categoriesControllerUpdateResponse422 = {
+  data: ApiErrorResponse;
+  status: 422;
+};
+
+export type categoriesControllerUpdateResponseSuccess =
+  categoriesControllerUpdateResponse200 & {
+    headers: Headers;
+  };
+export type categoriesControllerUpdateResponseError = (
+  | categoriesControllerUpdateResponse400
+  | categoriesControllerUpdateResponse401
+  | categoriesControllerUpdateResponse404
+  | categoriesControllerUpdateResponse422
+) & {
+  headers: Headers;
+};
+
+export type categoriesControllerUpdateResponse =
+  | categoriesControllerUpdateResponseSuccess
+  | categoriesControllerUpdateResponseError;
+
+export const getCategoriesControllerUpdateUrl = (id: string) => {
+  return `/api/categories/${id}`;
+};
+
+export const categoriesControllerUpdate = async (
+  id: string,
+  updateCategoryDto: UpdateCategoryDto,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<categoriesControllerUpdateResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return apiFetch<categoriesControllerUpdateResponse>(
+    getCategoriesControllerUpdateUrl(id),
+    {
+      ...options,
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateCategoryDto),
+    },
+  );
+};
+
+export const getCategoriesControllerUpdateMutationKey = () =>
+  ["categoriesControllerUpdate"] as const;
+
+export const getCategoriesControllerUpdateMutationOptions = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof categoriesControllerUpdate>>,
+    TError,
+    CategoriesControllerUpdateMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof apiFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof categoriesControllerUpdate>>,
+  TError,
+  CategoriesControllerUpdateMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCategoriesControllerUpdateMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof categoriesControllerUpdate>>,
+    CategoriesControllerUpdateMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return categoriesControllerUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CategoriesControllerUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof categoriesControllerUpdate>>
+>;
+export type CategoriesControllerUpdateMutationBody = UpdateCategoryDto;
+export type CategoriesControllerUpdateMutationError = ApiErrorResponse;
+export type CategoriesControllerUpdateMutationVariables = {
+  id: string;
+  data: UpdateCategoryDto;
+};
+
+export const useCategoriesControllerUpdate = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof categoriesControllerUpdate>>,
+      TError,
+      CategoriesControllerUpdateMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof categoriesControllerUpdate>>,
+  TError,
+  CategoriesControllerUpdateMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getCategoriesControllerUpdateMutationOptions(options),
     queryClient,
   );
 };

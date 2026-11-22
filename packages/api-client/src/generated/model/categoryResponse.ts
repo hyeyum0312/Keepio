@@ -11,4 +11,6 @@ export interface CategoryResponse {
   name: string;
   /** 이 카테고리의 활성 링크 수(휴지통은 세지 않는다) */
   bookmarkCount: number;
+  /** 고정했으면 true. 고정한 것이 목록 맨 위에 온다(AC-15) */
+  pinned: boolean;
 }

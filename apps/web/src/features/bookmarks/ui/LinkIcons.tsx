@@ -11,6 +11,8 @@ const PATHS = {
   pencil: "M4 20h4L19 9l-4-4L4 16zM13 7l4 4",
   image: "M4 5h16v14H4zM4 15l4-4 5 5 3-3 4 4",
   close: "M6 6l12 12M18 6L6 18",
+  // FEAT-008. 목록 줄의 카테고리 칩
+  folder: "M3 7h6l2 2h10v10H3z",
 } as const;
 
 export function LinkIcon({

@@ -25,10 +25,12 @@ export const PREVIEW_LINKS: TriageLink[] = [
 
 // 최근 추가한 링크의 카테고리 선택(첫 항목이 AI 추천 자리)
 export const PREVIEW_CATEGORIES: TriageCategory[] = [
-  { id: "c4", name: "디자인" },
-  { id: "c3", name: "개발" },
-  { id: "c2", name: "숙소" },
-  { id: "c1", name: "여행" },
+  // 서버가 준 순서를 그대로 쓴다(고정 먼저 → 한글 → 영문 → 숫자 → 그 밖 → 이름순, AC-14)
+  { id: "c0", name: "모션", bookmarkCount: 23, pinned: true },
+  { id: "c3", name: "개발", bookmarkCount: 18, pinned: false },
+  { id: "c2", name: "숙소", bookmarkCount: 4, pinned: false },
+  { id: "c4", name: "디자인", bookmarkCount: 31, pinned: false },
+  { id: "c1", name: "여행", bookmarkCount: 12, pinned: false },
 ];
 
 export const PREVIEW_BUCKETS: BucketTile[] = [
