@@ -56,7 +56,7 @@ export function TextField({
   const [revealed, setRevealed] = useState(false);
   const isPassword = type === "password";
   return (
-    <div className={`flex flex-col ${compact ? "gap-1.5" : "gap-2"}`}>
+    <div className={`flex flex-col ${compact ? "gap-1" : "gap-1.5"}`}>
       <label htmlFor={id} className="text-sm font-semibold">
         {label}
       </label>
@@ -75,7 +75,7 @@ export function TextField({
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           aria-invalid={hasError || undefined}
           aria-describedby={describedBy}
-          className={`kp-field ${compact ? "h-11 md:text-sm" : "h-12"} w-full border text-base text-foreground placeholder:text-muted-foreground ${
+          className={`kp-field ${compact ? "h-11 md:text-sm" : "h-12"} w-full text-base text-foreground placeholder:text-muted-foreground ${
             hasError ? "border-destructive" : ""
           } ${isPassword ? "pr-16" : ""}`}
         />

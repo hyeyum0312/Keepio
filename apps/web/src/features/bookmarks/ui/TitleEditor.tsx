@@ -63,7 +63,7 @@ export function TitleEditor({
           }}
           aria-invalid={!!error || undefined}
           aria-describedby={`${id}-help${error ? ` ${id}-error` : ""}`}
-          className={`h-10 w-full kp-field border text-base font-bold text-foreground ${
+          className={`h-10 w-full kp-field text-base font-bold text-foreground ${
             error
               ? "border-destructive shadow-[inset_0_-1px_0_var(--destructive)]"
               : ""

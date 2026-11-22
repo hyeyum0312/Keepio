@@ -103,7 +103,7 @@ export function SaveBookmarkForm({ onSaved }: { onSaved?: () => void } = {}) {
             placeholder="링크를 붙여넣으세요 (https://)"
             aria-invalid={!!failure || undefined}
             aria-describedby={failure ? ERROR_ID : undefined}
-            className={`h-[52px] w-full kp-field border pr-4 pl-10 text-base text-foreground placeholder:text-muted-foreground md:text-sm ${
+            className={`h-[52px] w-full kp-field pr-4 pl-10 text-base text-foreground placeholder:text-muted-foreground md:text-sm ${
               failure ? "border-destructive" : ""
             }`}
           />
