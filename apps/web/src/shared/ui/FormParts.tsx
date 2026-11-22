@@ -1,6 +1,6 @@
 "use client";
 
-// 공용 폼 부품(auth·bookmarks). 모양은 07-BRAND 기준(FEAT-007): 입력 12px·높이 48px, 주 버튼 잉크 알약형
+// 공용 폼 부품(auth·bookmarks). 모양은 07-BRAND 기준: 쓰는 칸은 밑줄만(`kp-field`, §6 "입력칸 세 가지", 2026-11-22), 높이 48px, 주 버튼 잉크 알약형
 import { useState } from "react";
 
 export const FORM_ERROR_ID = "form-error";
@@ -75,8 +75,8 @@ export function TextField({
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           aria-invalid={hasError || undefined}
           aria-describedby={describedBy}
-          className={`${compact ? "h-11 md:text-sm" : "h-12"} w-full rounded-xl border bg-surface px-4 text-base text-foreground placeholder:text-muted-foreground focus-visible:focus-ring ${
-            hasError ? "border-destructive" : "border-input"
+          className={`kp-field ${compact ? "h-11 md:text-sm" : "h-12"} w-full border text-base text-foreground placeholder:text-muted-foreground ${
+            hasError ? "border-destructive" : ""
           } ${isPassword ? "pr-16" : ""}`}
         />
         {isPassword && (

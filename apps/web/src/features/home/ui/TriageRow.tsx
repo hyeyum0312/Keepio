@@ -168,7 +168,7 @@ export function TriageRow({
                   }
                   if (e.key === "Escape") setCreating(false);
                 }}
-                className="min-h-11 min-w-0 flex-1 rounded-xl border border-input bg-surface px-3.5 text-sm focus-visible:focus-ring aria-invalid:border-destructive"
+                className="min-h-11 min-w-0 flex-1 kp-field border text-sm"
               />
               <button
                 type="button"

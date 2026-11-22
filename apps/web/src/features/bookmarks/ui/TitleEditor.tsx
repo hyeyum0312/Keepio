@@ -63,10 +63,10 @@ export function TitleEditor({
           }}
           aria-invalid={!!error || undefined}
           aria-describedby={`${id}-help${error ? ` ${id}-error` : ""}`}
-          className={`h-10 w-full rounded-[10px] border bg-surface px-3 text-base font-bold text-foreground outline-none ${
+          className={`h-10 w-full kp-field border text-base font-bold text-foreground ${
             error
-              ? "border-destructive shadow-[inset_0_0_0_1px_var(--destructive)]"
-              : "border-input focus:border-focus-ring focus:shadow-[inset_0_0_0_1px_var(--focus-ring)]"
+              ? "border-destructive shadow-[inset_0_-1px_0_var(--destructive)]"
+              : ""
           }`}
         />
         {error ? (
