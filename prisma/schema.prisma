@@ -27,6 +27,7 @@ model User {
   emailTokens        EmailToken[]
   oauthAccounts      OAuthAccount[]
   tags               Tag[]
+  categories         Category[]
 
   // 동시 가입의 최종 권위(FEAT-003 AC-04)
   @@unique([email], map: "users_email_key", where: raw("email IS NOT NULL"))
@@ -107,7 +108,10 @@ model Bookmark {
   faviconUrl         String?          @map("favicon_url") @db.VarChar(2048)
   // 리다이렉트를 따라간 마지막 주소(FEAT-010 AC-19, 짧은 주소 등). 표시 제목의 사이트 이름에만 쓴다
   resolvedUrl        String?          @map("resolved_url") @db.VarChar(2048)
+  // FEAT-008. 링크당 0~1개(ADR-015). NULL = 미분류. 카테고리를 지우면 링크는 남고 미분류가 된다
+  categoryId         String?          @map("category_id") @db.Uuid
   user               User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  category           Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags               BookmarkTag[]
 
   // 활성 북마크는 사용자별 정규화 URL당 하나. 동시 저장의 최종 권위(FEAT-001 AC-03)
@@ -116,6 +120,8 @@ model Bookmark {
   @@index([userId, normalizedUrl])
   // 활성 목록(최근 저장 순, 키셋 페이지, FEAT-002 AC-01·02). 휴지통 인덱스는 빈도 측정 후
   @@index([userId, createdAt(sort: Desc), id(sort: Desc)], map: "bookmarks_active_list_idx", where: raw("deleted_at IS NULL"))
+  // 카테고리별 활성 목록(FEAT-008 AC-11 필터). 링크 수 집계도 이 인덱스를 쓴다
+  @@index([userId, categoryId, createdAt(sort: Desc), id(sort: Desc)], map: "bookmarks_active_category_idx", where: raw("deleted_at IS NULL"))
   @@map("bookmarks")
 }
 
@@ -156,6 +162,22 @@ enum ThumbnailSource {
   upload
 
   @@map("thumbnail_source")
+}
+
+// FEAT-008. 사용자별 카테고리. 링크는 0~1개(ADR-015). 이름은 정규화 값으로 중복 판정(앞뒤 공백·연속 공백·NFC·영문 소문자)
+model Category {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String     @map("user_id") @db.Uuid
+  name           String     @db.VarChar(20)
+  normalizedName String     @map("normalized_name") @db.VarChar(40)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookmarks      Bookmark[]
+
+  // 같은 이름 금지. 동시 생성의 최종 권위(FEAT-008 AC-02·08)
+  @@unique([userId, normalizedName])
+  @@map("categories")
 }
 
 // FEAT-010·FEAT-008. 사용자별 태그. 이름은 정규화 값으로 중복 판정(앞뒤 공백·연속 공백·NFC·영문 소문자)

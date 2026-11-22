@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AuthModule } from "./auth/auth.module.js";
 import { BookmarksModule } from "./bookmarks/bookmarks.module.js";
+import { CategoriesModule } from "./categories/categories.module.js";
 import { HealthModule } from "./health/health.module.js";
 import { PrismaModule } from "./prisma/prisma.module.js";
 
@@ -13,6 +14,7 @@ import { PrismaModule } from "./prisma/prisma.module.js";
     HealthModule,
     AuthModule,
     BookmarksModule,
+    CategoriesModule,
   ],
 })
 export class AppModule {}

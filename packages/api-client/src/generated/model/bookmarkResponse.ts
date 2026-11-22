@@ -25,6 +25,11 @@ export interface BookmarkResponse {
   displayTitle: string;
   /** displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음) */
   titleSource: BookmarkResponseTitleSource;
+  /**
+   * 링크의 카테고리(FEAT-008). null이면 미분류
+   * @nullable
+   */
+  categoryId: string | null;
   /** 이름순 */
   tags: BookmarkTagResponse[];
   thumbnail: BookmarkThumbnailResponse;

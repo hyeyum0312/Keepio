@@ -7,9 +7,14 @@
 
 export interface UpdateBookmarkDto {
   /**
-   * 비우거나 null이면 사용자 제목을 지운다
+   * 비우거나 null이면 사용자 제목을 지운다. 보내지 않으면 그대로
    * @maxLength 100
    * @nullable
    */
-  title: string | null;
+  title?: string | null;
+  /**
+   * 링크의 카테고리(FEAT-008). null이면 미분류. 보내지 않으면 그대로
+   * @nullable
+   */
+  categoryId?: string | null;
 }

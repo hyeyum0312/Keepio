@@ -5,6 +5,20 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-22 | feat: 카테고리 만들기·목록·링크에 적용 (FEAT-008 1차)
+
+- Feature: FEAT-008 (`docs/features/category-tag.md` AC-01·02·07·08·09·12·13)
+- 목적: 저장한 링크를 한 서랍에 넣을 수 있게 한다. 홈 "최근 추가한 링크"에서 카테고리를 고르거나 그 자리에서 만들어 바로 적용한다(사용자 요청: 카테고리 만들기 먼저).
+- 변경:
+  - DB: `categories`(`user_id`+`normalized_name` UNIQUE), `bookmarks.category_id`(FK `ON DELETE SET NULL`), 카테고리별 활성 목록 인덱스. 마이그레이션 `20261122000000_add_categories`. 별칭 테이블은 병합 범위로 미룸.
+  - API: `GET /api/categories`(이름순·활성 링크 수), `POST /api/categories`(1~20자, 같은 이름은 409 + 기존 ID, 100개 초과 422, 동시 생성은 UNIQUE가 최종 권위). `PATCH /api/bookmarks/:id`에 `categoryId` 추가(보낸 항목만 고침, 남의·없는 카테고리는 404), 링크 응답에 `categoryId`.
+  - 웹: `features/categories`(목록·만들고 적용·적용 훅), `TriageRow` 고르기 맨 아래 "새 카테고리"·0개면 [카테고리 만들기]·입력칸(Enter 저장, Esc 취소, 20자 초과 오류, 저장 중 비활성), `Home`에서 연결. 이미 정한 카테고리는 골라진 채로 보인다(D-19).
+  - 회귀 수정: `title`·`categoryId`가 모두 선택이 되며 빈 본문 PATCH가 200이 됐다 → 고칠 항목이 없으면 400(FEAT-011 AC-03 유지). `bookmarks.int.test.ts` 응답 기대값에 `categoryId: null` 추가.
+  - 문서: FEAT-008 Status·AC 체크·구현 결과, `docs/screens/HOME-02-home.md` 예정 → 구현.
+- 영향: 링크 응답에 필드 하나 추가(클라이언트 재생성 필요). 카테고리를 지우면 링크는 남고 미분류가 된다. 내 링크 화면의 카테고리 칩·목록 필터·이름 변경·삭제·병합·태그 API는 다음 범위.
+- 검증: 사용자 Mac에서 `npm run test:integration` 통과(카테고리 11건 포함 121건), `apps/api` typecheck·lint 통과, `openapi:generate` 재생성. 작업 환경에서 web vitest 106 PASS(새 11건: 화면 8 + 홈 연결 3), web tsc·eslint·prettier PASS. 작업 환경은 Prisma 엔진을 못 내려받아 API 테스트·빌드는 Mac에서만 실행.
+- 주의/롤백: revert + 마이그레이션 되돌리기(테이블·컬럼 삭제). 이름 중복 판정은 정규화 값(앞뒤 공백·연속 공백·NFC·영문 소문자) 기준이라 "여행"과 "여 행"은 다른 카테고리다.
+
 ## 2026-11-22 | docs: D-19 결정 — 홈 "최근 추가한 링크"는 미분류만 걸러내지 않는다
 
 - Feature: FEAT-009 AC-04 / FEAT-008 AC-13 (문서·시안만)
