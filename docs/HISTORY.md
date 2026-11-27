@@ -5,6 +5,15 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-27 | docs: FEAT-012 일정 트래커·FEAT-013 방문 일지 명세, ADR-019 실험실 구조(제안)
+
+- Feature: FEAT-012, FEAT-013
+- 목적: 2026-11-24 논의(청약·임장 일정을 노션 대신 Keepio에서 관리)를 구현 전 명세로 고정한다. 기존 #71(초안 5개 커밋)과 docs/labs-scope를 커밋 하나로 합치고, AI 작성자 표시를 뺐다(CI check-ai-attribution 실패 대응).
+- 변경: `docs/features/application-tracker.md`(FEAT-012, Draft) 추가 — 맨 앞 "1차 범위" 절(링크 일괄 등록·내 링크/직접 넣기·날짜 미정, 달력/임박순·카테고리·상태 필터, 합격·불합격·포기 시 이후 단계 삭제, 대출 계산 외부 링크, 오늘 일정 팝업, 청약/임장 타입 / 삭제: 이메일 알림·댓글·새 공고 구독 / 보류 목록)과 그 아래 전체 아이디어 AC. `docs/features/visit-journal.md`(FEAT-013, Draft) 추가 — 템플릿(필드 7종·최대 10개·체크리스트·결과 선택지), 월별 목록, 비교표. `docs/decisions/ADR-019-labs-structure.md`(proposed) 추가 — 기본 앱(북마크)과 실험실 분리, MCP·발행 제외, 웹 전용. features README에 FEAT-012·013. 명세 안 열린 질문 번호는 D-21~D-27(D-19·20은 #67 카테고리에서 사용, OPEN-QUESTIONS에는 아직 안 올림).
+- 영향: 문서만. 코드·DB 변경 없음.
+- 검증: prettier PASS, HISTORY 앞에만 추가 비교 PASS, check-ai-attribution PASS — 리눅스 VM. pre-commit hook은 임시 인덱스 커밋이라 미실행.
+- 주의/롤백: 문서 revert로 끝. #67과 HISTORY 맨 위가 겹치면 나중에 머지되는 쪽을 다시 쌓아야 한다.
+
 ## 2026-11-22 | test(api): 스마트스토어 표시 제목 기대값을 AC-18에 맞춤
 
 - Feature: FEAT-010 AC-16·18
