@@ -103,7 +103,7 @@ export function SaveBookmarkForm({ onSaved }: { onSaved?: () => void } = {}) {
             placeholder="링크를 붙여넣으세요 (https://)"
             aria-invalid={!!failure || undefined}
             aria-describedby={failure ? ERROR_ID : undefined}
-            className={`h-[52px] w-full kp-field pr-4 pl-10 text-base text-foreground placeholder:text-muted-foreground md:text-sm ${
+            className={`h-12 w-full kp-field pr-4 pl-10 text-base text-foreground placeholder:text-muted-foreground md:text-sm ${
               failure ? "border-destructive" : ""
             }`}
           />
@@ -111,7 +111,7 @@ export function SaveBookmarkForm({ onSaved }: { onSaved?: () => void } = {}) {
         {/* 링크 입력칸이 폭을 차지하도록 버튼은 내용 폭(기본 폭 100%가 입력칸을 찌그러뜨렸다) */}
         <SubmitButton
           pending={save.isPending}
-          className="h-[52px]! w-auto! shrink-0 px-5 md:px-7 md:text-sm"
+          className="w-auto! shrink-0 px-5 md:px-7 md:text-sm"
         >
           저장
         </SubmitButton>
