@@ -4,7 +4,10 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { fallbackArtFor } from "@/shared/lib/fallback-art";
 import { FaviconTile } from "@/shared/ui/FaviconTile";
-import { CategoryPicker } from "@/features/categories";
+import {
+  CategoryPicker,
+  type CreateCategoryResult,
+} from "@/features/categories";
 import { HomeIcon } from "./HomeIcons";
 
 // FEAT-010: 서버가 주는 표시 제목(넣은 제목 → 페이지 제목 → 도메인)과 썸네일 주소가 있으면 쓴다
@@ -60,8 +63,9 @@ export function TriageRow({
   categories?: TriageCategory[];
   createCategory?: boolean;
   onSave?: (categoryId: string) => void;
-  // 이름으로 카테고리를 만들고 이 링크에 적용한다. 서버 문구를 돌려주면 입력칸 아래에 보여 준다
-  onCreate?: (name: string) => Promise<string | null>;
+  // 이름으로 카테고리를 만들고 이 링크에 적용한다. 성공하면 그 카테고리가 골라진 채로 남고,
+  // 실패하면 서버 문구를 입력칸 아래에 보여 준다
+  onCreate?: (name: string) => Promise<CreateCategoryResult>;
   // 고르기 목록에서 바로 고정·해제(FEAT-008 AC-15)
   onPin?: (categoryId: string, pinned: boolean) => void;
   onSkip: () => void;
@@ -92,13 +96,15 @@ export function TriageRow({
   async function submitName() {
     if (!onCreate || !canCreate) return;
     setSaving(true);
-    const message = await onCreate(trimmed);
+    const result = await onCreate(trimmed);
     setSaving(false);
-    if (message) {
-      setError(message);
+    if (!result.ok) {
+      setError(result.message);
       nameBox.current?.focus();
       return;
     }
+    // 만든 카테고리를 고르기에 골라진 채로 둔다(목록을 다시 받으면 고르기 부품이 그 이름을 보여 준다)
+    setCategoryId(result.categoryId);
     setCreating(false);
     setName("");
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { matches, sameName } from "../lib/match";
+import type { CreateCategoryResult } from "../model/useCategories";
 import { CatIcon } from "./CatIcons";
 
 export type PickerCategory = {
@@ -30,9 +31,9 @@ export function CategoryPicker({
   value: string | null;
   categories: PickerCategory[];
   onSelect: (categoryId: string) => void;
-  // 이름으로 만들고 적용한다. 서버 문구를 돌려주면 목록 아래에 보여 준다.
+  // 이름으로 만들고 적용한다. 성공하면 그 카테고리가 골라진 채로 닫고, 실패하면 서버 문구를 목록 아래에 보여 준다.
   // 없으면(카테고리 서버 전) 맨 아래 만들기 줄을 그리지 않는다
-  onCreate?: (name: string) => Promise<string | null>;
+  onCreate?: (name: string) => Promise<CreateCategoryResult>;
   onPin?: (categoryId: string, pinned: boolean) => void;
 }) {
   const id = useId();
@@ -88,14 +89,15 @@ export function CategoryPicker({
     if (exact) return pick(exact.id);
     if (!onCreate || !trimmed || tooLong) return;
     setSaving(true);
-    const message = await onCreate(trimmed);
+    const result = await onCreate(trimmed);
     setSaving(false);
-    if (message) {
-      setError(message);
+    if (!result.ok) {
+      setError(result.message);
       search.current?.focus();
       return;
     }
-    close();
+    // 만든(또는 같은 이름으로 이미 있던) 카테고리를 골라진 채로 둔다
+    pick(result.categoryId);
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
