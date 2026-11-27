@@ -4,6 +4,7 @@
  * keepio API
  * OpenAPI spec version: 0.1.0
  */
+import type { BookmarkCategoryResponse } from "./bookmarkCategoryResponse";
 import type { BookmarkResponseTitleSource } from "./bookmarkResponseTitleSource";
 import type { BookmarkTagResponse } from "./bookmarkTagResponse";
 import type { BookmarkThumbnailResponse } from "./bookmarkThumbnailResponse";
@@ -25,6 +26,16 @@ export interface BookmarkResponse {
   displayTitle: string;
   /** displayTitle의 출처: user(넣은 제목) · page(페이지 제목) · site(사이트 이름 — 제목을 못 받음) */
   titleSource: BookmarkResponseTitleSource;
+  /**
+   * 링크의 카테고리 ID(FEAT-008). null이면 미분류
+   * @nullable
+   */
+  categoryId: string | null;
+  /**
+   * 링크의 카테고리(이름까지, AC-16). null이면 미분류. 목록 줄에 이름을 바로 보여 준다
+   * @nullable
+   */
+  category: BookmarkCategoryResponse | null;
   /** 이름순 */
   tags: BookmarkTagResponse[];
   thumbnail: BookmarkThumbnailResponse;

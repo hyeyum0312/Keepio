@@ -107,9 +107,7 @@ export class BookmarksController {
     @Param("id") id: string,
     @Body() dto: UpdateBookmarkDto,
   ): Promise<BookmarkResponse> {
-    return this.toResponse(
-      await this.bookmarks.updateTitle(user.id, id, dto.title),
-    );
+    return this.toResponse(await this.bookmarks.update(user.id, id, dto));
   }
 
   @Delete(":id")
@@ -172,6 +170,8 @@ export class BookmarksController {
       title: bookmark.title,
       displayTitle: displayTitle(bookmark),
       titleSource: titleSource(bookmark),
+      categoryId: bookmark.categoryId,
+      category: bookmark.category,
       tags: bookmark.tags,
       thumbnail: {
         status: bookmark.thumbnailStatus,

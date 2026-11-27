@@ -31,6 +31,7 @@ function link(n: number): {
   tags: never[];
   thumbnail: Thumb;
   faviconUrl?: string | null;
+  categoryId?: string | null;
 } {
   return {
     id: `id-${n}`,
@@ -43,26 +44,56 @@ function link(n: number): {
     displayTitle: `site${n}.example`,
     tags: [],
     thumbnail: { status: "failed", url: null },
+    // FEAT-008. 카테고리를 정하지 않은 링크(미분류)
+    categoryId: null,
   };
 }
 
+type Category = {
+  id: string;
+  name: string;
+  bookmarkCount: number;
+  pinned: boolean;
+};
+
+// 서버 흉내: 경로로 나눈다(링크 목록·카테고리 목록·카테고리 만들기·링크 수정)
 function renderHome(
   items: ReturnType<typeof link>[],
   nextCursor: string | null = null,
   openSave = false,
+  categories: Category[] = [],
 ) {
+  const calls: { method: string; path: string; body?: unknown }[] = [];
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => json(200, { items, nextCursor })),
+    vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
+      const method = init.method ?? "GET";
+      const path = new URL(String(input), "http://local").pathname;
+      const body =
+        typeof init.body === "string" ? JSON.parse(init.body) : undefined;
+      calls.push({ method, path, body });
+      if (path === "/api/categories") {
+        if (method === "POST") {
+          const name = (body as { name: string }).name;
+          return json(201, { id: "c-new", name, bookmarkCount: 0 });
+        }
+        return json(200, { items: categories });
+      }
+      if (method === "PATCH") return json(200, items[0]);
+      return json(200, { items, nextCursor });
+    }),
   );
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>
-      <Home openSave={openSave} />
-    </QueryClientProvider>,
-  );
+  return {
+    calls,
+    ...render(
+      <QueryClientProvider client={client}>
+        <Home openSave={openSave} />
+      </QueryClientProvider>,
+    ),
+  };
 }
 
 // 화면 폭 흉내: 모바일이면 (max-width: 767px)가 맞는다
@@ -123,33 +154,92 @@ describe("홈 (FEAT-009)", () => {
     ).toBeInTheDocument();
   });
 
-  it("카테고리가 하나도 없으면 [카테고리 만들기] [저장] [건너뛰기] 순서, 만들기·저장은 카테고리 서버 전까지 준비 중 (2026-11-21)", async () => {
+  it("카테고리가 하나도 없으면 [카테고리 만들기] [저장] [건너뛰기] 순서. 저장은 만들기 전까지 누를 수 없다 (FEAT-008 AC-13)", async () => {
     renderHome([link(1)]);
     const card = await screen.findByRole("article", {
       name: "최근 추가한 링크",
     });
     const names = within(card)
       .getAllByRole("button")
-      .map((b) => b.textContent?.replace(/\s*\(준비 중\)/, "").trim());
+      .map((b) => b.textContent?.trim());
     expect(names).toEqual(["카테고리 만들기", "저장", "건너뛰기"]);
+    // 만들기는 누를 수 있고, 고를 카테고리가 없으니 저장만 막는다
     expect(
-      within(card).getByRole("button", { name: /카테고리 만들기/ }),
-    ).toHaveAttribute("aria-disabled", "true");
+      within(card).getByRole("button", { name: "카테고리 만들기" }),
+    ).not.toHaveAttribute("aria-disabled");
     expect(within(card).getByRole("button", { name: /^저장/ })).toHaveAttribute(
       "aria-disabled",
       "true",
     );
   });
 
+  it("FEAT-008 AC-13: 카테고리를 만들면 POST한 뒤 그 링크에 바로 적용한다", async () => {
+    const { calls } = renderHome([link(1)]);
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
+
+    await userEvent.click(
+      within(card).getByRole("button", { name: "카테고리 만들기" }),
+    );
+    await userEvent.type(
+      within(card).getByRole("textbox", { name: "새 카테고리 이름" }),
+      "브랜딩{Enter}",
+    );
+
+    await waitFor(() =>
+      expect(
+        calls.some((c) => c.method === "POST" && c.path === "/api/categories"),
+      ).toBe(true),
+    );
+    const patch = await waitFor(() => {
+      const found = calls.find((c) => c.method === "PATCH");
+      expect(found).toBeDefined();
+      return found!;
+    });
+    expect(patch.path).toBe("/api/bookmarks/id-1");
+    expect(patch.body).toEqual({ categoryId: "c-new" });
+  });
+
+  it("미분류 링크를 먼저 보여 준다 (2026-11-22)", async () => {
+    // 최근 저장 순으로는 id-1(카테고리 있음)이 먼저지만, 미분류인 id-2가 앞에 와야 한다
+    renderHome([{ ...link(1), categoryId: "c-1" }, link(2)], null, false, [
+      { id: "c-1", name: "디자인", bookmarkCount: 1, pinned: false },
+    ]);
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
+    expect(within(card).getByRole("link")).toHaveAttribute(
+      "href",
+      "https://site2.example/page",
+    );
+  });
+
+  it("FEAT-008 AC-09·D-19: 카테고리가 있으면 고르기가 보이고, 이미 정한 카테고리가 골라진 채로 나온다", async () => {
+    renderHome([{ ...link(1), categoryId: "c-2" }], null, false, [
+      { id: "c-1", name: "디자인", bookmarkCount: 0, pinned: false },
+      { id: "c-2", name: "여행", bookmarkCount: 1, pinned: false },
+    ]);
+    const card = await screen.findByRole("article", {
+      name: "최근 추가한 링크",
+    });
+    // 고르기 버튼에 이미 정한 카테고리 이름이 보인다
+    await waitFor(() =>
+      expect(
+        within(card).getByRole("button", { name: /여행/ }),
+      ).toBeInTheDocument(),
+    );
+  });
+
   it("카테고리를 고를 수 있으면 [카테고리 선택] [저장] [건너뛰기] 순서 (미리보기)", async () => {
     render(<HomePreview />);
     const card = screen.getByRole("article", { name: "최근 추가한 링크" });
+    // 고르기 버튼(현재 카테고리) → [저장] → [건너뛰기] 순서
     expect(
       within(card)
         .getAllByRole("button")
         .map((b) => b.textContent?.trim()),
-    ).toEqual(["저장", "건너뛰기"]);
-    expect(within(card).getByLabelText("카테고리")).toBeInTheDocument();
+    ).toEqual(["카테고리 선택", "저장", "건너뛰기"]);
   });
 
   it("링크 저장 카드는 링크가 있어도 맨 위에 있다", async () => {
@@ -389,7 +479,10 @@ describe("홈 미리보기", () => {
     expect(card.querySelector("img")?.getAttribute("src")).toMatch(
       /bucket-art/,
     );
-    await userEvent.selectOptions(screen.getByLabelText("카테고리"), "개발");
+    await userEvent.click(
+      screen.getByRole("button", { name: /카테고리 선택/ }),
+    );
+    await userEvent.click(screen.getByRole("option", { name: /개발/ }));
     await userEvent.click(screen.getByRole("button", { name: "저장" }));
     expect(screen.getByText("[미리보기] 모션 가이드")).toBeInTheDocument();
   });

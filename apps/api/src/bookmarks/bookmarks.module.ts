@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module.js";
+import { CategoriesModule } from "../categories/categories.module.js";
 import { BookmarkFilesController } from "./bookmark-files.controller.js";
 import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
 import { BookmarksController } from "./bookmarks.controller.js";
@@ -12,7 +13,7 @@ import {
 import { ThumbnailStorage } from "./thumbnail.storage.js";
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, CategoriesModule],
   controllers: [BookmarksController, BookmarkFilesController],
   providers: [
     BookmarksService,

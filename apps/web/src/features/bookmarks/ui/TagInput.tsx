@@ -40,29 +40,9 @@ export function TagInput({
       <label htmlFor="field-tags" className="text-sm font-semibold">
         태그 <span className="font-normal text-muted-foreground">(선택)</span>
       </label>
-      <div
-        className={`flex min-h-11 flex-wrap items-center gap-2 rounded-xl border bg-surface px-3 py-1.5 ${
-          focused ? "border-foreground" : "border-border"
-        }`}
-      >
-        <ul aria-label="추가한 태그" className="contents">
-          {value.map((tag) => (
-            <li
-              key={tag}
-              className="inline-flex items-center gap-1 rounded-full bg-muted py-1 pr-1 pl-3 text-sm"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => onChange(value.filter((t) => t !== tag))}
-                aria-label={`태그 ${tag} 삭제`}
-                className="inline-flex size-7 items-center justify-center rounded-full text-muted-foreground hover:bg-surface focus-visible:focus-ring"
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+      {/* 태그는 상자 없이 칩만 나열한다(07-BRAND §6, 2026-11-22). 입력칸도 칩 모양이고
+          늘 맨 앞에 고정하고 추가한 태그가 그 뒤로 붙는다(2026-11-22 사용자 결정) */}
+      <div className="flex flex-wrap items-center gap-1.5">
         <input
           id="field-tags"
           type="text"
@@ -82,12 +62,35 @@ export function TagInput({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           aria-describedby="field-tags-help"
-          placeholder={value.length === 0 ? "모션, 랜딩" : undefined}
-          className="min-w-24 flex-1 bg-transparent py-1 outline-none md:text-sm"
+          placeholder="+ 태그"
+          className={`h-8 min-w-26 rounded-full border bg-transparent px-3.5 text-sm outline-none placeholder:text-muted-foreground ${
+            focused
+              ? "border-solid border-foreground shadow-[inset_0_0_0_1px_var(--foreground)]"
+              : "border-dashed border-input"
+          }`}
         />
+        <ul aria-label="추가한 태그" className="contents">
+          {value.map((tag) => (
+            <li
+              key={tag}
+              className="inline-flex h-8 items-center gap-1 rounded-full bg-muted pr-1 pl-3 text-sm"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => onChange(value.filter((t) => t !== tag))}
+                aria-label={`태그 ${tag} 삭제`}
+                className="inline-flex size-6 items-center justify-center rounded-full text-muted-foreground hover:bg-surface focus-visible:focus-ring"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
       <p id="field-tags-help" className="text-caption text-muted-foreground">
-        Enter나 쉼표로 추가 · 최대 10개, 한 개에 30자까지
+        Enter나 쉼표로 칩이 돼요 · 빈 칸에서 Backspace면 마지막 칩 삭제 · 최대
+        10개, 한 개에 30자까지
       </p>
     </div>
   );

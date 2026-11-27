@@ -9,6 +9,9 @@ const PATHS = {
   arrow: "M5 12h14M13 6l6 6-6 6",
   plus: "M12 5v14M5 12h14",
   close: "M6 6l12 12M18 6L6 18",
+  // FEAT-008 AC-15 고정 핀
+  pin: "M9 4h6l-1 6 4 3H6l4-3zM12 13v7",
+  search: "M16 16l4 4M4.5 11a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0-13 0",
 } as const;
 
 export function HomeIcon({

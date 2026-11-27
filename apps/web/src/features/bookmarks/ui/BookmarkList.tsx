@@ -17,6 +17,7 @@ import {
   useInvalidateBookmarkLists,
 } from "../model/useBookmarkPages";
 import { BookmarkThumb } from "./BookmarkThumb";
+import { LinkIcon } from "./LinkIcons";
 import { RowMenu } from "./RowMenu";
 import { TitleEditor } from "./TitleEditor";
 
@@ -282,8 +283,20 @@ function LinkText({
         )}
       </div>
       <p className="truncate text-sm text-muted-foreground">{host(b.url)}</p>
-      {b.tags.length > 0 && (
-        <ul aria-label="태그" className="mt-1 flex flex-wrap gap-1.5">
+      {/* 분류 줄(2026-11-22): 카테고리 → 태그 순. 모양으로 종류를 구분한다.
+          미분류면 카테고리 칩을 그리지 않고, 둘 다 없으면 줄 자체를 그리지 않는다.
+          버킷 칩은 버킷 기능과 함께 붙인다(screens/LINK-01) */}
+      {(b.category || b.tags.length > 0) && (
+        <ul
+          aria-label="분류"
+          className="mt-1.5 flex flex-wrap items-center gap-1.5"
+        >
+          {b.category && (
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle px-2.5 py-1 text-caption font-medium text-foreground">
+              <LinkIcon name="folder" size={13} />
+              {b.category.name}
+            </li>
+          )}
           {b.tags.map((t) => (
             <li
               key={t.id}
