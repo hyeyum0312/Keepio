@@ -1,7 +1,7 @@
 # FEAT-008 — 카테고리·태그 CRUD와 링크 분류
 
-- Status: 부분 구현 (2026-11-22: 만들기·목록·적용 = AC-01·02·07·08·09·12 / 정렬·고정·링크 응답의 카테고리 이름 = AC-14·15·16 / 고르기 부품 = AC-13. 관리 모달(AC-17)·이름 변경·삭제·병합·별칭·태그 API·목록 필터는 다음 범위)
-- Updated: 2026-11-22 (카테고리 만들기 구현)
+- Status: 부분 구현 (2026-11-22: 만들기·목록·적용 = AC-01·02·07·08·09·12 / 정렬·고정·링크 응답의 카테고리 이름 = AC-14·15·16 / 고르기 부품 = AC-13. 2026-11-27: 삭제 = AC-04(별칭 제외) / 목록 필터 `categoryId`·`uncategorized` = AC-11(`tag` 제외) / 내 링크 칩 줄·관리 모달의 고정·삭제 = AC-17 일부. 이름 변경·병합·별칭·태그 API는 다음 범위)
+- Updated: 2026-11-27 (내 링크 카테고리 칩 줄·필터·삭제)
 - Related: PRD v0.3 카테고리·태그 정책 / ADR-015 / spec 04 / 화면 CAT-01·LINK-01·LINK-03 / [정책 기획서](https://claude.ai/artifact/TiYqnwWyza9FGxkXQw4jh8) / [홈 와이어프레임](https://claude.ai/artifact/TVK97VZWLdiXH6GdM6PiBx)
 
 ## 목적 및 비범위
@@ -24,14 +24,14 @@
 - [x] AC-01 카테고리를 만들면 목록에 이름순으로 나타나고 링크 수가 함께 온다.
 - [x] AC-02 "여행"이 있을 때 " 여행 "·"TRAVEL"/"travel"처럼 정규화 후 같은 이름(별칭 포함)을 만들면 409와 기존 ID를 반환한다.
 - [ ] AC-03 카테고리를 고르지 않고 저장한 링크는 미분류, 고르고 저장한 링크는 그 카테고리에 나타난다. 이미 저장된 링크를 다시 저장할 때 카테고리를 주면 무시하지 않고 그 카테고리로 옮기지 않는다(기존 값 유지, 응답 200).
-- [ ] AC-04 카테고리를 삭제하면 그 안의 링크는 남고 미분류가 된다. 별칭도 함께 지워진다.
+- [x] AC-04 카테고리를 삭제하면 그 안의 링크는 남고 미분류가 된다(휴지통 링크 포함). 별칭도 함께 지워진다(별칭은 병합 범위에서 생긴다. 지금은 테이블이 없다).
 - [ ] AC-05 A를 B로 병합하면 A의 링크가 모두 B로 옮겨지고 A는 사라지며, A 이름으로 다시 만들면 409로 B를 안내한다. 자기 자신으로 병합하면 400.
 - [ ] AC-06 링크에 태그 이름 목록을 주면 없는 태그는 만들고 연결한다. 11번째 태그는 422이고 기존 연결은 바뀌지 않는다.
 - [x] AC-07 다른 사용자의 카테고리·태그는 조회·수정·삭제·병합·연결할 수 없다(404). 링크에 남의 카테고리 ID를 주면 404.
 - [x] AC-08 같은 이름으로 동시에 생성 요청이 와도 카테고리·태그는 하나만 생긴다.
 - [x] AC-09 A의 링크를 B로 옮기면(`categoryId` 변경) A에서 사라지고 B에 나타나며 태그 연결은 그대로다. `null`이면 미분류.
 - [ ] AC-10 `GET /api/tags?categoryId=`는 그 카테고리의 활성 링크에 쓰인 태그만 돌려준다.
-- [ ] AC-11 목록 `GET /api/bookmarks`는 `categoryId`·`uncategorized=true`·`tag` 필터를 지원하고 응답에 각 링크의 `categoryId`와 `tags`를 담는다.
+- [x] AC-11 목록 `GET /api/bookmarks`는 `categoryId`·`uncategorized=true`·`tag` 필터를 지원하고 응답에 각 링크의 `categoryId`와 `tags`를 담는다. (2026-11-27: `categoryId`·`uncategorized` 구현. 둘을 함께 주면 400, 남의 카테고리면 빈 목록, 휴지통(`status=deleted`)에도 같은 필터. `tag` 필터는 태그 API와 함께)
 - [x] AC-16 링크 응답은 카테고리 **이름까지** 담는다: `category: { id, name } | null`(2026-11-22 사용자 요청 — 내 링크 줄에 카테고리 이름을 보여 준다). 화면이 카테고리 목록을 따로 받지 않아도 이름이 나온다. 기존 `categoryId`는 당분간 함께 둔다(쓰는 곳을 옮긴 뒤 뺀다).
 - [ ] AC-17 관리 모달(2026-11-22 사용자 결정): 내 링크 칩 줄 끝 **[관리]**로 모달을 연다. 줄마다 핀 · 이름 · 링크 수 · 이름 바꾸기 · 합치기 · 삭제이고, 고정한 것이 "고정" 머리글 아래 먼저 온다. 바닥에 전체 개수와 고정 한도("6개 · 고정 1/8")를 적는다. **별도 관리 화면(`/categories`)은 만들지 않는다.** 고정은 고르기 부품(AC-13)에서도 바로 누르지만, **이름 바꾸기·합치기·삭제는 이 모달에서만** 한다(고르다가 잘못 누르는 것을 막는다).
   - 이름 바꾸기: 줄 안에서 입력칸(밑줄)으로 바뀐다. Enter·[저장] 저장, Esc·[취소] 취소, 1~20자. 이름만 바뀌고 링크 연결은 그대로이며 정렬 자리는 옮겨간다(AC-14).
@@ -57,20 +57,20 @@
 - 프론트 전용 파생 값: 없음. 화면은 서버 값만 그린다.
 - API 요청/응답/오류:
 
-  | 메서드 | 경로                      | 설명                                                                           |
-  | ------ | ------------------------- | ------------------------------------------------------------------------------ |
-  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount, pinned }] }` 정렬은 AC-14                |
-  | POST   | /api/categories           | `{ name }` → 201 카테고리                                                      |
-  | PATCH  | /api/categories/:id       | `{ name?, pinned? }` 이름 변경·고정(보낸 항목만)                               |
-  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                                           |
-  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                                             |
-  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순                        |
-  | PATCH  | /api/tags/:id             | `{ name }`                                                                     |
-  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                                             |
-  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                                           |
-  | PATCH  | /api/bookmarks/:id        | `{ title?, categoryId?: string \| null }` 보낸 항목만 고친다. 둘 다 없으면 400 |
-  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                                                |
-  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터                                 |
+  | 메서드 | 경로                      | 설명                                                                                                                                                     |
+  | ------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | GET    | /api/categories           | `{ items: [{ id, name, bookmarkCount, pinned }], totalCount, uncategorizedCount }` 정렬은 AC-14. 뒤의 두 수는 칩 줄의 전체·미분류(활성 링크, 2026-11-27) |
+  | POST   | /api/categories           | `{ name }` → 201 카테고리                                                                                                                                |
+  | PATCH  | /api/categories/:id       | `{ name?, pinned? }` 이름 변경·고정(보낸 항목만)                                                                                                         |
+  | DELETE | /api/categories/:id       | 204. 링크는 미분류로                                                                                                                                     |
+  | POST   | /api/categories/:id/merge | `{ targetId }` → 200 대상 카테고리                                                                                                                       |
+  | GET    | /api/tags                 | `?categoryId=` 선택. `{ items: [{ id, name }] }` 이름순                                                                                                  |
+  | PATCH  | /api/tags/:id             | `{ name }`                                                                                                                                               |
+  | DELETE | /api/tags/:id             | 204. 연결만 사라짐                                                                                                                                       |
+  | POST   | /api/bookmarks            | 기존 + `categoryId?`                                                                                                                                     |
+  | PATCH  | /api/bookmarks/:id        | `{ title?, categoryId?: string \| null }` 보낸 항목만 고친다. 둘 다 없으면 400                                                                           |
+  | PUT    | /api/bookmarks/:id/tags   | `{ names: string[] }` 통째 교체                                                                                                                          |
+  | GET    | /api/bookmarks            | 기존 + `categoryId`·`uncategorized`·`tag` 필터                                                                                                           |
 
 - 오류 문구(ADR-009, 서버 `message` 그대로 표시):
 
@@ -117,6 +117,15 @@
 - Regression: FEAT-001·002 기존 통합 테스트 전체.
 
 ## 구현 결과 (검증 후)
+
+### 4차: 내 링크 카테고리 칩 줄·필터·삭제 (2026-11-27)
+
+- 범위: AC-04(삭제), AC-11(`categoryId`·`uncategorized` 필터), 화면 CAT-01 칩 줄과 관리 모달의 고정·삭제, LINK-01 목록 제목. 홈에서 만든 카테고리가 골라진 채로 남게(AC-13 후속, 별도 커밋).
+- 변경 파일: API `categories/*`(DELETE, 목록의 `totalCount`·`uncategorizedCount`), `bookmarks/*`(목록 필터, `dto/list-bookmarks.dto.ts`), 마이그레이션 `20261127010000_add_bookmarks_category_id_index`(삭제 시 FK SET NULL이 표 전체를 훑지 않게). web `features/categories/ui/CategoryChips.tsx`·`CategoryManage.tsx`, `model/useCategories.ts`(`useCreateCategory`·`useDeleteCategory`), `features/bookmarks/ui/AllLinks.tsx`·`BookmarkList.tsx`, `model/useBookmarkPages.ts`(필터, 무효화에 카테고리 목록 포함).
+- 링크 수(전체·미분류·카테고리별)는 서버 값만 쓴다. 저장·삭제·복구 뒤 카테고리 목록도 다시 받는다.
+- 테스트: `apps/api/src/categories/categories.int.test.ts`(AC-04 2건, AC-11 3건, 칩 줄 수 1건), `apps/web/src/features/bookmarks/ui/AllLinksCategories.test.tsx`(칩 순서·수, 카테고리·미분류 거르기, + 카테고리, 20자 오류, 선택 해제, 관리 모달 삭제 확인·취소·Esc·0개 즉시 삭제·실패 문구).
+- 실행 명령 및 실제 결과(리눅스 VM): API 통합 131 PASS, API 단위 177 PASS, web 125 PASS, `tsc --noEmit`·eslint·prettier PASS. 브라우저 확인은 미실행.
+- 남은 범위: 관리 모달의 이름 바꾸기·합치기(AC-05·17), 별칭, `tag` 필터, 선택 막대 "카테고리 변경".
 
 ### 1차: 카테고리 만들기·목록·적용 (2026-11-22)
 

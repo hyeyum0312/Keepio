@@ -5,6 +5,7 @@ import { Prisma } from "../generated/prisma/client.js";
 import { ThumbnailStorage } from "./thumbnail.storage.js";
 import { BookmarkThumbnailsService } from "./bookmark-thumbnails.service.js";
 import {
+  type BookmarkFilter,
   type BookmarkRecord,
   BookmarksRepository,
   TagLimitExceededError,
@@ -130,13 +131,19 @@ export class BookmarksService {
     );
   }
 
-  // FEAT-002 AC-01~03
+  // FEAT-002 AC-01~03, FEAT-008 AC-11(카테고리·미분류 필터. 함께 줄 수 없다)
   async list(
     userId: string,
     status: "active" | "deleted",
     limit: number,
     cursor: string | undefined,
+    filter: BookmarkFilter = {},
   ): Promise<BookmarkPage> {
+    if (filter.categoryId !== undefined && filter.uncategorized) {
+      throw new BadRequestException([
+        "categoryId and uncategorized cannot be used together",
+      ]);
+    }
     const after = cursor === undefined ? null : decodeCursor(cursor);
     if (cursor !== undefined && !after) {
       // ValidationPipe와 같은 형태 → 공통 VALIDATION_FAILED
@@ -144,8 +151,8 @@ export class BookmarksService {
     }
     const rows =
       status === "active"
-        ? await this.bookmarks.listActive(userId, limit, after)
-        : await this.bookmarks.listDeleted(userId, limit, after);
+        ? await this.bookmarks.listActive(userId, limit, after, filter)
+        : await this.bookmarks.listDeleted(userId, limit, after, filter);
     const items = rows.slice(0, limit);
     const last = items.at(-1);
     return {

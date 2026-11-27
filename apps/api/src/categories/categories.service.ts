@@ -26,8 +26,16 @@ export function categoryNotFound(): ApiException {
 export class CategoriesService {
   constructor(private readonly categories: CategoriesRepository) {}
 
-  async list(userId: string): Promise<CategoryRecord[]> {
-    return this.categories.list(userId);
+  async list(userId: string): Promise<{
+    items: CategoryRecord[];
+    totalCount: number;
+    uncategorizedCount: number;
+  }> {
+    const [items, counts] = await Promise.all([
+      this.categories.list(userId),
+      this.categories.countLinks(userId),
+    ]);
+    return { items, ...counts };
   }
 
   // AC-01·02·08·12. 같은 이름이면 409와 기존 ID를 준다(화면은 오류로 보여 주지 않고 그 카테고리를 쓴다)
@@ -90,6 +98,13 @@ export class CategoriesService {
     const updated = await this.categories.setPinned(userId, id, pinned);
     if (!updated) throw categoryNotFound();
     return updated;
+  }
+
+  // AC-04·07. 링크는 남고 미분류가 된다. 없거나 남의 카테고리면 404(이미 지운 것도 404)
+  async remove(userId: string, id: string): Promise<void> {
+    if (!isUuid(id) || !(await this.categories.remove(userId, id))) {
+      throw categoryNotFound();
+    }
   }
 
   // 링크에 카테고리를 걸 때 쓴다. 본인 것이 아니거나 없으면 404(AC-07·09)

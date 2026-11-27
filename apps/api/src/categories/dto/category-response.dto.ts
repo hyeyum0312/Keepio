@@ -22,6 +22,13 @@ export class CategoryResponse {
 export class CategoryListResponse {
   @ApiProperty({ type: [CategoryResponse], description: "이름순(ko)" })
   items!: CategoryResponse[];
+
+  // 내 링크 칩 줄의 "전체"·"미분류" 링크 수(CAT-01). 활성 링크만 센다
+  @ApiProperty({ description: "활성 링크 전체 수(휴지통 제외)" })
+  totalCount!: number;
+
+  @ApiProperty({ description: "카테고리가 없는 활성 링크 수(D-02)" })
+  uncategorizedCount!: number;
 }
 
 // 409 CATEGORY_DUPLICATE: 이미 있는 카테고리 ID. 화면은 오류로 보여 주지 않고 이 카테고리를 쓴다(AC-02·13)

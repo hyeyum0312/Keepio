@@ -27,6 +27,8 @@ function setup() {
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
       const method = init.method ?? "GET";
+      if (method === "GET" && String(input).includes("/api/categories"))
+        return json(200, { items: [], totalCount: 2, uncategorizedCount: 2 });
       if (method === "GET")
         return json(200, { items: [item(2), item(1)], nextCursor: null });
       bodies.push(JSON.parse(String(init.body)));

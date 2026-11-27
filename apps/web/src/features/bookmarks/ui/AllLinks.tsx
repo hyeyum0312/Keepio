@@ -2,8 +2,17 @@
 
 import { useBookmarksControllerRemove } from "@keepio/api-client";
 import { useEffect, useRef, useState } from "react";
+import {
+  type CategoryChip,
+  CategoryChips,
+  useCategories,
+  useCreateCategory,
+  useDeleteCategory,
+  useSetCategoryPinned,
+} from "@/features/categories";
 import { submit } from "@/shared/lib/server-message";
 import {
+  type BookmarkFilter,
   useBookmarkPages,
   useInvalidateBookmarkLists,
 } from "../model/useBookmarkPages";
@@ -19,13 +28,34 @@ const VIEWS: { view: ListView; label: string; icon: "list" | "grid" }[] = [
 // 여러 개 삭제 때 한꺼번에 보내는 요청 수(FEAT-011 AC-09)
 const DELETE_CONCURRENCY = 4;
 
-// 내 링크(LINK-01): 저장 카드 → 정리한 링크(목록형/카드형).
-// 보기 방식·고른 링크는 화면 상태라 새로고침하면 사라진다.
+// 내 링크(LINK-01): 저장 카드 → 카테고리 칩 줄(CAT-01) → 고른 칩 이름의 목록(목록형/카드형).
+// 칩은 전체 · 미분류 · 카테고리들. 거르기는 서버(FEAT-008 AC-11). 고른 칩 이름이 목록 제목이 된다.
+// 보기 방식·고른 칩·고른 링크는 화면 상태라 새로고침하면 사라진다. 칩을 바꾸면 고른 링크를 푼다.
 // FEAT-011 AC-06~10: 썸네일 안 체크박스로 고르고, 하나라도 고르면 아래 작업 막대. 모바일은 "선택"으로 선택 모드.
-// 검색·정렬·태그 필터·버킷 지정·개수는 서버(FEAT-008·검색)가 생기면 붙인다
+// 검색·정렬·태그 필터·버킷 지정은 서버(검색)가 생기면 붙인다
 export function AllLinks() {
   const [view, setView] = useState<ListView>("list");
-  const pages = useBookmarkPages("active");
+  const categories = useCategories();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
+  const setPinned = useSetCategoryPinned();
+  const [chosen, setChosen] = useState<CategoryChip>({ kind: "all" });
+  const categoryList = categories.data?.items ?? [];
+  // 고른 카테고리가 사라지면(다른 화면에서 삭제 등) 전체로 본다
+  const chip: CategoryChip =
+    chosen.kind === "category" &&
+    categories.data &&
+    !categoryList.some((c) => c.id === chosen.id)
+      ? { kind: "all" }
+      : chosen;
+  const filter = chipFilter(chip);
+  const title =
+    chip.kind === "all"
+      ? "전체"
+      : chip.kind === "uncategorized"
+        ? "미분류"
+        : (categoryList.find((c) => c.id === chip.id)?.name ?? "전체");
+  const pages = useBookmarkPages("active", filter);
   const remove = useBookmarksControllerRemove();
   const invalidate = useInvalidateBookmarkLists();
   const [picked, setPicked] = useState<string[]>([]);
@@ -119,6 +149,20 @@ export function AllLinks() {
       <SaveLinkCard />
 
       <section aria-labelledby="links-list" className="flex flex-col gap-4">
+        <CategoryChips
+          categories={categoryList}
+          totalCount={categories.data?.totalCount}
+          uncategorizedCount={categories.data?.uncategorizedCount}
+          value={chip}
+          onChange={(next) => {
+            setChosen(next);
+            clear();
+            setResult(null);
+          }}
+          onCreate={createCategory}
+          onDelete={deleteCategory}
+          onPin={setPinned}
+        />
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-1">
             {/* 모두 선택: PC는 늘, 모바일은 선택 모드에서만. 고를 링크가 0개면 그리지 않는다 */}
@@ -147,7 +191,7 @@ export function AllLinks() {
               className="truncate text-base font-bold tracking-tight"
             >
               <span className={selecting ? "hidden md:inline" : ""}>
-                정리한 링크
+                {title}
               </span>
               {selecting && (
                 <span className="md:hidden">{selected.length}개 선택</span>
@@ -194,6 +238,14 @@ export function AllLinks() {
         <BookmarkList
           status="active"
           view={view}
+          filter={filter}
+          emptyMessage={
+            chip.kind === "all"
+              ? undefined
+              : chip.kind === "uncategorized"
+                ? "미분류 링크가 없어요."
+                : "이 카테고리에 링크가 없어요."
+          }
           selection={{ selected, onToggle: toggle, always: selecting }}
         />
         {selecting && (
@@ -208,4 +260,10 @@ export function AllLinks() {
       </section>
     </div>
   );
+}
+
+function chipFilter(chip: CategoryChip): BookmarkFilter {
+  if (chip.kind === "uncategorized") return { uncategorized: true };
+  if (chip.kind === "category") return { categoryId: chip.id };
+  return {};
 }

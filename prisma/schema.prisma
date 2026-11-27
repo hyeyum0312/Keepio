@@ -122,6 +122,8 @@ model Bookmark {
   @@index([userId, createdAt(sort: Desc), id(sort: Desc)], map: "bookmarks_active_list_idx", where: raw("deleted_at IS NULL"))
   // 카테고리별 활성 목록(FEAT-008 AC-11 필터). 링크 수 집계도 이 인덱스를 쓴다
   @@index([userId, categoryId, createdAt(sort: Desc), id(sort: Desc)], map: "bookmarks_active_category_idx", where: raw("deleted_at IS NULL"))
+  // 카테고리 삭제 시 FK ON DELETE SET NULL이 이 컬럼으로 찾는다(휴지통 포함, FEAT-008 AC-04). 없으면 표 전체를 훑는다
+  @@index([categoryId])
   @@map("bookmarks")
 }
 

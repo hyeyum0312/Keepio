@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -12,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse,
@@ -40,8 +44,9 @@ export class CategoriesController {
   @Get()
   @ApiOkResponse({ type: CategoryListResponse })
   async list(@CurrentUser() user: AuthUser): Promise<CategoryListResponse> {
-    const items = await this.categories.list(user.id);
-    return { items: items.map(toResponse) };
+    const { items, totalCount, uncategorizedCount } =
+      await this.categories.list(user.id);
+    return { items: items.map(toResponse), totalCount, uncategorizedCount };
   }
 
   @Post()
@@ -74,6 +79,15 @@ export class CategoriesController {
       return toResponse(await this.categories.requireOwned(user.id, id));
     }
     return toResponse(await this.categories.setPinned(user.id, id, dto.pinned));
+  }
+
+  // AC-04. 링크는 지우지 않고 미분류로 둔다
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse({ description: "링크는 남고 미분류가 된다" })
+  @ApiNotFoundResponse({ type: ApiErrorResponse })
+  remove(@CurrentUser() user: AuthUser, @Param("id") id: string) {
+    return this.categories.remove(user.id, id);
   }
 }
 

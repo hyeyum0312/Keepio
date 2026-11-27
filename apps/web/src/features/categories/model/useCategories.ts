@@ -5,6 +5,7 @@ import {
   getCategoriesControllerListQueryKey,
   useBookmarksControllerUpdate,
   useCategoriesControllerCreate,
+  useCategoriesControllerRemove,
   useCategoriesControllerUpdate,
 } from "@keepio/api-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -95,6 +96,31 @@ export function useCreateCategoryAndApply() {
     return applied.ok
       ? { ok: true, categoryId }
       : { ok: false, message: applied.message };
+  };
+}
+
+// FEAT-008 AC-04. 카테고리를 지운다(링크는 남고 미분류가 된다). 끝나면 카테고리 목록과 링크 목록(줄의 카테고리 이름)을 다시 받는다.
+// 실패하면 서버 문구를 돌려준다
+export function useDeleteCategory() {
+  const remove = useCategoriesControllerRemove();
+  const queryClient = useQueryClient();
+
+  return async function deleteCategory(
+    categoryId: string,
+  ): Promise<string | null> {
+    const res = await submit(
+      () => remove.mutateAsync({ id: categoryId }),
+      (r) => r.status === 204,
+    );
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: getCategoriesControllerListQueryKey(),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: getBookmarksControllerListQueryKey(),
+      }),
+    ]);
+    return res.ok ? null : res.message;
   };
 }
 
