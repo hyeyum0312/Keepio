@@ -16,6 +16,7 @@ function item(n: number, extra: Partial<Record<string, unknown>> = {}) {
     title: `레퍼런스 ${n}`,
     displayTitle: `레퍼런스 ${n}`,
     titleSource: "user",
+    categoryId: null,
     tags: [{ id: `t-${n}`, name: "모션" }],
     thumbnail: { status: "failed", url: null, sourceUrl: null },
     faviconUrl: null,

@@ -7,6 +7,7 @@
 
 export * from "./accessTokenResponse";
 export * from "./apiErrorResponse";
+export * from "./bookmarkCategoryResponse";
 export * from "./bookmarkConflictErrorResponse";
 export * from "./bookmarkFilesControllerThumbnailParams";
 export * from "./bookmarkListResponse";
@@ -18,6 +19,10 @@ export * from "./bookmarksControllerUploadThumbnailBody";
 export * from "./bookmarkTagResponse";
 export * from "./bookmarkThumbnailResponse";
 export * from "./bookmarkThumbnailResponseStatus";
+export * from "./categoryConflictErrorResponse";
+export * from "./categoryListResponse";
+export * from "./categoryResponse";
+export * from "./createCategoryDto";
 export * from "./credentialsDto";
 export * from "./emailDto";
 export * from "./healthResponse";
@@ -30,3 +35,4 @@ export * from "./resetPasswordDto";
 export * from "./saveBookmarkDto";
 export * from "./tokenDto";
 export * from "./updateBookmarkDto";
+export * from "./updateCategoryDto";

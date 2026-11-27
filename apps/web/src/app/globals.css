@@ -201,6 +201,31 @@ body {
   font-family: var(--font-sans);
 }
 
+/* 쓰는 칸(07-BRAND §6 "입력칸 세 가지", 2026-11-22): 한 줄 텍스트는 밑줄만.
+   포커스·오류는 선 색을 바꾸고 안쪽 1px을 겹쳐 2px처럼 보이게 한다(높이가 밀리지 않는다).
+   찾는 칸(회색 면 알약)과 담는 칸(칩 상자)은 이 utility를 쓰지 않는다 */
+@utility kp-field {
+  border-style: solid;
+  /* 한 번에 정한다. `border` 유틸리티와 같이 쓰면 사방 테두리가 다시 생긴다(2026-11-22) */
+  border-width: 0 0 1px;
+  border-color: var(--input);
+  border-radius: 0;
+  background: transparent;
+  padding-left: 0.125rem;
+  padding-right: 0.125rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--focus-ring);
+    box-shadow: inset 0 -1px 0 var(--focus-ring);
+  }
+
+  &[aria-invalid="true"] {
+    border-color: var(--destructive);
+    box-shadow: inset 0 -1px 0 var(--destructive);
+  }
+}
+
 /* 키보드 포커스(07-BRAND focus-ring = 잉크, 2px + 2px 간격) */
 @utility focus-ring {
   outline: 2px solid var(--focus-ring);

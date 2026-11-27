@@ -26,6 +26,9 @@ export type BookmarkRecord = {
   faviconUrl: string | null;
   // FEAT-010 AC-19. 리다이렉트를 따라간 마지막 주소(짧은 주소 등). 응답에는 넣지 않고 표시 제목에만 쓴다
   resolvedUrl: string | null;
+  // FEAT-008. 링크당 0~1개. null = 미분류. 이름까지 함께 준다(AC-16)
+  categoryId: string | null;
+  category: { id: string; name: string } | null;
   tags: { id: string; name: string }[];
 };
 
@@ -51,6 +54,8 @@ const RECORD_SELECT = {
   thumbnailSourceUrl: true,
   faviconUrl: true,
   resolvedUrl: true,
+  categoryId: true,
+  category: { select: { id: true, name: true } },
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const satisfies Prisma.BookmarkSelect;
 
@@ -294,15 +299,16 @@ export class BookmarksRepository {
     return count === 1;
   }
 
-  // FEAT-011 AC-01·02. 활성이고 본인 것일 때만 제목을 바꾼다. 없으면 null
-  async updateTitle(
+  // FEAT-011 AC-01·02, FEAT-008 AC-09. 활성이고 본인 것일 때만 바꾼다. 주어진 항목만 고친다. 없으면 null
+  async update(
     userId: string,
     id: string,
-    title: string | null,
+    data: { title?: string | null; categoryId?: string | null },
   ): Promise<BookmarkRecord | null> {
+    if (Object.keys(data).length === 0) return this.findOwned(userId, id);
     const { count } = await this.prisma.bookmark.updateMany({
       where: { id, userId, deletedAt: null },
-      data: { title },
+      data,
     });
     return count === 1 ? this.findOwned(userId, id) : null;
   }
