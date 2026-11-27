@@ -77,7 +77,7 @@ export class BookmarksController {
     return this.toResponse(bookmark);
   }
 
-  // FEAT-002 AC-01~03. status=deleted면 휴지통
+  // FEAT-002 AC-01~03. status=deleted면 휴지통. FEAT-008 AC-11 카테고리·미분류 필터
   @Get()
   @ApiOkResponse({ type: BookmarkListResponse })
   @ApiBadRequestResponse({ type: ApiErrorResponse })
@@ -90,6 +90,7 @@ export class BookmarksController {
       query.status,
       query.limit,
       query.cursor,
+      { categoryId: query.categoryId, uncategorized: query.uncategorized },
     );
     return {
       items: page.items.map((b) => this.toResponse(b)),

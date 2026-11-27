@@ -550,3 +550,122 @@ export const useCategoriesControllerUpdate = <
     queryClient,
   );
 };
+export type categoriesControllerRemoveResponse204 = {
+  data: void;
+  status: 204;
+};
+
+export type categoriesControllerRemoveResponse401 = {
+  data: ApiErrorResponse;
+  status: 401;
+};
+
+export type categoriesControllerRemoveResponse404 = {
+  data: ApiErrorResponse;
+  status: 404;
+};
+
+export type categoriesControllerRemoveResponseSuccess =
+  categoriesControllerRemoveResponse204 & {
+    headers: Headers;
+  };
+export type categoriesControllerRemoveResponseError = (
+  categoriesControllerRemoveResponse401 | categoriesControllerRemoveResponse404
+) & {
+  headers: Headers;
+};
+
+export type categoriesControllerRemoveResponse =
+  | categoriesControllerRemoveResponseSuccess
+  | categoriesControllerRemoveResponseError;
+
+export const getCategoriesControllerRemoveUrl = (id: string) => {
+  return `/api/categories/${id}`;
+};
+
+export const categoriesControllerRemove = async (
+  id: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<categoriesControllerRemoveResponse> => {
+  return apiFetch<categoriesControllerRemoveResponse>(
+    getCategoriesControllerRemoveUrl(id),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getCategoriesControllerRemoveMutationKey = () =>
+  ["categoriesControllerRemove"] as const;
+
+export const getCategoriesControllerRemoveMutationOptions = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof categoriesControllerRemove>>,
+    TError,
+    CategoriesControllerRemoveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof apiFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof categoriesControllerRemove>>,
+  TError,
+  CategoriesControllerRemoveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCategoriesControllerRemoveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof categoriesControllerRemove>>,
+    CategoriesControllerRemoveMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return categoriesControllerRemove(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CategoriesControllerRemoveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof categoriesControllerRemove>>
+>;
+
+export type CategoriesControllerRemoveMutationError = ApiErrorResponse;
+export type CategoriesControllerRemoveMutationVariables = { id: string };
+
+export const useCategoriesControllerRemove = <
+  TError = ApiErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof categoriesControllerRemove>>,
+      TError,
+      CategoriesControllerRemoveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof apiFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof categoriesControllerRemove>>,
+  TError,
+  CategoriesControllerRemoveMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getCategoriesControllerRemoveMutationOptions(options),
+    queryClient,
+  );
+};

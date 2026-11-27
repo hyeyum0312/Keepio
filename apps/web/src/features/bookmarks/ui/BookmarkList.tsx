@@ -13,6 +13,7 @@ import { FormError, Notice } from "@/shared/ui/FormParts";
 import {
   type BookmarkStatus,
   ServerMessageError,
+  type BookmarkFilter,
   useBookmarkPages,
   useInvalidateBookmarkLists,
 } from "../model/useBookmarkPages";
@@ -45,12 +46,18 @@ export function BookmarkList({
   status,
   view = "list",
   selection,
+  filter = {},
+  emptyMessage,
 }: {
   status: BookmarkStatus;
   view?: ListView;
   selection?: ListSelection;
+  // FEAT-008 AC-11. 내 링크 칩 줄에서 고른 카테고리·미분류
+  filter?: BookmarkFilter;
+  // 거른 목록이 비었을 때의 문구(없으면 기본 문구)
+  emptyMessage?: string;
 }) {
-  const pages = useBookmarkPages(status);
+  const pages = useBookmarkPages(status, filter);
   const remove = useBookmarksControllerRemove();
   const restore = useBookmarksControllerRestore();
   const upload = useBookmarksControllerUploadThumbnail();
@@ -198,7 +205,7 @@ export function BookmarkList({
     <div className="flex flex-col gap-3">
       <FormError message={actionError} id={ERROR_ID} />
       {items.length === 0 ? (
-        <Notice>{EMPTY[status]}</Notice>
+        <Notice>{emptyMessage ?? EMPTY[status]}</Notice>
       ) : view === "list" ? (
         <ul className="divide-y divide-border-subtle rounded-2xl border border-border-subtle bg-surface">
           {items.map((b) => (

@@ -47,6 +47,27 @@ export class CategoriesRepository {
     return rows.map(toRecord).sort(compareCategories);
   }
 
+  // 내 링크 칩 줄의 "전체"·"미분류" 수(CAT-01). 활성 링크만. (user_id, category_id) 부분 인덱스로 센다
+  async countLinks(
+    userId: string,
+  ): Promise<{ totalCount: number; uncategorizedCount: number }> {
+    const [totalCount, uncategorizedCount] = await Promise.all([
+      this.prisma.bookmark.count({ where: { userId, deletedAt: null } }),
+      this.prisma.bookmark.count({
+        where: { userId, deletedAt: null, categoryId: null },
+      }),
+    ]);
+    return { totalCount, uncategorizedCount };
+  }
+
+  // AC-04. 링크는 FK ON DELETE SET NULL로 미분류가 된다(휴지통 링크 포함). 본인 것만, 지웠으면 true
+  async remove(userId: string, id: string): Promise<boolean> {
+    const { count } = await this.prisma.category.deleteMany({
+      where: { id, userId },
+    });
+    return count === 1;
+  }
+
   async countForUser(userId: string): Promise<number> {
     return this.prisma.category.count({ where: { userId } });
   }

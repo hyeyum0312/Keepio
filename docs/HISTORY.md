@@ -5,6 +5,24 @@
 
 <!-- 새 기록은 이 주석 바로 아래, 기존 기록 위에 추가한다. -->
 
+## 2026-11-27 | feat: 내 링크 카테고리 칩 줄·필터·삭제 (FEAT-008 AC-04·11)
+
+- Feature: FEAT-008 AC-04·11·17(일부), 화면 CAT-01·LINK-01
+- 목적: 내 링크를 기존 기획(CAT-01·LINK-01)대로 카테고리별로 걸러 보고, 그 화면에서 카테고리를 만들고 지울 수 있게 한다(사용자 요청).
+- 변경: API — `GET /api/bookmarks`에 `categoryId`·`uncategorized` 필터(함께 주면 400, 휴지통에도 적용, 기존 `bookmarks_active_category_idx` 사용), `GET /api/categories`에 `totalCount`·`uncategorizedCount`, `DELETE /api/categories/:id`(204, 링크는 FK SET NULL로 미분류, 없거나 남의 것 404). 마이그레이션 `20261127010000_add_bookmarks_category_id_index`(삭제 시 SET NULL이 표 전체를 훑지 않게). OpenAPI 클라이언트 재생성. web — 칩 줄 `CategoryChips`(전체·미분류·카테고리별 링크 수, + 카테고리, [관리]), 관리 모달 `CategoryManage`(고정·삭제, 링크가 있으면 확인, 0개면 바로), 목록 제목을 고른 칩 이름으로("정리한 링크" → "전체"), 링크 목록 무효화 때 카테고리 목록도 다시 받음(칩의 수). 문서 FEAT-008·CAT-01·LINK-01 갱신.
+- 영향: 내 링크 화면, 카테고리 API 응답에 필드 두 개 추가(기존 필드 그대로), `GET /api/bookmarks` 선택 쿼리 추가. 홈·휴지통 동작은 그대로. 비용: 카테고리 목록 요청마다 COUNT 2회(사용자 범위, 인덱스 사용), 인덱스 1개 추가.
+- 검증: apps/api `npm run test:integration` PASS(131, 새 6건) · `vitest run` PASS(177) · `tsc --noEmit`·eslint PASS. apps/web `vitest run` PASS(125, 새 10건) · `tsc --noEmit`·eslint PASS. `prettier --check .` PASS. 리눅스 VM, Prisma 엔진 다운로드가 막혀 마이그레이션 SQL은 psql로 적용했다(사용자 Mac에서 `npm run db:migrate` 필요). 웹 빌드는 Google Fonts에 닿지 않아 미실행. 브라우저 확인 미실행.
+- 주의/롤백: 이 커밋 revert + `DROP INDEX "bookmarks_category_id_idx"`(migration.sql 주석). 지운 카테고리는 되돌릴 수 없다(링크는 미분류로 남는다). 이름 바꾸기·합치기·별칭·`tag` 필터는 다음 범위.
+
+## 2026-11-27 | fix(web): 홈에서 만든 카테고리가 골라진 채로 남게
+
+- Feature: FEAT-008 AC-13, FEAT-009
+- 목적: 홈 최근 추가한 링크에서 카테고리를 만들면 그 카테고리가 골라져 있어야 하는데(사용자 요청) 그렇지 않았다. 원인 두 가지: ① 만들기 콜백이 오류 문구만 돌려줘 화면이 만든 카테고리 ID를 몰랐다 ② 적용 뒤 목록을 다시 받으면 "미분류 먼저" 순서 때문에 그 링크가 뒤로 밀려 다른 링크가 현재 카드가 되고, 줄에 key가 없어 이전 링크의 고른 값이 남았다.
+- 변경: `CreateCategoryResult`(`{ ok, categoryId } | { ok: false, message }`)로 만들기 결과에 ID를 담는다(409면 기존 카테고리 ID). `TriageRow`(0개에서 만들기)와 `CategoryPicker`(맨 아래 만들기)가 그 ID를 고른다. `useTriageQueue`는 보고 있는 링크를 건너뛰기·저장 전까지 그 자리에 둔다. 홈 줄에 `key={link.id}`. 내 링크 칩 줄에서 쓸 만들기 전용 `useCreateCategory`를 함께 추가(아직 쓰는 곳 없음).
+- 영향: 홈 최근 추가한 링크 줄, 고르기 부품. API 변경 없음.
+- 검증: apps/web `npx vitest run` PASS(115 tests, 새 테스트 4개). 새 테스트 3개는 수정을 빼면 실패하는 것을 확인했다. `tsc --noEmit`·eslint PASS — 리눅스 VM. 브라우저 확인은 미실행.
+- 주의/롤백: 이 커밋 revert. 보고 있는 링크가 목록에서 사라지면(삭제 등) 남은 것 중 맨 앞으로 넘어간다.
+
 ## 2026-11-27 | fix(web): 링크 저장 입력칸·[저장] 높이 52px → 48px
 
 - Feature: FEAT-001 (화면 HOME-02 저장 카드)

@@ -9,4 +9,8 @@ import type { CategoryResponse } from "./categoryResponse";
 export interface CategoryListResponse {
   /** 이름순(ko) */
   items: CategoryResponse[];
+  /** 활성 링크 전체 수(휴지통 제외) */
+  totalCount: number;
+  /** 카테고리가 없는 활성 링크 수(D-02) */
+  uncategorizedCount: number;
 }

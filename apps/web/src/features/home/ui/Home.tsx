@@ -92,6 +92,8 @@ export function Home({ openSave = false }: { openSave?: boolean }) {
           <TriageRow link={SAMPLE_TRIAGE} createCategory onSkip={() => {}} />
         ) : queue.current ? (
           <TriageRow
+            // 링크가 바뀌면 줄 상태(고른 카테고리·만들기 입력)를 새로 시작한다
+            key={queue.current.id}
             createCategory
             link={queue.current}
             categories={categories.data?.items ?? []}

@@ -390,6 +390,174 @@ describe("/api/categories (FEAT-008)", () => {
     expect(cleared.body.category).toBeNull();
   });
 
+  async function listIds(userId: string, query: string) {
+    const res = await request(app.getHttpServer())
+      .get(`/api/bookmarks?${query}`)
+      .set("Authorization", await auth(userId));
+    expect(res.status).toBe(200);
+    return (res.body.items as { id: string }[]).map((b) => b.id);
+  }
+
+  it("AC-11: 목록을 카테고리·미분류로 거른다. 둘을 함께 주거나 값이 틀리면 400", async () => {
+    const userId = await newUser();
+    const travel = await create(userId, "여행");
+    const inTravel = await save(userId, "https://example.com/filter/a");
+    await patch(userId, inTravel.body.id, { categoryId: travel.body.id });
+    const loose = await save(userId, "https://example.com/filter/b");
+
+    expect(await listIds(userId, `categoryId=${travel.body.id}`)).toEqual([
+      inTravel.body.id,
+    ]);
+    expect(await listIds(userId, "uncategorized=true")).toEqual([
+      loose.body.id,
+    ]);
+    // false는 거르지 않는다
+    expect(await listIds(userId, "uncategorized=false")).toEqual([
+      loose.body.id,
+      inTravel.body.id,
+    ]);
+
+    for (const query of [
+      `categoryId=${travel.body.id}&uncategorized=true`,
+      "uncategorized=yes",
+      "categoryId=not-a-uuid",
+    ]) {
+      const res = await request(app.getHttpServer())
+        .get(`/api/bookmarks?${query}`)
+        .set("Authorization", await auth(userId));
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe("VALIDATION_FAILED");
+    }
+  });
+
+  it("AC-11: 남의 카테고리로 거르면 빈 목록이고, 휴지통도 카테고리로 거른다", async () => {
+    const owner = await newUser();
+    const other = await newUser();
+    const theirs = await create(owner, "비밀");
+    const link = await save(owner, "https://example.com/filter/secret");
+    await patch(owner, link.body.id, { categoryId: theirs.body.id });
+
+    expect(await listIds(other, `categoryId=${theirs.body.id}`)).toEqual([]);
+
+    await request(app.getHttpServer())
+      .delete(`/api/bookmarks/${link.body.id}`)
+      .set("Authorization", await auth(owner));
+    expect(
+      await listIds(owner, `status=deleted&categoryId=${theirs.body.id}`),
+    ).toEqual([link.body.id]);
+    expect(await listIds(owner, `categoryId=${theirs.body.id}`)).toEqual([]);
+  });
+
+  it("AC-11: 카테고리로 거른 목록도 키셋 페이지가 끊김 없이 이어진다", async () => {
+    const userId = await newUser();
+    const cat = await create(userId, "페이지");
+    const ids: string[] = [];
+    for (const n of [1, 2, 3]) {
+      const res = await save(userId, `https://example.com/page/${n}`);
+      await patch(userId, res.body.id, { categoryId: cat.body.id });
+      ids.unshift(res.body.id);
+    }
+    await save(userId, "https://example.com/page/other");
+
+    const first = await request(app.getHttpServer())
+      .get(`/api/bookmarks?categoryId=${cat.body.id}&limit=2`)
+      .set("Authorization", await auth(userId));
+    const second = await request(app.getHttpServer())
+      .get(
+        `/api/bookmarks?categoryId=${cat.body.id}&limit=2&cursor=${encodeURIComponent(first.body.nextCursor)}`,
+      )
+      .set("Authorization", await auth(userId));
+    expect(
+      [...first.body.items, ...second.body.items].map(
+        (b: { id: string }) => b.id,
+      ),
+    ).toEqual(ids);
+    expect(second.body.nextCursor).toBeNull();
+  });
+
+  it("칩 줄 수: 목록은 활성 링크 전체 수와 미분류 수를 함께 준다(휴지통 제외)", async () => {
+    const userId = await newUser();
+    expect((await list(userId)).body).toMatchObject({
+      items: [],
+      totalCount: 0,
+      uncategorizedCount: 0,
+    });
+
+    const cat = await create(userId, "여행");
+    const a = await save(userId, "https://example.com/count/a");
+    await patch(userId, a.body.id, { categoryId: cat.body.id });
+    await save(userId, "https://example.com/count/b");
+    const trashed = await save(userId, "https://example.com/count/c");
+    await request(app.getHttpServer())
+      .delete(`/api/bookmarks/${trashed.body.id}`)
+      .set("Authorization", await auth(userId));
+
+    expect((await list(userId)).body).toMatchObject({
+      totalCount: 2,
+      uncategorizedCount: 1,
+    });
+  });
+
+  async function remove(userId: string, id: string) {
+    return request(app.getHttpServer())
+      .delete(`/api/categories/${id}`)
+      .set("Authorization", await auth(userId));
+  }
+
+  it("AC-04: 카테고리를 지우면 링크는 남고 미분류가 된다(휴지통 링크 포함)", async () => {
+    const userId = await newUser();
+    const travel = await create(userId, "여행");
+    const active = await save(userId, "https://example.com/del/a");
+    const trashed = await save(userId, "https://example.com/del/b");
+    await patch(userId, active.body.id, { categoryId: travel.body.id });
+    await patch(userId, trashed.body.id, { categoryId: travel.body.id });
+    await request(app.getHttpServer())
+      .delete(`/api/bookmarks/${trashed.body.id}`)
+      .set("Authorization", await auth(userId));
+
+    const res = await remove(userId, travel.body.id);
+    expect(res.status).toBe(204);
+
+    const rows = await prisma.bookmark.findMany({
+      where: { id: { in: [active.body.id, trashed.body.id] } },
+      select: { categoryId: true, deletedAt: true },
+    });
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.categoryId === null)).toBe(true);
+    expect((await list(userId)).body).toMatchObject({
+      items: [],
+      totalCount: 1,
+      uncategorizedCount: 1,
+    });
+    // 같은 이름으로 다시 만들 수 있다
+    expect((await create(userId, "여행")).status).toBe(201);
+  });
+
+  it("AC-04·07: 이미 지웠거나 없거나 남의 카테고리를 지우면 404이고 남의 것은 그대로다", async () => {
+    const owner = await newUser();
+    const other = await newUser();
+    const theirs = await create(owner, "비밀");
+    const mine = await create(other, "내 것");
+    await remove(other, mine.body.id);
+
+    for (const id of [
+      theirs.body.id,
+      mine.body.id,
+      "00000000-0000-4000-8000-000000000000",
+      "not-a-uuid",
+    ]) {
+      const res = await remove(other, id);
+      expect(res.status).toBe(404);
+      expect(res.body).toMatchObject({
+        code: "NOT_FOUND",
+        message: "카테고리를 찾을 수 없어요.",
+      });
+    }
+    expect(await prisma.category.count({ where: { id: theirs.body.id } })).toBe(
+      1,
+    );
+  });
+
   it("AC-12: 100개를 넘기면 422", async () => {
     const userId = await newUser();
     await prisma.category.createMany({

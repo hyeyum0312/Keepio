@@ -17,4 +17,12 @@ export type BookmarksControllerListParams = {
    * 이전 응답의 nextCursor 그대로
    */
   cursor?: string;
+  /**
+   * 이 카테고리의 링크만
+   */
+  categoryId?: string;
+  /**
+   * true면 미분류(카테고리 없음) 링크만. categoryId와 함께 줄 수 없다
+   */
+  uncategorized?: boolean;
 };

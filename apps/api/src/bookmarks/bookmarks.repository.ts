@@ -242,16 +242,19 @@ export class BookmarksRepository {
     return found !== null;
   }
 
-  // FEAT-002 AC-01·02. limit+1개를 읽어 다음 페이지 여부를 안다. 키셋 조건: (created_at, id) < 커서
+  // FEAT-002 AC-01·02. limit+1개를 읽어 다음 페이지 여부를 안다. 키셋 조건: (created_at, id) < 커서.
+  // FEAT-008 AC-11: 카테고리·미분류 필터는 bookmarks_active_category_idx를 탄다(같은 키셋 순서)
   async listActive(
     userId: string,
     limit: number,
     after: Cursor | null,
+    filter: BookmarkFilter = {},
   ): Promise<BookmarkRecord[]> {
     const rows = await this.prisma.bookmark.findMany({
       where: {
         userId,
         deletedAt: null,
+        ...categoryWhere(filter),
         ...(after && keyset("createdAt", after)),
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -266,11 +269,13 @@ export class BookmarksRepository {
     userId: string,
     limit: number,
     after: Cursor | null,
+    filter: BookmarkFilter = {},
   ): Promise<BookmarkRecord[]> {
     const rows = await this.prisma.bookmark.findMany({
       where: {
         userId,
         deletedAt: { not: null },
+        ...categoryWhere(filter),
         ...(after && keyset("deletedAt", after)),
       },
       orderBy: [{ deletedAt: "desc" }, { id: "desc" }],
@@ -322,6 +327,15 @@ export class BookmarksRepository {
     });
     return restored ? this.findOwned(userId, restored.id) : null;
   }
+}
+
+// FEAT-008 AC-11 목록 필터. 둘 다 없으면 전체
+export type BookmarkFilter = { categoryId?: string; uncategorized?: boolean };
+
+function categoryWhere(filter: BookmarkFilter): Prisma.BookmarkWhereInput {
+  if (filter.categoryId) return { categoryId: filter.categoryId };
+  if (filter.uncategorized) return { categoryId: null };
+  return {};
 }
 
 function keyset(

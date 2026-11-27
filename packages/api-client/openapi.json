@@ -610,6 +610,25 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "이 카테고리의 링크만",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "uncategorized",
+            "required": false,
+            "in": "query",
+            "description": "true면 미분류(카테고리 없음) 링크만. categoryId와 함께 줄 수 없다",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -1167,6 +1186,50 @@
           }
         ],
         "tags": ["Categories"]
+      },
+      "delete": {
+        "operationId": "CategoriesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "링크는 남고 미분류가 된다"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Categories"]
       }
     }
   },
@@ -1565,9 +1628,17 @@
             "items": {
               "$ref": "#/components/schemas/CategoryResponse"
             }
+          },
+          "totalCount": {
+            "type": "number",
+            "description": "활성 링크 전체 수(휴지통 제외)"
+          },
+          "uncategorizedCount": {
+            "type": "number",
+            "description": "카테고리가 없는 활성 링크 수(D-02)"
           }
         },
-        "required": ["items"]
+        "required": ["items", "totalCount", "uncategorizedCount"]
       },
       "CreateCategoryDto": {
         "type": "object",
